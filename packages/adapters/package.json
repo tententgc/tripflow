@@ -1,0 +1,21 @@
+{
+  "name": "@tripflow/adapters",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "openai": "^4.47.0",
+    "firebase-admin": "^12.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  },
+  "peerDependencies": {
+    "@tripflow/types": "*",
+    "@tripflow/utils": "*"
+  }
+}

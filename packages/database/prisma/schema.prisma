@@ -1,0 +1,507 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Supabase Singapore region
+}
+
+// ── OPERATORS (Tour Companies) ────────────────────────────────
+
+model Operator {
+  id            String   @id @default(cuid())
+  name          String                           // "บริษัท ทัวร์ไทย จำกัด"
+  nameEn        String?
+  logoUrl       String?
+  primaryColor  String   @default("#2563EB")
+  phone         String?
+  email         String
+  lineId        String?                          // LINE OA for Thai operators
+  website       String?
+  plan          PlanTier @default(STARTER)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  tours         Tour[]
+  staff         OperatorStaff[]
+}
+
+model OperatorStaff {
+  id         String       @id @default(cuid())
+  operatorId String
+  userId     String
+  role       StaffRole    @default(STAFF)
+  operator   Operator @relation(fields: [operatorId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+  @@unique([operatorId, userId])
+}
+
+// ── USERS ─────────────────────────────────────────────────────
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String                           // Thai name: "สมชาย ใจดี"
+  nameEn          String?                          // Passport name
+  phone           String?                          // Thai: +66-8X-XXX-XXXX
+  avatarUrl       String?
+  nationality     String   @default("TH")
+  passportNo      String?                          // Encrypted AES-256
+  passportExpiry  DateTime?
+  locale          String   @default("th")          // th | en
+  timezone        String   @default("Asia/Bangkok")
+  // Push tokens — register both, use based on destination
+  fcmToken        String?                          // Firebase (non-China)
+  jpushId         String?                          // JPush (China)
+  systemRole      SystemRole @default(TRAVELER)
+  createdAt       DateTime @default(now())
+
+  tourMembers     TourMember[]
+  staffRoles      OperatorStaff[]
+  expensesPaid    Expense[]
+  expenseShares   ExpenseParticipant[]
+  notifications   Notification[]
+  checklistChecks ChecklistCheck[]
+}
+
+// ── TOURS ─────────────────────────────────────────────────────
+
+model Tour {
+  id              String     @id @default(cuid())
+  operatorId      String
+  title           String                           // "ทัวร์จีน ปักกิ่ง-กำแพงเมืองจีน 6 วัน"
+  titleEn         String?
+  description     String?
+  coverImageUrl   String?
+  countries       String[]                         // ["CN"] or ["JP","KR"] or ["FR","IT","CH"]
+  primaryCountry  String                           // Main destination ISO2
+  cities          String[]                         // ["Beijing","Shanghai"]
+  startDate       DateTime
+  endDate         DateTime
+  timezone        String                           // Main timezone e.g. "Asia/Shanghai"
+  status          TourStatus @default(DRAFT)
+  maxMembers      Int?
+  currency        String     @default("THB")       // Base currency always THB
+  destCurrency    String?                          // Destination currency e.g. "CNY","JPY"
+  isChina         Boolean    @default(false)       // Pre-computed: any(countries) == 'CN'
+  tourCode        String?    @unique               // Short code e.g. "CN2026-04"
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  operator        Operator   @relation(fields: [operatorId], references: [id])
+  members         TourMember[]
+  days            TourDay[]
+  flights         FlightInfo[]
+  contacts        ImportantContact[]
+  checklists      Checklist[]
+  expenses        Expense[]
+  notifications   Notification[]
+  documents       TourDocument[]
+  emergencyInfo   EmergencyInfo?
+  chatMessages    ChatMessage[]
+  usefulPhrases   UsefulPhrase[]                   // Thai→destination language phrases
+}
+
+model TourMember {
+  id        String     @id @default(cuid())
+  tourId    String
+  userId    String
+  role      MemberRole @default(MEMBER)
+  seatNo    String?                                // Flight seat
+  roomNo    String?                                // Hotel room
+  bedType   String?                                // "เตียงคู่" / "เตียงเดี่ยว"
+  notes     String?                                // Special requests
+  joinedAt  DateTime   @default(now())
+
+  tour      Tour @relation(fields: [tourId], references: [id])
+  user      User @relation(fields: [userId], references: [id])
+  @@unique([tourId, userId])
+}
+
+// ── ITINERARY ─────────────────────────────────────────────────
+
+model TourDay {
+  id             String   @id @default(cuid())
+  tourId         String
+  dayNumber      Int
+  date           DateTime
+  title          String                             // "วันที่ 3 — กำแพงเมืองจีน"
+  titleEn        String?
+  summary        String?
+  summaryEn      String?
+  country        String?                            // ISO2 per day (tour may cross borders)
+  city           String?
+  timezone       String?                            // Per-day timezone
+  isChina        Boolean  @default(false)           // Is this day in mainland China?
+  passType       String?                            // "Beijing Subway Card", "JR Pass"
+  passColor      String?
+  weatherLat     Float?
+  weatherLon     Float?
+  mealBreakfast  Boolean  @default(false)
+  mealLunch      Boolean  @default(false)
+  mealDinner     Boolean  @default(false)
+
+  tour           Tour @relation(fields: [tourId], references: [id])
+  activities     Activity[]
+  transports     Transport[]
+  accommodation  Accommodation?
+  dayItems       DayChecklistItem[]
+}
+
+model Activity {
+  id             String           @id @default(cuid())
+  tourDayId      String
+  order          Int              @default(0)
+  time           String?                            // "09:00"
+  title          String                             // Thai: "พระราชวังต้องห้าม"
+  titleEn        String?                            // "Forbidden City"
+  titleLocal     String?                            // Local: "故宫"
+  description    String?
+  descriptionEn  String?
+  locationName   String?
+  address        String?
+  addressLocal   String?                            // Chinese address: "北京市东城区景山前街4号"
+  country        String?
+  city           String?
+  latitude       Float?                             // WGS-84 always
+  longitude      Float?                             // WGS-84 always
+  googlePlaceId  String?
+  category       ActivityCategory
+  durationMins   Int?
+  cost           Float?
+  costCurrency   String?
+  costTHB        Float?                             // Pre-converted estimate
+  tips           String?                            // Thai tips: "ต้องจองล่วงหน้าออนไลน์"
+  tipsEn         String?
+  entryType      String?                            // "Free" / "Paid" / "Pre-book required"
+
+  tourDay        TourDay @relation(fields: [tourDayId], references: [id])
+}
+
+model Transport {
+  id             String        @id @default(cuid())
+  tourDayId      String
+  order          Int           @default(0)
+  type           TransportType
+  from           String                             // "ปักกิ่ง สถานีรถไฟ"
+  fromEn         String?                            // "Beijing Railway Station"
+  fromLocal      String?                            // "北京站"
+  fromCode       String?                            // Station/airport code
+  to             String
+  toEn           String?
+  toLocal        String?
+  toCode         String?
+  departTime     String?
+  arriveTime     String?
+  duration       String?                            // "2h 30m"
+  lineName       String?                            // "รถไฟความเร็วสูง G1"
+  lineNameLocal  String?                            // "高铁G1"
+  lineColor      String?
+  flightNo       String?
+  airline        String?
+  terminal       String?
+  platform       String?
+  passRequired   String?
+  cost           Float?
+  costCurrency   String?
+  costTHB        Float?
+  notes          String?
+  notesEn        String?
+
+  tourDay        TourDay @relation(fields: [tourDayId], references: [id])
+}
+
+model FlightInfo {
+  id              String   @id @default(cuid())
+  tourId          String
+  flightNo        String                             // "TG614"
+  airline         String                             // "Thai Airways"
+  airlineIata     String?                            // "TG"
+  fromAirport     String                             // "Suvarnabhumi"
+  fromIata        String                             // "BKK"
+  toAirport       String
+  toIata          String
+  departAt        DateTime
+  arriveAt        DateTime
+  departTz        String                             // "Asia/Bangkok"
+  arriveTz        String                             // "Asia/Shanghai"
+  terminal        String?
+  gate            String?
+  isConnection    Boolean  @default(false)
+  connectionMinutes Int?
+
+  tour            Tour @relation(fields: [tourId], references: [id])
+}
+
+model Accommodation {
+  id              String   @id @default(cuid())
+  tourDayId       String   @unique
+  name            String                             // "Holiday Inn Beijing"
+  nameLocal       String?                            // "北京假日酒店"
+  address         String?
+  addressLocal    String?                            // Full Chinese address
+  country         String?
+  city            String?
+  latitude        Float?                             // WGS-84
+  longitude       Float?                             // WGS-84
+  phone           String?
+  phoneLocal      String?                            // Local format: 010-XXXX-XXXX
+  checkIn         String?                            // "15:00"
+  checkOut        String?                            // "12:00"
+  checkInDate     DateTime?
+  checkOutDate    DateTime?
+  confirmationNo  String?
+  pin             String?
+  roomType        String?                            // "Superior Double"
+  roomTypeLocal   String?                            // "高级双床间"
+  price           Float?
+  currency        String?
+  isPaid          Boolean  @default(false)
+  wifiName        String?                            // Important for China travelers
+  wifiPassword    String?
+  breakfastInfo   String?
+  notes           String?
+
+  tourDay         TourDay @relation(fields: [tourDayId], references: [id])
+}
+
+// ── USEFUL PHRASES ────────────────────────────────────────────
+// Thai travelers in China need basic Chinese phrases
+// Key differentiator for China tours
+
+model UsefulPhrase {
+  id          String @id @default(cuid())
+  tourId      String
+  category    PhraseCategory
+  thai        String                               // Thai: "ห้องน้ำอยู่ที่ไหน"
+  english     String                               // "Where is the toilet?"
+  local       String                               // Chinese: "厕所在哪里？"
+  localPinyin String?                              // Pinyin: "Cèsuǒ zài nǎlǐ?"
+  audioUrl    String?                              // TTS audio file URL
+  order       Int    @default(0)
+
+  tour        Tour @relation(fields: [tourId], references: [id])
+}
+
+// ── CHECKLISTS ────────────────────────────────────────────────
+
+model Checklist {
+  id       String        @id @default(cuid())
+  tourId   String
+  title    String                                   // Thai: "รายการตรวจสอบวันเดินทาง"
+  titleEn  String?
+  emoji    String?
+  type     ChecklistType @default(GENERAL)
+  order    Int           @default(0)
+
+  tour     Tour @relation(fields: [tourId], references: [id])
+  items    ChecklistItem[]
+}
+
+model ChecklistItem {
+  id       String @id @default(cuid())
+  checklistId String
+  label    String                                   // Thai label
+  labelEn  String?
+  order    Int    @default(0)
+  isImportant Boolean @default(false)
+
+  checklist Checklist      @relation(fields: [checklistId], references: [id])
+  checks    ChecklistCheck[]
+}
+
+model ChecklistCheck {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    String
+  checkedAt DateTime @default(now())
+
+  item      ChecklistItem @relation(fields: [itemId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+  @@unique([itemId, userId])
+}
+
+model DayChecklistItem {
+  id       String @id @default(cuid())
+  tourDayId String
+  label    String
+  labelEn  String?
+  order    Int    @default(0)
+
+  tourDay  TourDay @relation(fields: [tourDayId], references: [id])
+}
+
+// ── EXPENSES / COST SPLIT ─────────────────────────────────────
+
+model Expense {
+  id           String          @id @default(cuid())
+  tourId       String
+  title        String
+  amount       Float
+  currency     String          @default("CNY")     // Local currency
+  amountTHB    Float?                               // Auto-converted to THB
+  category     ExpenseCategory @default(OTHER)
+  paidById     String
+  receiptUrl   String?
+  notes        String?
+  date         DateTime        @default(now())
+
+  tour         Tour @relation(fields: [tourId], references: [id])
+  paidBy       User @relation(fields: [paidById], references: [id])
+  participants ExpenseParticipant[]
+}
+
+model ExpenseParticipant {
+  id        String  @id @default(cuid())
+  expenseId String
+  userId    String
+  share     Float
+  isPaid    Boolean @default(false)
+
+  expense   Expense @relation(fields: [expenseId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  @@unique([expenseId, userId])
+}
+
+// ── CONTACTS & EMERGENCY ──────────────────────────────────────
+
+model ImportantContact {
+  id           String      @id @default(cuid())
+  tourId       String
+  name         String                               // "ไกด์จีน — คุณหลี่"
+  nameLocal    String?                              // "李导游"
+  phone        String?                              // Local number
+  phoneLocal   String?                              // Formatted locally
+  wechat       String?                              // WeChat ID — important for CN
+  line         String?                              // LINE — Thai guides use this
+  whatsapp     String?
+  type         ContactType
+  notes        String?
+
+  tour         Tour @relation(fields: [tourId], references: [id])
+}
+
+model EmergencyInfo {
+  id                String @id @default(cuid())
+  tourId            String @unique
+  // Per-country emergency numbers
+  // e.g. {"CN": {"police":"110","ambulance":"120","fire":"119","tourist":"12301"}}
+  emergencyNumbers  Json
+  embassyContacts   Json
+  // Thai Embassy contacts for destination country
+  thaiEmbassyPhone  String?
+  thaiEmbassyAddress String?
+  insuranceCompany  String?
+  insurancePolicyNo String?
+  insurancePhone    String?                         // 24hr international line
+  // China-specific
+  chinaVisaHotline  String?                         // 12301 — China tourism hotline
+  nearestHospital   String?
+  notes             String?
+
+  tour              Tour @relation(fields: [tourId], references: [id])
+}
+
+// ── DOCUMENTS ─────────────────────────────────────────────────
+
+model TourDocument {
+  id          String       @id @default(cuid())
+  tourId      String
+  title       String
+  titleEn     String?
+  type        DocumentType
+  fileUrl     String?
+  qrData      String?
+  description String?
+  isPersonal  Boolean      @default(false)
+  userId      String?
+
+  tour        Tour @relation(fields: [tourId], references: [id])
+}
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+
+model Notification {
+  id          String           @id @default(cuid())
+  tourId      String?
+  userId      String
+  title       String
+  body        String
+  type        NotificationType
+  data        Json?
+  isRead      Boolean          @default(false)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime         @default(now())
+
+  tour        Tour? @relation(fields: [tourId], references: [id])
+  user        User  @relation(fields: [userId], references: [id])
+}
+
+// ── CHAT ──────────────────────────────────────────────────────
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  tourId    String
+  userId    String?
+  role      ChatRole
+  content   String
+  createdAt DateTime @default(now())
+
+  tour      Tour @relation(fields: [tourId], references: [id])
+}
+
+// ── ENUMS ─────────────────────────────────────────────────────
+
+enum SystemRole    { SUPER_ADMIN TRAVELER }
+enum StaffRole     { OWNER MANAGER STAFF }
+enum MemberRole    { LEADER MEMBER }
+enum PlanTier      { STARTER PROFESSIONAL ENTERPRISE }
+enum TourStatus    { DRAFT PUBLISHED ACTIVE COMPLETED CANCELLED }
+
+enum ActivityCategory {
+  SIGHTSEEING FOOD TRANSPORT ACCOMMODATION
+  SHOPPING TEMPLE NATURE NIGHTLIFE PHOTOGRAPHY OTHER
+}
+
+enum TransportType {
+  FLIGHT TRAIN HIGHSPEED_TRAIN SUBWAY BUS
+  TAXI FERRY CABLE_CAR WALK TUKTUK OTHER
+}
+
+enum ChecklistType  { ARRIVAL DEPARTURE PACKING DAILY GENERAL }
+
+enum ContactType {
+  THAI_GUIDE    // Thai-speaking guide (important!)
+  LOCAL_GUIDE   // Local (Chinese/Japanese etc.) guide
+  HOTEL EMERGENCY AIRLINE BUS_OPERATOR
+  RESTAURANT INSURANCE OTHER
+}
+
+enum DocumentType {
+  FLIGHT_TICKET HOTEL_VOUCHER TOUR_VOUCHER VISA
+  QR_CODE INSURANCE PASSPORT MAP
+  VISIT_JAPAN_WEB   // Japan-specific
+  CHINA_HEALTH_KIT  // China health declaration
+  OTHER
+}
+
+enum ExpenseCategory {
+  ACCOMMODATION FOOD TRANSPORT ACTIVITY
+  SHOPPING TIPS EMERGENCY ENTRANCE_FEE OTHER
+}
+
+enum PhraseCategory {
+  GREETING DIRECTIONS FOOD SHOPPING TRANSPORT
+  HOTEL EMERGENCY NUMBERS COURTESY
+}
+
+enum NotificationType {
+  FLIGHT_REMINDER FLIGHT_DEPARTURE FLIGHT_DELAY
+  HOTEL_CHECKIN HOTEL_CHECKOUT
+  DAY_START ACTIVITY_REMINDER ARRIVAL
+  EXPENSE_ADDED GENERAL
+}
+
+enum ChatRole { USER ASSISTANT }
