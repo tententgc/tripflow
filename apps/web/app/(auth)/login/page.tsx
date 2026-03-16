@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { GoogleLoginButton } from './GoogleLoginButton'
 
 export const metadata: Metadata = { title: 'เข้าสู่ระบบ — TripFlow' }
 
@@ -14,41 +15,7 @@ export default function LoginPage() {
           <p className="text-gray-500 text-sm mt-1">เข้าสู่ระบบเพื่อดูทริปของคุณ</p>
         </div>
 
-        <form className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-            <input
-              type="email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-target"
-              placeholder="your@email.com"
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
-            <input
-              type="password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-target"
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 bg-primary-600 text-white font-semibold rounded-xl hover:bg-primary-700 active:bg-primary-800 touch-target transition-colors"
-          >
-            เข้าสู่ระบบ
-          </button>
-        </form>
-
-        <div className="mt-4 text-center">
-          <p className="text-gray-500 text-sm">
-            ยังไม่มีบัญชี?{' '}
-            <a href="/register" className="text-primary-600 font-medium">
-              สมัครสมาชิก
-            </a>
-          </p>
-        </div>
+        <GoogleLoginButton />
       </div>
     </div>
   )
