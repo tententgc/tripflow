@@ -3,11 +3,12 @@ import { db } from '@tripflow/database'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const checklists = await db.checklist.findMany({
-      where: { tourId: params.id },
+      where: { tourId: id },
       include: {
         items: {
           include: { checks: true },

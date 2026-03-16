@@ -1,37 +1,7 @@
+import { db } from '@tripflow/database'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
-
-const mockTours = [
-  {
-    id: 't1',
-    title: 'ทัวร์จีน ปักกิ่ง-กำแพงเมืองจีน 6 วัน',
-    titleEn: 'Beijing Great Wall China Tour 6 Days',
-    countries: ['CN'],
-    cities: ['ปักกิ่ง'],
-    startDate: '2026-04-01',
-    endDate: '2026-04-06',
-    status: 'PUBLISHED',
-    memberCount: 24,
-    maxMembers: 30,
-    isChina: true,
-    tourCode: 'CN2026-04',
-  },
-  {
-    id: 't2',
-    title: 'ทัวร์ญี่ปุ่น โตเกียว-โอซาก้า 7 วัน',
-    titleEn: 'Tokyo Osaka Japan Tour 7 Days',
-    countries: ['JP'],
-    cities: ['โตเกียว', 'โอซาก้า'],
-    startDate: '2026-05-10',
-    endDate: '2026-05-16',
-    status: 'DRAFT',
-    memberCount: 0,
-    maxMembers: 25,
-    isChina: false,
-    tourCode: null,
-  },
-]
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   DRAFT: { label: 'ฉบับร่าง', color: 'bg-gray-100 text-gray-600' },
@@ -42,10 +12,16 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 }
 
 const countryFlags: Record<string, string> = {
-  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭',
+  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷',
+  IT: '🇮🇹', GB: '🇬🇧', SG: '🇸🇬', AU: '🇦🇺', DE: '🇩🇪',
 }
 
-export default function ToursPage() {
+export default async function ToursPage() {
+  const tours = await db.tour.findMany({
+    include: { _count: { select: { members: true } } },
+    orderBy: { startDate: 'asc' },
+  })
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
@@ -88,7 +64,7 @@ export default function ToursPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">จัดการทัวร์</h1>
-              <p className="text-gray-500 text-sm mt-1">{mockTours.length} ทัวร์ทั้งหมด</p>
+              <p className="text-gray-500 text-sm mt-1">{tours.length} ทัวร์ทั้งหมด</p>
             </div>
             <a
               href="/tours/new"
@@ -98,63 +74,71 @@ export default function ToursPage() {
             </a>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">ทัวร์</th>
-                  <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">วันที่</th>
-                  <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สมาชิก</th>
-                  <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สถานะ</th>
-                  <th className="px-6 py-4" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {mockTours.map((tour) => {
-                  const status = statusLabels[tour.status] ?? { label: tour.status, color: 'bg-gray-100 text-gray-600' }
-                  return (
-                    <tr key={tour.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex gap-1">
-                            {tour.countries.map((c) => (
-                              <span key={c} className="text-lg">{countryFlags[c] ?? '🌍'}</span>
-                            ))}
+          {tours.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
+              <p className="text-5xl mb-4">🗺️</p>
+              <p className="font-semibold text-gray-900 text-lg">ยังไม่มีทัวร์</p>
+              <p className="text-gray-500 text-sm mt-2 mb-6">เริ่มสร้างทัวร์แรกของคุณได้เลย</p>
+              <a href="/tours/new" className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700">
+                + สร้างทัวร์ใหม่
+              </a>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">ทัวร์</th>
+                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">วันที่</th>
+                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สมาชิก</th>
+                    <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สถานะ</th>
+                    <th className="px-6 py-4" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {tours.map((tour) => {
+                    const status = statusLabels[tour.status] ?? { label: tour.status, color: 'bg-gray-100 text-gray-600' }
+                    return (
+                      <tr key={tour.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex gap-1">
+                              {tour.countries.map((c) => (
+                                <span key={c} className="text-lg">{countryFlags[c] ?? '🌍'}</span>
+                              ))}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 text-sm">{tour.title}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                {tour.isChina && <span className="text-red-500 mr-1">CN Mode</span>}
+                                {tour.tourCode ?? tour.cities.join(', ')}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 text-sm">{tour.title}</p>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                              {tour.isChina && <span className="text-red-500 mr-1">🇨🇳</span>}
-                              {tour.tourCode ?? tour.cities.join(', ')}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {tour.startDate} — {tour.endDate}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {tour.memberCount}/{tour.maxMembers ?? '∞'} คน
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <a
-                          href={`/tours/${tour.id}`}
-                          className="text-blue-600 text-sm font-medium hover:underline"
-                        >
-                          จัดการ →
-                        </a>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {new Date(tour.startDate).toLocaleDateString('th-TH')} — {new Date(tour.endDate).toLocaleDateString('th-TH')}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {tour._count.members}/{tour.maxMembers ?? '∞'} คน
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
+                            {status.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <a href={`/tours/${tour.id}`} className="text-blue-600 text-sm font-medium hover:underline">
+                            จัดการ →
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </main>
       </div>
     </div>

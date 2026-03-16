@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       data: {
         operatorId: body.operatorId,
         title: body.title,
-        titleEn: body.titleEn,
+        titleEn: body.titleEn ?? null,
         countries: body.countries,
         primaryCountry,
         cities: body.cities,
@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
         endDate: new Date(body.endDate),
         timezone: body.timezone,
         isChina,
-        maxMembers: body.maxMembers,
-        tourCode: body.tourCode,
+        maxMembers: body.maxMembers ?? null,
+        tourCode: body.tourCode ?? null,
         status: 'DRAFT',
       },
     })

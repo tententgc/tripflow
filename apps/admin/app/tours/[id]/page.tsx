@@ -1,0 +1,193 @@
+import { db } from '@tripflow/database'
+import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import TourDetailClient from './TourDetailClient'
+
+export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
+
+export default async function TourDetailPage({ params }: { params: { id: string } }) {
+  const tour = await db.tour.findUnique({
+    where: { id: params.id },
+    include: {
+      days: {
+        include: {
+          activities: { orderBy: { order: 'asc' } },
+          accommodation: true,
+        },
+        orderBy: { dayNumber: 'asc' },
+      },
+      members: { include: { user: { select: { id: true, name: true, email: true, phone: true, avatarUrl: true } } } },
+      contacts: true,
+      checklists: { include: { items: { orderBy: { order: 'asc' } } } },
+      _count: { select: { members: true } },
+    },
+  })
+
+  if (!tour) notFound()
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        <aside className="w-64 min-h-screen bg-white border-r border-gray-200 fixed left-0 top-0">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-sm">TF</span>
+              </div>
+              <div>
+                <p className="font-bold text-gray-900 text-sm">TripFlow</p>
+                <p className="text-xs text-gray-500">Admin Portal</p>
+              </div>
+            </div>
+          </div>
+          <nav className="p-4 space-y-1">
+            {[
+              { href: '/dashboard', label: 'แดชบอร์ด', icon: '📊' },
+              { href: '/tours', label: 'จัดการทัวร์', icon: '🗺️', active: true },
+              { href: '/travelers', label: 'นักเดินทาง', icon: '👥' },
+              { href: '/notifications', label: 'การแจ้งเตือน', icon: '🔔' },
+              { href: '/settings', label: 'ตั้งค่า', icon: '⚙️' },
+            ].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${'active' in item ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="ml-64 flex-1 p-8">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <a href="/tours" className="text-gray-500 hover:text-gray-700 text-sm">← ทัวร์ทั้งหมด</a>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">{tour.title}</h1>
+                <p className="text-gray-500 text-sm mt-0.5">
+                  {tour.isChina && <span className="text-red-500 mr-1">🇨🇳 China Mode</span>}
+                  {new Date(tour.startDate).toLocaleDateString('th-TH')} — {new Date(tour.endDate).toLocaleDateString('th-TH')}
+                  {' · '}{tour._count.members} สมาชิก
+                </p>
+              </div>
+            </div>
+            <TourDetailClient tour={tour} />
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            {/* Days */}
+            <div className="col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-semibold text-gray-900">กำหนดการ ({tour.days.length} วัน)</h2>
+                <a
+                  href={`/tours/${tour.id}/itinerary`}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  แก้ไขกำหนดการ →
+                </a>
+              </div>
+
+              {tour.days.length === 0 ? (
+                <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
+                  <p className="text-3xl mb-2">📅</p>
+                  <p className="text-gray-600 font-medium">ยังไม่มีกำหนดการ</p>
+                  <p className="text-gray-400 text-sm mt-1">เพิ่มวันเดินทางเพื่อเริ่มสร้างกำหนดการ</p>
+                  <a
+                    href={`/tours/${tour.id}/itinerary`}
+                    className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium"
+                  >
+                    + เพิ่มกำหนดการ
+                  </a>
+                </div>
+              ) : (
+                tour.days.map((day) => (
+                  <div key={day.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900 text-sm">วันที่ {day.dayNumber} — {day.title}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(day.date).toLocaleDateString('th-TH')}
+                          {day.city && ` · ${day.city}`}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        {day.mealBreakfast && <span className="text-xs px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full">🍳</span>}
+                        {day.mealLunch && <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">🍱</span>}
+                        {day.mealDinner && <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full">🍽️</span>}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">{day.activities.length} กิจกรรม</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Sidebar info */}
+            <div className="space-y-4">
+              {/* Members */}
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 text-sm">สมาชิก ({tour._count.members})</h3>
+                  <a href={`/tours/${tour.id}/members`} className="text-blue-600 text-xs hover:underline">จัดการ →</a>
+                </div>
+                {tour.members.length === 0 ? (
+                  <p className="text-gray-400 text-xs text-center py-2">ยังไม่มีสมาชิก</p>
+                ) : (
+                  <div className="space-y-2">
+                    {tour.members.slice(0, 5).map((m) => (
+                      <div key={m.id} className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600">
+                          {m.user.name[0]}
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-gray-900">{m.user.name}</p>
+                          <p className="text-xs text-gray-400">{m.user.email}</p>
+                        </div>
+                      </div>
+                    ))}
+                    {tour.members.length > 5 && (
+                      <p className="text-xs text-gray-400 text-center">+{tour.members.length - 5} คน</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Tour info */}
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+                <h3 className="font-semibold text-gray-900 text-sm mb-3">ข้อมูลทัวร์</h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">ประเทศ</span>
+                    <span className="text-gray-900">{tour.countries.join(', ')}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">เมือง</span>
+                    <span className="text-gray-900">{tour.cities.join(', ') || '-'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">จำนวนสูงสุด</span>
+                    <span className="text-gray-900">{tour.maxMembers ?? 'ไม่จำกัด'}</span>
+                  </div>
+                  {tour.tourCode && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Tour Code</span>
+                      <span className="text-gray-900 font-mono">{tour.tourCode}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">China Mode</span>
+                    <span className={tour.isChina ? 'text-red-600 font-medium' : 'text-gray-400'}>
+                      {tour.isChina ? 'เปิด' : 'ปิด'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  )
+}

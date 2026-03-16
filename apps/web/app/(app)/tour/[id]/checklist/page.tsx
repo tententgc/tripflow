@@ -1,114 +1,154 @@
-import { Metadata } from 'next'
+'use client'
 
-export const metadata: Metadata = { title: 'เช็คลิสต์ — TripFlow' }
+import { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 
-const mockChecklists = [
-  {
-    id: 'cl-1',
-    title: 'เตรียมเดินทางจีน',
-    emoji: '🇨🇳',
-    items: [
-      { id: 'i-1', label: 'วีซ่าจีน', isImportant: true, isChecked: true },
-      { id: 'i-2', label: 'ประกันเดินทาง', isImportant: true, isChecked: true },
-      { id: 'i-3', label: 'แลกเงินหยวน (CNY)', isImportant: true, isChecked: false },
-      { id: 'i-4', label: 'ดาวน์โหลดแผนที่ออฟไลน์', isImportant: false, isChecked: false },
-      { id: 'i-5', label: 'แจ้งธนาคารก่อนเดินทาง', isImportant: false, isChecked: true },
-      { id: 'i-6', label: 'ซื้อซิมการ์ดจีนหรือพ็อกเก็ตไวไฟ', isImportant: false, isChecked: false },
-      { id: 'i-7', label: 'เตรียมยา', isImportant: false, isChecked: false },
-    ],
-  },
-  {
-    id: 'cl-2',
-    title: 'สัมภาระ',
-    emoji: '🧳',
-    items: [
-      { id: 'i-8', label: 'หนังสือเดินทาง', isImportant: true, isChecked: false },
-      { id: 'i-9', label: 'เสื้อผ้า 6 วัน', isImportant: false, isChecked: false },
-      { id: 'i-10', label: 'Adapter ปลั๊กไฟ', isImportant: false, isChecked: false },
-      { id: 'i-11', label: 'Power Bank', isImportant: false, isChecked: false },
-    ],
-  },
-]
+interface ChecklistItem {
+  id: string
+  label: string
+  isImportant: boolean
+  checks: Array<{ userId: string }>
+}
 
-export default function ChecklistPage({ params: _params }: { params: { id: string } }) {
+interface Checklist {
+  id: string
+  title: string
+  emoji: string | null
+  items: ChecklistItem[]
+}
+
+export default function ChecklistPage() {
+  const params = useParams()
+  const tourId = params.id as string
+  const [checklists, setChecklists] = useState<Checklist[]>([])
+  const [isChina, setIsChina] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/tours/${tourId}/checklist`).then((r) => r.json()),
+      fetch(`/api/tours/${tourId}`).then((r) => r.json()),
+      fetch('/api/auth/me').then((r) => r.json()),
+    ]).then(([cl, tour, me]) => {
+      setChecklists(cl)
+      setIsChina(tour.isChina)
+      setUserId(me.id)
+      setLoading(false)
+    })
+  }, [tourId])
+
+  async function toggleItem(itemId: string, currentlyChecked: boolean) {
+    if (!userId) return
+    // Optimistic update
+    setChecklists((prev) =>
+      prev.map((cl) => ({
+        ...cl,
+        items: cl.items.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                checks: currentlyChecked
+                  ? item.checks.filter((c) => c.userId !== userId)
+                  : [...item.checks, { userId }],
+              }
+            : item
+        ),
+      }))
+    )
+    await fetch(`/api/tours/${tourId}/checklist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId, userId, checked: !currentlyChecked }),
+    })
+  }
+
+  if (loading) return <LoadingScreen />
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <div className="bg-white border-b border-gray-200 px-4 pt-safe-top pb-4">
         <div className="pt-4">
           <h1 className="text-xl font-bold text-gray-900">เช็คลิสต์</h1>
-          <p className="text-gray-500 text-sm mt-1">ทัวร์จีน ปักกิ่ง 6 วัน</p>
         </div>
       </div>
 
       <div className="px-4 py-4 space-y-4">
-        {mockChecklists.map((checklist) => {
-          const checkedCount = checklist.items.filter(i => i.isChecked).length
-          const progress = (checkedCount / checklist.items.length) * 100
-
-          return (
-            <div key={checklist.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="p-4 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{checklist.emoji}</span>
-                    <h3 className="font-semibold text-gray-900">{checklist.title}</h3>
-                  </div>
-                  <span className="text-sm text-gray-500">{checkedCount}/{checklist.items.length}</span>
-                </div>
-                {/* Progress bar */}
-                <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-600 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="divide-y divide-gray-50">
-                {checklist.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 px-4 py-3 min-h-[44px]">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      item.isChecked ? 'bg-primary-600 border-primary-600' : 'border-gray-300'
-                    }`}>
-                      {item.isChecked && <span className="text-white text-xs">✓</span>}
+        {checklists.length === 0 ? (
+          <div className="text-center py-12 text-gray-400">
+            <p className="text-4xl mb-2">✅</p>
+            <p>ยังไม่มีเช็คลิสต์</p>
+          </div>
+        ) : (
+          checklists.map((cl) => {
+            const checkedCount = cl.items.filter((i) => i.checks.some((c) => c.userId === userId)).length
+            const progress = cl.items.length > 0 ? (checkedCount / cl.items.length) * 100 : 0
+            return (
+              <div key={cl.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {cl.emoji && <span className="text-xl">{cl.emoji}</span>}
+                      <h3 className="font-semibold text-gray-900">{cl.title}</h3>
                     </div>
-                    <span className={`text-sm flex-1 ${item.isChecked ? 'line-through text-gray-400' : 'text-gray-700'}`}>
-                      {item.isImportant && !item.isChecked && <span className="text-red-500 mr-1">*</span>}
-                      {item.label}
-                    </span>
+                    <span className="text-sm text-gray-400">{checkedCount}/{cl.items.length}</span>
                   </div>
-                ))}
+                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {cl.items.map((item) => {
+                    const isChecked = item.checks.some((c) => c.userId === userId)
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleItem(item.id, isChecked)}
+                        className="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left active:bg-gray-50"
+                      >
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isChecked ? 'bg-primary-600 border-primary-600' : 'border-gray-300'}`}>
+                          {isChecked && <span className="text-white text-xs">✓</span>}
+                        </div>
+                        <span className={`text-sm flex-1 ${isChecked ? 'line-through text-gray-400' : 'text-gray-700'}`}>
+                          {item.isImportant && !isChecked && <span className="text-red-500 mr-1">*</span>}
+                          {item.label}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </div>
 
-      <BottomNav activeTab="checklist" tourId="tour-1" />
+      <BottomNav activeTab="checklist" tourId={tourId} isChina={isChina} />
     </div>
   )
 }
 
-function BottomNav({ activeTab, tourId }: { activeTab: string; tourId: string }) {
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
+
+function BottomNav({ activeTab, tourId, isChina }: { activeTab: string; tourId: string; isChina: boolean }) {
   const tabs = [
     { id: 'today', label: 'วันนี้', icon: '🏠', href: `/tour/${tourId}/today` },
     { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
-    { id: 'transport', label: 'การเดินทาง', icon: '🚌', href: `/tour/${tourId}/transport` },
     { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
+    ...(isChina ? [{ id: 'phrases', label: 'คำศัพท์', icon: '🀄', href: `/tour/${tourId}/phrases` }] : []),
     { id: 'chat', label: 'ช่วยเหลือ', icon: '💬', href: `/tour/${tourId}/chat` },
   ]
-
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
       <div className="flex">
         {tabs.map((tab) => (
-          <a
-            key={tab.id}
-            href={tab.href}
-            className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] touch-target transition-colors ${
-              activeTab === tab.id ? 'text-primary-600' : 'text-gray-400'
-            }`}
-          >
+          <a key={tab.id} href={tab.href} className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400'}`}>
             <span className="text-xl">{tab.icon}</span>
             <span className="text-xs mt-0.5">{tab.label}</span>
           </a>

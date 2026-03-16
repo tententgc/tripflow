@@ -3,11 +3,12 @@ import { db } from '@tripflow/database'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const tour = await db.tour.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         operator: true,
         members: { include: { user: true } },
@@ -41,13 +42,14 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await req.json() as Record<string, unknown>
 
     const tour = await db.tour.update({
-      where: { id: params.id },
+      where: { id },
       data: body,
     })
 

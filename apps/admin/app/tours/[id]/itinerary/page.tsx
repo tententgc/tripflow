@@ -1,20 +1,22 @@
 import { db } from '@tripflow/database'
-import { Metadata } from 'next'
-import NewTourForm from './NewTourForm'
+import { notFound } from 'next/navigation'
+import ItineraryBuilder from './ItineraryBuilder'
 
-export const metadata: Metadata = { title: 'สร้างทัวร์ใหม่ — TripFlow Admin' }
-
-export default async function NewTourPage() {
-  // Get or create default operator
-  let operator = await db.operator.findFirst()
-  if (!operator) {
-    operator = await db.operator.create({
-      data: {
-        name: 'TripFlow Tours',
-        email: 'admin@tripflow.app',
+export default async function ItineraryPage({ params }: { params: { id: string } }) {
+  const tour = await db.tour.findUnique({
+    where: { id: params.id },
+    include: {
+      days: {
+        include: {
+          activities: { orderBy: { order: 'asc' } },
+          accommodation: true,
+        },
+        orderBy: { dayNumber: 'asc' },
       },
-    })
-  }
+    },
+  })
+
+  if (!tour) notFound()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,8 +38,6 @@ export default async function NewTourPage() {
               { href: '/dashboard', label: 'แดชบอร์ด', icon: '📊' },
               { href: '/tours', label: 'จัดการทัวร์', icon: '🗺️', active: true },
               { href: '/travelers', label: 'นักเดินทาง', icon: '👥' },
-              { href: '/notifications', label: 'การแจ้งเตือน', icon: '🔔' },
-              { href: '/settings', label: 'ตั้งค่า', icon: '⚙️' },
             ].map((item) => (
               <a
                 key={item.href}
@@ -51,13 +51,16 @@ export default async function NewTourPage() {
           </nav>
         </aside>
 
-        <main className="ml-64 flex-1 p-8 max-w-4xl">
-          <div className="mb-8 flex items-center gap-4">
-            <a href="/tours" className="text-gray-500 hover:text-gray-700 text-sm">← กลับ</a>
-            <h1 className="text-2xl font-bold text-gray-900">สร้างทัวร์ใหม่</h1>
+        <main className="ml-64 flex-1 p-8">
+          <div className="mb-6 flex items-center gap-4">
+            <a href={`/tours/${tour.id}`} className="text-gray-500 hover:text-gray-700 text-sm">← กลับ</a>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">กำหนดการ</h1>
+              <p className="text-gray-500 text-sm mt-0.5">{tour.title}</p>
+            </div>
           </div>
 
-          <NewTourForm operatorId={operator.id} />
+          <ItineraryBuilder tour={tour} />
         </main>
       </div>
     </div>

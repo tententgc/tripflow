@@ -3,15 +3,16 @@ import { db } from '@tripflow/database'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const [emergency, tour] = await Promise.all([
       db.emergencyInfo.findUnique({
-        where: { tourId: params.id },
+        where: { tourId: id },
       }),
       db.tour.findUnique({
-        where: { id: params.id },
+        where: { id },
         select: { isChina: true, countries: true },
       }),
     ])

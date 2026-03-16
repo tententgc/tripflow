@@ -4,7 +4,7 @@ import { getTourRegion } from '@tripflow/utils'
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { messages, tourContext } = await req.json() as {

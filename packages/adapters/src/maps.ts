@@ -49,8 +49,8 @@ export class AmapAdapter implements MapsAdapter {
         address: poi.address,
         lat: wgsLat,
         lon: wgsLon,
-        category: poi.type,
-        phone: poi.tel,
+        category: poi.type ?? 'OTHER',
+        ...(poi.tel != null && { phone: poi.tel }),
       }
     })
   }
@@ -116,7 +116,7 @@ export class MapboxAdapter implements MapsAdapter {
       address: f.place_name,
       lat: f.center[1] as number,
       lon: f.center[0] as number,
-      category: f.properties?.category,
+      category: f.properties?.category ?? 'OTHER',
     }))
   }
 

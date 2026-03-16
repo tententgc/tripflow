@@ -38,7 +38,7 @@ export class CloudflareR2Adapter implements StorageAdapter {
   async upload(path: string, file: Buffer | Blob, contentType: string): Promise<string> {
     const endpoint = `https://${this.accountId}.r2.cloudflarestorage.com/${this.bucket}/${path}`
 
-    const body = file instanceof Blob ? await file.arrayBuffer() : file
+    const body: BodyInit = file instanceof Blob ? await file.arrayBuffer() : (file as unknown as ArrayBuffer)
 
     const res = await fetch(endpoint, {
       method: 'PUT',

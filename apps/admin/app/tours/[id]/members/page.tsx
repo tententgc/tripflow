@@ -1,20 +1,30 @@
 import { db } from '@tripflow/database'
-import { Metadata } from 'next'
-import NewTourForm from './NewTourForm'
+import { notFound } from 'next/navigation'
+import MembersClient from './MembersClient'
 
-export const metadata: Metadata = { title: 'สร้างทัวร์ใหม่ — TripFlow Admin' }
-
-export default async function NewTourPage() {
-  // Get or create default operator
-  let operator = await db.operator.findFirst()
-  if (!operator) {
-    operator = await db.operator.create({
-      data: {
-        name: 'TripFlow Tours',
-        email: 'admin@tripflow.app',
+export default async function MembersPage({ params }: { params: { id: string } }) {
+  const tour = await db.tour.findUnique({
+    where: { id: params.id },
+    include: {
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              avatarUrl: true,
+              passportExpiry: true,
+            },
+          },
+        },
+        orderBy: { joinedAt: 'asc' },
       },
-    })
-  }
+    },
+  })
+
+  if (!tour) notFound()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -51,13 +61,13 @@ export default async function NewTourPage() {
           </nav>
         </aside>
 
-        <main className="ml-64 flex-1 p-8 max-w-4xl">
-          <div className="mb-8 flex items-center gap-4">
-            <a href="/tours" className="text-gray-500 hover:text-gray-700 text-sm">← กลับ</a>
-            <h1 className="text-2xl font-bold text-gray-900">สร้างทัวร์ใหม่</h1>
+        <main className="ml-64 flex-1 p-8">
+          <div className="mb-6 flex items-center gap-4">
+            <a href={`/tours/${tour.id}`} className="text-gray-500 hover:text-gray-700 text-sm">← {tour.title}</a>
+            <h1 className="text-xl font-bold text-gray-900">สมาชิก ({tour.members.length} คน)</h1>
           </div>
 
-          <NewTourForm operatorId={operator.id} />
+          <MembersClient tourId={tour.id} initialMembers={tour.members} />
         </main>
       </div>
     </div>

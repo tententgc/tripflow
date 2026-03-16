@@ -51,12 +51,12 @@ export class AviationStackAdapter implements FlightAdapter {
       flightNo,
       status: statusMap[flight.flight_status] ?? 'UNKNOWN',
       departureScheduled: flight.departure.scheduled ?? '',
-      departureActual: flight.departure.actual ?? undefined,
       arrivalScheduled: flight.arrival.scheduled ?? '',
-      arrivalActual: flight.arrival.actual ?? undefined,
-      gate: flight.departure.gate ?? undefined,
-      terminal: flight.departure.terminal ?? undefined,
-      delayMinutes: flight.departure.delay ?? undefined,
+      ...(flight.departure.actual != null && { departureActual: flight.departure.actual }),
+      ...(flight.arrival.actual != null && { arrivalActual: flight.arrival.actual }),
+      ...(flight.departure.gate != null && { gate: flight.departure.gate }),
+      ...(flight.departure.terminal != null && { terminal: flight.departure.terminal }),
+      ...(flight.departure.delay != null && { delayMinutes: flight.departure.delay }),
     }
   }
 }
@@ -112,12 +112,12 @@ export class VariFlightAdapter implements FlightAdapter {
       flightNo,
       status: statusMap[flight.FlightStatus] ?? 'UNKNOWN',
       departureScheduled: flight.DepartureTime ?? '',
-      departureActual: flight.ActualDepartureTime ?? undefined,
       arrivalScheduled: flight.ArrivalTime ?? '',
-      arrivalActual: flight.ActualArrivalTime ?? undefined,
-      gate: flight.DepartureGate ?? undefined,
-      terminal: flight.DepartureTerminal ?? undefined,
-      delayMinutes: flight.DelayTime ?? undefined,
+      ...(flight.ActualDepartureTime != null && { departureActual: flight.ActualDepartureTime }),
+      ...(flight.ActualArrivalTime != null && { arrivalActual: flight.ActualArrivalTime }),
+      ...(flight.DepartureGate != null && { gate: flight.DepartureGate }),
+      ...(flight.DepartureTerminal != null && { terminal: flight.DepartureTerminal }),
+      ...(flight.DelayTime != null && { delayMinutes: flight.DelayTime }),
     }
   }
 }
