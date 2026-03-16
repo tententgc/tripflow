@@ -2,9 +2,10 @@ import { db } from '@tripflow/database'
 import { notFound } from 'next/navigation'
 import MembersClient from './MembersClient'
 
-export default async function MembersPage({ params }: { params: { id: string } }) {
+export default async function MembersPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const tour = await db.tour.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       members: {
         include: {

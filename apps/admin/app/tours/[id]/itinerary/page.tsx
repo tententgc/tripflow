@@ -2,9 +2,10 @@ import { db } from '@tripflow/database'
 import { notFound } from 'next/navigation'
 import ItineraryBuilder from './ItineraryBuilder'
 
-export default async function ItineraryPage({ params }: { params: { id: string } }) {
+export default async function ItineraryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const tour = await db.tour.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       days: {
         include: {

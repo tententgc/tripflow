@@ -5,9 +5,10 @@ import TourDetailClient from './TourDetailClient'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
-export default async function TourDetailPage({ params }: { params: { id: string } }) {
+export default async function TourDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const tour = await db.tour.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       days: {
         include: {
