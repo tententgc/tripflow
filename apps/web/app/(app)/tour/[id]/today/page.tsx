@@ -1,6 +1,4 @@
-import { Metadata } from 'next'
-
-export const metadata: Metadata = { title: 'วันนี้ — TripFlow' }
+'use client'
 
 interface WeatherCardProps {
   temp: number
