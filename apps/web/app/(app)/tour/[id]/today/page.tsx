@@ -330,7 +330,7 @@ export default function TodayPage() {
                 </div>
 
                 {/* Big number */}
-                <div className="flex items-baseline gap-2 mt-4 animate-count-pulse">
+                <div className="flex items-baseline gap-2 mt-4">
                   <span
                     className="text-7xl font-black tracking-tighter drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     style={{
