@@ -185,6 +185,63 @@ div[onclick] {
 /* ─────────────────────────────────────────────────────────
    FONTS
 ───────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   CUSTOM ANIMATIONS
+───────────────────────────────────────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(3deg); }
+}
+@keyframes float-reverse {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(8px) rotate(-2deg); }
+}
+@keyframes drift-right {
+  0% { transform: translateX(-100%) rotate(15deg); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateX(400%) rotate(15deg); opacity: 0; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+@keyframes orbit {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+@keyframes progress-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(251, 191, 36, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.8); }
+}
+@keyframes count-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@layer utilities {
+  .animate-float { animation: float 4s ease-in-out infinite; }
+  .animate-float-reverse { animation: float-reverse 5s ease-in-out infinite; }
+  .animate-drift-right { animation: drift-right 12s linear infinite; }
+  .animate-shimmer {
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+  .animate-sparkle { animation: sparkle 2s ease-in-out infinite; }
+  .animate-orbit { animation: orbit 10s linear infinite; }
+  .animate-progress-glow { animation: progress-glow 2s ease-in-out infinite; }
+  .animate-count-pulse { animation: count-pulse 3s ease-in-out infinite; }
+  .animate-wave { animation: wave 8s linear infinite; }
+}
+
 @font-face {
   font-family: 'Noto Sans Thai';
   font-style: normal;
