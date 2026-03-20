@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface Member {
   id: string
@@ -18,21 +18,65 @@ interface Member {
   }
 }
 
+interface UserResult {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  avatarUrl: string | null
+}
+
 export default function MembersClient({ tourId, initialMembers }: { tourId: string; initialMembers: Member[] }) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
-  const [email, setEmail] = useState('')
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<UserResult[]>([])
+  const [showDropdown, setShowDropdown] = useState(false)
   const [adding, setAdding] = useState(false)
   const [error, setError] = useState('')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
-  async function addMember() {
-    if (!email.trim()) return
+  // Search users as user types
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!query.trim()) {
+      setResults([])
+      setShowDropdown(false)
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/travelers?simple=1&q=${encodeURIComponent(query)}`)
+        const data = await res.json() as UserResult[]
+        // Filter out already-added members
+        const memberIds = new Set(members.map((m) => m.user.id))
+        setResults(data.filter((u) => !memberIds.has(u.id)))
+        setShowDropdown(true)
+      } catch {
+        // ignore search errors
+      }
+    }, 250)
+  }, [query, members])
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  async function addMemberById(userId: string) {
     setAdding(true)
     setError('')
     try {
       const res = await fetch(`/api/tours/${tourId}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ userId }),
       })
       if (!res.ok) {
         const d = await res.json() as { error?: string }
@@ -41,7 +85,9 @@ export default function MembersClient({ tourId, initialMembers }: { tourId: stri
       }
       const member = await res.json() as Member
       setMembers((prev) => [...prev, member])
-      setEmail('')
+      setQuery('')
+      setResults([])
+      setShowDropdown(false)
     } finally {
       setAdding(false)
     }
@@ -70,25 +116,57 @@ export default function MembersClient({ tourId, initialMembers }: { tourId: stri
       {/* Add member form */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
         <h2 className="font-semibold text-gray-900 mb-4">เพิ่มสมาชิก</h2>
-        <div className="flex gap-3">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && addMember()}
-            placeholder="อีเมลของสมาชิก"
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={addMember}
-            disabled={adding || !email.trim()}
-            className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-          >
-            {adding ? 'กำลังเพิ่ม...' : '+ เพิ่ม'}
-          </button>
+        <div className="relative" ref={wrapperRef}>
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔍</span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => results.length > 0 && setShowDropdown(true)}
+                placeholder="ค้นหาจากชื่อ, อีเมล, หรือเบอร์โทร..."
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {adding && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">กำลังเพิ่ม...</span>
+              )}
+            </div>
+          </div>
+
+          {/* Dropdown results */}
+          {showDropdown && (
+            <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-gray-100 z-50 max-h-64 overflow-y-auto">
+              {results.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-400 text-center">ไม่พบผู้ใช้</div>
+              ) : (
+                results.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => addMemberById(u.id)}
+                    disabled={adding}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors text-left border-b border-gray-50 last:border-0 disabled:opacity-50"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {u.avatarUrl ? (
+                        <img src={u.avatarUrl} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-600 font-semibold text-xs">{u.name[0]}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{u.email}{u.phone ? ` · ${u.phone}` : ''}</p>
+                    </div>
+                    <span className="text-blue-500 text-xs font-medium flex-shrink-0">+ เพิ่ม</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
         </div>
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-        <p className="text-xs text-gray-400 mt-2">ถ้าอีเมลนี้ยังไม่มีบัญชี ระบบจะสร้างให้อัตโนมัติ</p>
+        <p className="text-xs text-gray-400 mt-2">พิมพ์ชื่อหรืออีเมลเพื่อค้นหาผู้ใช้ที่มีในระบบ</p>
       </div>
 
       {/* Members table */}
@@ -100,7 +178,7 @@ export default function MembersClient({ tourId, initialMembers }: { tourId: stri
           <div className="p-12 text-center">
             <p className="text-4xl mb-3">👥</p>
             <p className="text-gray-500 font-medium">ยังไม่มีสมาชิก</p>
-            <p className="text-gray-400 text-sm mt-1">เพิ่มสมาชิกด้วยอีเมลด้านบน</p>
+            <p className="text-gray-400 text-sm mt-1">ค้นหาสมาชิกด้านบน</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-50">

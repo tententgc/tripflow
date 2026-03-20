@@ -101,21 +101,16 @@ export function TopBar({
             )}
           </button>
 
-          {/* Dropdown */}
+          {/* Dropdown — fixed to escape overflow-hidden on TopBar */}
           {open && (
-            <div className="absolute right-0 top-11 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
-              <div className="px-4 py-3 border-b border-gray-100">
-                <p className="text-xs font-semibold text-gray-900 truncate">{user?.name}</p>
+            <div className="fixed right-4 top-16 w-48 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[9999]">
+              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">บัญชีของฉัน</p>
+                <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">{user?.name}</p>
               </div>
               <button
-                onClick={() => { setOpen(false); router.push('/profile') }}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
-              >
-                <span>👤</span> โปรไฟล์
-              </button>
-              <button
                 onClick={logout}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors text-left border-t border-gray-100"
+                className="w-full flex items-center gap-2.5 px-4 py-3.5 text-sm text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors text-left font-medium"
               >
                 <span>🚪</span> ออกจากระบบ
               </button>

@@ -27,12 +27,20 @@ const services = [
     shadow: 'shadow-emerald-200',
   },
   {
-    id: 'split',
-    icon: '🍽️',
-    label: 'หารค่าใช้จ่าย',
-    desc: 'หารบิลกับเพื่อนในทริปแยกชื่อได้',
-    gradient: 'from-orange-500 to-rose-500',
-    shadow: 'shadow-orange-200',
+    id: 'checklist',
+    icon: '✅',
+    label: 'เช็คลิสต์',
+    desc: 'รายการที่ต้องเตรียมและทำในทริป',
+    gradient: 'from-violet-500 to-purple-600',
+    shadow: 'shadow-violet-200',
+  },
+  {
+    id: 'fund',
+    icon: '🏦',
+    label: 'เงินกองกลาง',
+    desc: 'เก็บเงินรวม และตัดจ่ายค่าใช้จ่ายกลุ่ม',
+    gradient: 'from-emerald-500 to-teal-600',
+    shadow: 'shadow-emerald-200',
   },
 ]
 
@@ -43,11 +51,11 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
   const tabs = [
     { id: 'today',     label: 'วันนี้',    icon: '🏠', href: `/tour/${tourId}/today` },
     { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
-    { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
+    { id: 'split',     label: 'หารตังค์',  icon: '🍽️', href: `/tour/${tourId}/split` },
     { id: 'documents', label: 'ตั๋ว',      icon: '🎫', href: `/tour/${tourId}/documents` },
   ]
 
-  const isMoreActive = activeTab === 'chat' || activeTab === 'calculator' || activeTab === 'split'
+  const isMoreActive = activeTab === 'chat' || activeTab === 'calculator' || activeTab === 'checklist' || activeTab === 'fund'
 
   return (
     <>
