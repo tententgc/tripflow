@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 interface Day {
   id: string
@@ -62,7 +63,7 @@ export default function ItineraryPage() {
         ) : (
           tour.days.map((day) => (
             <a key={day.id} href={`/tour/${tourId}/day/${day.dayNumber}`} className="block">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 active:scale-[0.98] transition-transform">
+              <div className="card-interactive bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-primary-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
@@ -103,24 +104,3 @@ function LoadingScreen() {
   )
 }
 
-function BottomNav({ activeTab, tourId, isChina }: { activeTab: string; tourId: string; isChina: boolean }) {
-  const tabs = [
-    { id: 'today', label: 'วันนี้', icon: '🏠', href: `/tour/${tourId}/today` },
-    { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
-    { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
-    ...(isChina ? [{ id: 'phrases', label: 'คำศัพท์', icon: '🀄', href: `/tour/${tourId}/phrases` }] : []),
-    { id: 'chat', label: 'ช่วยเหลือ', icon: '💬', href: `/tour/${tourId}/chat` },
-  ]
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
-      <div className="flex">
-        {tabs.map((tab) => (
-          <a key={tab.id} href={tab.href} className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400'}`}>
-            <span className="text-xl">{tab.icon}</span>
-            <span className="text-xs mt-0.5">{tab.label}</span>
-          </a>
-        ))}
-      </div>
-    </nav>
-  )
-}

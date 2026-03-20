@@ -92,6 +92,52 @@ else
   echo "✓ Demo data already exists ($TOUR_COUNT tours)"
 fi
 
+# ── Helpers ──────────────────────────────────────────────
+file_hash() {
+  if command -v md5 &>/dev/null; then
+    md5 -q "$1" 2>/dev/null
+  else
+    md5sum "$1" 2>/dev/null | cut -d' ' -f1
+  fi
+}
+
+run_prisma() {
+  echo ""
+  echo "🔧 schema.prisma เปลี่ยน — regenerating Prisma client..."
+  cd packages/database && npx dotenv -e ../../.env -- npx prisma generate --silent 2>&1 | grep -E "Generated|Error" || true
+  npx dotenv -e ../../.env -- npx prisma db push --skip-generate 2>&1 | grep -E "Your|been|error|Error|✓|🚀" | head -5 || true
+  cd ../..
+  echo "✓ Prisma client updated"
+}
+
+run_install() {
+  echo ""
+  echo "📦 package.json เปลี่ยน — installing dependencies..."
+  npm install --silent
+  echo "✓ Dependencies updated"
+}
+
+start_dev() {
+  npm run dev &
+  DEV_PID=$!
+}
+
+stop_dev() {
+  if [ -n "$DEV_PID" ] && kill -0 "$DEV_PID" 2>/dev/null; then
+    kill "$DEV_PID" 2>/dev/null
+    wait "$DEV_PID" 2>/dev/null || true
+  fi
+}
+
+# ── Cleanup on exit ──────────────────────────────────────
+cleanup() {
+  echo ""
+  echo "👋 Stopping TripFlow..."
+  stop_dev
+  exit 0
+}
+trap cleanup INT TERM
+
 # ── Start ────────────────────────────────────────────────
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -101,8 +147,58 @@ echo "  🌐 Web (Traveler):  http://localhost:3000"
 echo "  🛠️  Admin:          http://localhost:3001"
 echo "  👑 Superadmin:      http://localhost:3002"
 echo ""
+echo "  Auto-reload เปิดอยู่ (schema / .env / package.json)"
 echo "  Press Ctrl+C to stop"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-npm run dev
+start_dev
+
+# ── Watch loop ───────────────────────────────────────────
+SCHEMA="packages/database/prisma/schema.prisma"
+ENVFILE=".env"
+PKG_WEB="apps/web/package.json"
+PKG_ADMIN="apps/admin/package.json"
+PKG_ROOT="package.json"
+
+HASH_SCHEMA=$(file_hash "$SCHEMA")
+HASH_ENV=$(file_hash "$ENVFILE")
+HASH_PKG="$(file_hash "$PKG_WEB")-$(file_hash "$PKG_ADMIN")-$(file_hash "$PKG_ROOT")"
+
+while true; do
+  sleep 2
+
+  NEW_SCHEMA=$(file_hash "$SCHEMA")
+  NEW_ENV=$(file_hash "$ENVFILE")
+  NEW_PKG="$(file_hash "$PKG_WEB")-$(file_hash "$PKG_ADMIN")-$(file_hash "$PKG_ROOT")"
+
+  NEEDS_RESTART=0
+
+  if [ "$HASH_SCHEMA" != "$NEW_SCHEMA" ]; then
+    HASH_SCHEMA="$NEW_SCHEMA"
+    stop_dev
+    run_prisma
+    NEEDS_RESTART=1
+  fi
+
+  if [ "$HASH_PKG" != "$NEW_PKG" ]; then
+    HASH_PKG="$NEW_PKG"
+    stop_dev
+    run_install
+    NEEDS_RESTART=1
+  fi
+
+  if [ "$HASH_ENV" != "$NEW_ENV" ]; then
+    HASH_ENV="$NEW_ENV"
+    echo ""
+    echo "⚙️  .env เปลี่ยน — restarting..."
+    stop_dev
+    NEEDS_RESTART=1
+  fi
+
+  if [ "$NEEDS_RESTART" = "1" ]; then
+    echo ""
+    echo "🔄 Restarting dev servers..."
+    start_dev
+  fi
+done

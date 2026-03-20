@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  transpilePackages: ['@tripflow/utils', '@tripflow/types', '@tripflow/adapters', '@tripflow/database'],
   serverExternalPackages: ['@prisma/client', 'prisma'],
   images: {
     remotePatterns: [

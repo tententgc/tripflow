@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 interface Document {
   id: string
@@ -274,8 +275,7 @@ export default function DocumentsPage() {
         </>
       )}
 
-      {/* Bottom nav spacer */}
-      <div className="h-24" />
+      <BottomNav activeTab="documents" tourId={tourId} isChina={tour.isChina} />
     </div>
   )
 }

@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  * { min-height: 0; }
+
+  button, a, [role="button"], [role="tab"], summary, label[for] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:disabled, [disabled] {
+    cursor: not-allowed;
+  }
+}
+
+button:not(:disabled) {
+  transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+button:not(:disabled):hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+button:not(:disabled):active {
+  filter: brightness(0.96);
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+a {
+  transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+a:hover { opacity: 0.75; }
+a:active { opacity: 0.55; }
+
+a > div, a > tr, a > li {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+a:hover > div, a:hover > tr, a:hover > li {
+  opacity: 1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+a:active > div, a:active > tr, a:active > li {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+a:hover > div.bg-white,
+a:hover > div[class*="bg-white"] {
+  background-color: #f0f7ff !important;
+}
+
+nav a {
+  transition: color 150ms ease, background-color 150ms ease;
+}
+nav a:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.5rem;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}

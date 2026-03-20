@@ -18,13 +18,152 @@
     min-height: 0;
   }
 
-  /* Safe area support for iPhone notch */
   body {
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
+
+  /* cursor on everything clickable */
+  button, a, [role="button"], [role="tab"], summary, label[for] {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:disabled, [disabled] {
+    cursor: not-allowed;
+  }
 }
 
+/* ─────────────────────────────────────────────────────────
+   GLOBAL HOVER / ACTIVE EFFECTS
+   Written as raw CSS so they apply to existing markup
+   without having to touch every component file
+───────────────────────────────────────────────────────── */
+
+/* ── 1. All <button> elements ───────────────────────────
+   Catches every button in the app regardless of className  */
+button:not(:disabled) {
+  transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+button:not(:disabled):hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+button:not(:disabled):active {
+  filter: brightness(0.96);
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* ── 2. Plain <a> links (nav items, back buttons, text links) */
+a {
+  transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease;
+}
+a:hover {
+  opacity: 0.75;
+}
+a:active {
+  opacity: 0.55;
+}
+
+/* ── 3. Cards inside <a> — override opacity, use lift instead */
+a > div,
+a > article,
+a > section {
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+a:hover > div,
+a:hover > article,
+a:hover > section {
+  opacity: 1; /* cancel parent opacity */
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+}
+a:active > div,
+a:active > article,
+a:active > section {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ── 4. White cards that sit inside <a> get a bg tint on hover */
+a:hover > div.bg-white,
+a:hover > div[class*="bg-white"] {
+  background-color: #f0f7ff !important;
+}
+
+/* ── 5. Bottom nav tabs */
+nav a {
+  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+nav a:hover {
+  opacity: 1; /* cancel global a:hover opacity */
+  background-color: rgba(0, 0, 0, 0.04);
+  border-radius: 0.75rem;
+}
+nav a:active {
+  transform: scale(0.90);
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* ── 6. Pill / badge buttons (filter tabs, category chips) */
+button[class*="rounded-full"]:not(:disabled):hover {
+  transform: scale(1.05) translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ── 7. Icon buttons (circle action buttons) */
+button[class*="rounded-full"][class*="w-10"]:not(:disabled):hover,
+button[class*="rounded-full"][class*="w-12"]:not(:disabled):hover {
+  transform: scale(1.12) translateY(0);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* ── 8. Back / header action buttons with arrow/icon text */
+button[class*="text-gray"]:not(:disabled):hover {
+  color: #111827;
+  background-color: rgba(0, 0, 0, 0.06);
+  border-radius: 0.5rem;
+  filter: none;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── 9. List / menu rows (checklist items, member rows, etc.) */
+[role="button"],
+div[onclick] {
+  transition: background-color 150ms ease, transform 150ms ease;
+  cursor: pointer;
+}
+[role="button"]:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+[role="button"]:active {
+  background-color: rgba(0, 0, 0, 0.07);
+  transform: scale(0.99);
+}
+
+/* ─────────────────────────────────────────────────────────
+   COMPONENT CLASSES  (apply these in className for fine control)
+───────────────────────────────────────────────────────── */
+@layer components {
+  .card-interactive {
+    @apply transition-all duration-150
+           hover:-translate-y-0.5 hover:shadow-lg hover:bg-blue-50/30
+           active:translate-y-0 active:shadow-sm;
+  }
+
+  .nav-tab {
+    @apply transition-all duration-150
+           hover:bg-black/5 hover:rounded-xl
+           active:scale-90;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────────────────── */
 @layer utilities {
   .touch-target {
     min-height: 44px;
@@ -38,9 +177,14 @@
   .bottom-safe {
     bottom: env(safe-area-inset-bottom);
   }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
 
-/* Thai script rendering optimization */
+/* ─────────────────────────────────────────────────────────
+   FONTS
+───────────────────────────────────────────────────────── */
 @font-face {
   font-family: 'Noto Sans Thai';
   font-style: normal;
