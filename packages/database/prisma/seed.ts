@@ -21,6 +21,29 @@ async function main() {
   console.log('✓ Operator:', operator.name)
 
   // ─────────────────────────────────────────────────────────────
+  // ADMIN STAFF — set ADMIN_EMAIL in .env to auto-grant access
+  // ─────────────────────────────────────────────────────────────
+  const adminEmail = process.env.ADMIN_EMAIL
+  if (adminEmail) {
+    let adminUser = await db.user.findUnique({ where: { email: adminEmail } })
+    if (!adminUser) {
+      adminUser = await db.user.create({
+        data: { email: adminEmail, name: 'Admin', systemRole: 'SUPER_ADMIN' },
+      })
+    } else {
+      await db.user.update({ where: { id: adminUser.id }, data: { systemRole: 'SUPER_ADMIN' } })
+    }
+    await db.operatorStaff.upsert({
+      where: { operatorId_userId: { operatorId: operator.id, userId: adminUser.id } },
+      update: {},
+      create: { operatorId: operator.id, userId: adminUser.id, role: 'OWNER' },
+    })
+    console.log('✓ Admin staff:', adminEmail)
+  } else {
+    console.log('⚠ ADMIN_EMAIL not set — skip admin staff seed')
+  }
+
+  // ─────────────────────────────────────────────────────────────
   // CHINA TOUR
   // ─────────────────────────────────────────────────────────────
   const chinaTour = await db.tour.upsert({
