@@ -32,21 +32,16 @@
 ## Getting Started
 
 ```bash
-# 1. Install dependencies
-npm install
+# 1. Clone repo
+git clone https://github.com/tententgc/tripflow.git
+cd tripflow
 
-# 2. Copy and fill environment variables
-cp .env.example .env
-
-# 3. Push database schema
-npm run db:push
-
-# 4. Seed demo data (China + Japan tours)
-npm run db:seed
-
-# 5. Start all apps
-npm run dev
+# 2. คำสั่งเดียวจบ — setup + start ทุก services
+./start.sh
 ```
+
+> ครั้งแรกที่รัน script จะสร้าง `.env` ให้อัตโนมัติ
+> กรอก `DATABASE_URL` และ Supabase keys แล้วรัน `./start.sh` อีกครั้ง
 
 ## Demo Tours
 
