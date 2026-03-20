@@ -353,30 +353,38 @@ export default function SplitPage() {
           ['create',  '➕ สร้างรายการ'],
         ] as const).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-3 text-xs font-medium transition-colors ${
-              tab === t ? 'text-orange-600 border-b-2 border-orange-500' : 'text-gray-400'
+            className={`flex-1 py-3 text-xs font-semibold transition-all duration-200 ${
+              tab === t ? 'text-orange-600 border-b-2 border-orange-500 bg-orange-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
             }`}>
             {label}
           </button>
         ))}
       </div>
 
-      <div className="px-4 py-4 space-y-3">
+      <div className="px-4 py-5 space-y-4">
 
         {/* ── SUMMARY TAB ── */}
         {tab === 'summary' && (
           <>
-            {/* Net card */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-4 text-white shadow-lg shadow-red-200">
-                <p className="text-xs text-white/70 mb-1">ฉันต้องจ่าย</p>
-                <p className="text-2xl font-bold">฿{fmt(totalOweOut)}</p>
-                <p className="text-xs text-white/60 mt-1">{iOwe.length} รายการ</p>
+            {/* Net cards */}
+            <div className="grid grid-cols-2 gap-3 animate-slide-up delay-1">
+              <div className="bg-gradient-to-br from-red-500 via-rose-500 to-pink-500 rounded-3xl p-4 text-white shadow-xl shadow-red-200/50 relative overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-white/5 blur-lg" />
+                <div className="relative">
+                  <p className="text-xs text-white/70 font-medium mb-1">ฉันต้องจ่าย</p>
+                  <p className="text-2xl font-black">฿{fmt(totalOweOut)}</p>
+                  <p className="text-[10px] text-white/50 mt-1.5">{iOwe.length} รายการ</p>
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white shadow-lg shadow-emerald-200">
-                <p className="text-xs text-white/70 mb-1">รอรับเงิน</p>
-                <p className="text-2xl font-bold">฿{fmt(totalOwedIn)}</p>
-                <p className="text-xs text-white/60 mt-1">{owedToMe.length} รายการ</p>
+              <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-4 text-white shadow-xl shadow-emerald-200/50 relative overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
+                <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
+                <div className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-white/5 blur-lg" />
+                <div className="relative">
+                  <p className="text-xs text-white/70 font-medium mb-1">รอรับเงิน</p>
+                  <p className="text-2xl font-black">฿{fmt(totalOwedIn)}</p>
+                  <p className="text-[10px] text-white/50 mt-1.5">{owedToMe.length} รายการ</p>
+                </div>
               </div>
             </div>
 
@@ -409,15 +417,16 @@ export default function SplitPage() {
               const myCatSorted = Object.entries(myCatMap).sort((a, b) => b[1] - a[1])
 
               return (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-4 pt-4 pb-2">
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">ค่าใช้จ่ายของฉัน</p>
-                    <p className="text-3xl font-bold text-gray-900">฿{fmt(myTotal)}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{myRecords.length} รายการที่เกี่ยวกับฉัน</p>
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-2 hover:shadow-md transition-shadow duration-300">
+                  <div className="px-5 pt-5 pb-3 relative">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-50 to-transparent rounded-bl-full" />
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายของฉัน</p>
+                    <p className="text-3xl font-black text-gray-900 relative">฿{fmt(myTotal)}</p>
+                    <p className="text-xs text-gray-400 mt-1">{myRecords.length} รายการที่เกี่ยวกับฉัน</p>
                   </div>
-                  <div className="mx-4 mt-3 mb-4 h-3 rounded-full overflow-hidden flex">
+                  <div className="mx-5 mb-4 h-3 rounded-full overflow-hidden flex shadow-inner">
                     {myCatSorted.map(([cat, amt]) => (
-                      <div key={cat} className={`${catColors[cat] ?? 'bg-gray-400'} h-full`}
+                      <div key={cat} className={`${catColors[cat] ?? 'bg-gray-400'} h-full transition-all duration-700`}
                         style={{ width: `${(amt / myTotal) * 100}%` }} />
                     ))}
                   </div>
@@ -426,14 +435,14 @@ export default function SplitPage() {
                       const info = CATEGORIES.find(c => c.id === cat)
                       const pct = Math.round((amt / myTotal) * 100)
                       return (
-                        <div key={cat} className="px-4 py-2.5 flex items-center gap-3">
-                          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'}`} />
-                          <span className="text-sm text-gray-700 flex-1">{info?.icon} {info?.label ?? cat}</span>
-                          <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
-                          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'}`} style={{ width: `${pct}%` }} />
+                        <div key={cat} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
+                          <div className={`w-3 h-3 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'} shadow-sm`} />
+                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.icon} {info?.label ?? cat}</span>
+                          <span className="text-xs text-gray-400 w-10 text-right font-medium">{pct}%</span>
+                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'} transition-all duration-500`} style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="text-sm font-semibold text-gray-900 w-16 text-right">฿{fmt(amt)}</span>
+                          <span className="text-sm font-bold text-gray-900 w-20 text-right">฿{fmt(amt)}</span>
                         </div>
                       )
                     })}
@@ -463,15 +472,16 @@ export default function SplitPage() {
               const catSorted = Object.entries(catMap).sort((a, b) => b[1] - a[1])
 
               return (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-4 pt-4 pb-2">
-                    <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">ค่าใช้จ่ายรวมทั้งกลุ่ม</p>
-                    <p className="text-3xl font-bold text-gray-900">฿{fmt(tripTotal)}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{groupRecords.length} รายการหารกัน</p>
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-3 hover:shadow-md transition-shadow duration-300">
+                  <div className="px-5 pt-5 pb-3 relative">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-50 to-transparent rounded-bl-full" />
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายรวมทั้งกลุ่ม</p>
+                    <p className="text-3xl font-black text-gray-900 relative">฿{fmt(tripTotal)}</p>
+                    <p className="text-xs text-gray-400 mt-1">{groupRecords.length} รายการหารกัน</p>
                   </div>
-                  <div className="mx-4 mt-3 mb-4 h-3 rounded-full overflow-hidden flex">
+                  <div className="mx-5 mb-4 h-3 rounded-full overflow-hidden flex shadow-inner">
                     {catSorted.map(([cat, amt]) => (
-                      <div key={cat} className={`${catColors[cat] ?? 'bg-gray-400'} h-full`}
+                      <div key={cat} className={`${catColors[cat] ?? 'bg-gray-400'} h-full transition-all duration-700`}
                         style={{ width: `${(amt / tripTotal) * 100}%` }} />
                     ))}
                   </div>
@@ -480,14 +490,14 @@ export default function SplitPage() {
                       const info = CATEGORIES.find(c => c.id === cat)
                       const pct = Math.round((amt / tripTotal) * 100)
                       return (
-                        <div key={cat} className="px-4 py-2.5 flex items-center gap-3">
-                          <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'}`} />
-                          <span className="text-sm text-gray-700 flex-1">{info?.icon} {info?.label ?? cat}</span>
-                          <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
-                          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'}`} style={{ width: `${pct}%` }} />
+                        <div key={cat} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
+                          <div className={`w-3 h-3 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'} shadow-sm`} />
+                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.icon} {info?.label ?? cat}</span>
+                          <span className="text-xs text-gray-400 w-10 text-right font-medium">{pct}%</span>
+                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'} transition-all duration-500`} style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="text-sm font-semibold text-gray-900 w-16 text-right">฿{fmt(amt)}</span>
+                          <span className="text-sm font-bold text-gray-900 w-20 text-right">฿{fmt(amt)}</span>
                         </div>
                       )
                     })}
@@ -498,9 +508,10 @@ export default function SplitPage() {
 
             {/* Balance per person */}
             {Object.keys(balances).length > 0 ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-50">
-                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">ยอดคงค้างระหว่างกัน</p>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-4 hover:shadow-md transition-shadow duration-300">
+                <div className="px-5 py-3.5 border-b border-gray-50 relative overflow-hidden">
+                  <div className="absolute -right-3 -top-3 w-14 h-14 rounded-full bg-indigo-50 blur-lg" />
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider relative">ยอดคงค้างระหว่างกัน</p>
                 </div>
                 {Object.values(balances).map(({ person, net }) => (
                   <div key={person.id} className="flex items-center justify-between px-4 py-3 border-b border-gray-50 last:border-0">
