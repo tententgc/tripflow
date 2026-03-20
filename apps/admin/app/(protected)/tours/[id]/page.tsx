@@ -7,6 +7,7 @@ import FlightsManager from './FlightsManager'
 import ContactsManager from './ContactsManager'
 import TourInfoEditor from './TourInfoEditor'
 import ChecklistsManager from './ChecklistsManager'
+import DocumentsManager from './DocumentsManager'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
@@ -26,6 +27,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
       flights: { orderBy: { departAt: 'asc' } },
       contacts: true,
       checklists: { include: { items: { orderBy: { order: 'asc' } } } },
+      documents: true,
       _count: { select: { members: true } },
     },
   })
@@ -125,6 +127,12 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
                 order: item.order,
               })),
             }))}
+          />
+
+          {/* Documents */}
+          <DocumentsManager
+            tourId={tour.id}
+            initialDocuments={tour.documents}
           />
         </div>
 
