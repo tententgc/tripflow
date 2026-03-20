@@ -235,7 +235,7 @@ export default function TodayPage() {
 
       <div className="px-4 -mt-2 space-y-5">
         {/* Tour info card */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden">
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden animate-slide-up delay-1 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full" />
           <p className="font-bold text-gray-900 text-sm relative">{tour.title}</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-xs text-gray-500 relative">
@@ -254,7 +254,7 @@ export default function TodayPage() {
         {/* Pre-trip: countdown + flights */}
         {isBeforeTrip && (
           <>
-            <div className="relative bg-gradient-to-br from-indigo-600 via-violet-500 to-fuchsia-500 rounded-3xl p-6 pb-5 text-white shadow-2xl overflow-hidden">
+            <div className="relative bg-gradient-to-br from-indigo-600 via-violet-500 to-fuchsia-500 rounded-3xl p-6 pb-5 text-white shadow-2xl overflow-hidden animate-slide-up delay-2 hover:shadow-[0_20px_60px_-15px_rgba(99,102,241,0.4)] transition-shadow duration-500">
               {/* === Background decoration layer === */}
               {/* Animated gradient orbs */}
               <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-pink-400/20 blur-3xl animate-float" />
@@ -383,7 +383,7 @@ export default function TodayPage() {
             </div>
 
             {tour.flights.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3 animate-slide-up delay-3">
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider px-1">✈️ เที่ยวบิน ({tour.flights.length})</p>
                 {tour.flights.map((f) => {
                     const depart = new Date(f.departAt)
@@ -400,7 +400,7 @@ export default function TodayPage() {
                     const departUtc = getUtcOffset(f.departTz)
                     const arriveUtc = getUtcOffset(f.arriveTz)
                     return (
-                      <div key={f.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative">
+                      <div key={f.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
                         {/* Background decoration */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-sky-50 to-transparent rounded-bl-full opacity-80" />
 
@@ -516,7 +516,7 @@ export default function TodayPage() {
 
         {/* Guide + contacts */}
         {(guide || tour.contacts.length > 0) && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-slide-up delay-4">
             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider px-1">📋 ผู้ติดต่อ ({tour.contacts.length})</p>
             {tour.contacts.map((c) => {
               const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : '👤'
@@ -530,7 +530,7 @@ export default function TodayPage() {
                 : 'from-gray-500 to-gray-600'
 
               return (
-                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3">
+                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                   {/* Avatar */}
                   <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                     <span className="text-lg">{typeIcon}</span>
@@ -612,13 +612,13 @@ export default function TodayPage() {
 
         {/* Before trip: Preparation checklist / During trip: Today's activities */}
         {isBeforeTrip && checklists.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-slide-up delay-5">
             {checklists.map(cl => {
               const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
               const totalCount = cl.items.length
               const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
               return (
-                <div key={cl.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div key={cl.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
                   <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-green-200/30 blur-lg" />
                     <div className="flex items-center justify-between relative">
@@ -774,7 +774,7 @@ export default function TodayPage() {
         {/* Link to full day detail */}
         <a
           href={`/tour/${tourId}/day/${currentDay.dayNumber}`}
-          className="block text-center py-3 bg-white rounded-2xl text-sm text-indigo-600 font-medium border border-gray-100 shadow-sm hover:border-indigo-200 transition-colors"
+          className="block text-center py-3 bg-white rounded-2xl text-sm text-indigo-600 font-medium border border-gray-100 shadow-sm hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-slide-up delay-6"
         >
           ดูรายละเอียดเต็ม วันที่ {currentDay.dayNumber} →
         </a>
