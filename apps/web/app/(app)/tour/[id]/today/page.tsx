@@ -202,7 +202,6 @@ function BottomNav({ activeTab, tourId, isChina }: { activeTab: string; tourId: 
     { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
     { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
     { id: 'documents', label: 'ตั๋ว', icon: '🎫', href: `/tour/${tourId}/documents` },
-    ...(isChina ? [{ id: 'phrases', label: 'คำศัพท์', icon: '🀄', href: `/tour/${tourId}/phrases` }] : []),
     { id: 'chat', label: 'ช่วยเหลือ', icon: '💬', href: `/tour/${tourId}/chat` },
   ]
 
