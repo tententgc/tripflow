@@ -257,14 +257,14 @@ export default function DayDetailPage() {
                     {activity.time && <p className="text-xs text-gray-400 mb-0.5">{activity.time}</p>}
 
                     {/* Place images — horizontal scroll gallery */}
-                    {activity.imageUrls.length > 0 && (
-                      <div className={`mb-2 ${activity.imageUrls.length === 1 ? '' : 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide'}`}>
-                        {activity.imageUrls.length === 1 ? (
+                    {(activity.imageUrls ?? []).length > 0 && (
+                      <div className={`mb-2 ${(activity.imageUrls ?? []).length === 1 ? '' : 'flex gap-2 overflow-x-auto pb-1 scrollbar-hide'}`}>
+                        {(activity.imageUrls ?? []).length === 1 ? (
                           <div className="rounded-2xl overflow-hidden w-full aspect-[16/7]">
                             <img src={activity.imageUrls[0]} alt={activity.title} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          activity.imageUrls.map((src, i) => (
+                          (activity.imageUrls ?? []).map((src, i) => (
                             <div key={i} className="flex-shrink-0 rounded-xl overflow-hidden w-48 h-32">
                               <img src={src} alt="" className="w-full h-full object-cover" />
                             </div>
