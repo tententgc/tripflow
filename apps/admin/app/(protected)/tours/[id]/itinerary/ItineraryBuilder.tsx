@@ -403,7 +403,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                             title: act.title,
                             titleLocal: act.titleLocal ?? '',
                             category: act.category,
-                            imageUrls: act.imageUrls,
+                            imageUrls: act.imageUrls ?? [],
                           }}
                           tourId={tour.id}
                           dayId={day.id}
@@ -433,7 +433,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                           onClick={() => { setEditingActivity(act.id); setAddingActivity(null) }}
                           className="w-full flex items-center gap-3 p-2 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left group"
                         >
-                          {act.imageUrls.length > 0 ? (
+                          {(act.imageUrls ?? []).length > 0 ? (
                             <div className="relative flex-shrink-0">
                               <img src={act.imageUrls[0]} alt="" className="w-12 h-10 rounded-lg object-cover" />
                               {act.imageUrls.length > 1 && (
