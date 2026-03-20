@@ -216,13 +216,12 @@ export default function TodayPage() {
                     const mins = Math.floor((durationMs % 3600000) / 60000)
                     const getUtcOffset = (tz: string) => {
                       const d = new Date()
-                      const utc = d.toLocaleString('en-US', { timeZone: 'UTC', hour: 'numeric', hour12: false })
-                      const local = d.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', hour12: false })
-                      return parseInt(local) - parseInt(utc)
+                      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(d)
+                      const offsetStr = parts.find(p => p.type === 'timeZoneName')?.value ?? ''
+                      return offsetStr.replace('GMT', 'UTC')
                     }
-                    const departOffset = getUtcOffset(f.departTz)
-                    const arriveOffset = getUtcOffset(f.arriveTz)
-                    const fmtOffset = (o: number) => `UTC${o >= 0 ? '+' : ''}${o}`
+                    const departUtc = getUtcOffset(f.departTz)
+                    const arriveUtc = getUtcOffset(f.arriveTz)
                     return (
                       <div key={f.id} className="p-4">
                         <div className="flex items-center justify-between mb-3">
@@ -250,9 +249,9 @@ export default function TodayPage() {
                             <p className="text-2xl font-bold text-gray-900">
                               {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
                             </p>
-                            <p className="text-[10px] text-gray-400">{f.departTz.replace('Asia/', '')} ({fmtOffset(departOffset)})</p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.fromIata}</p>
                             <p className="text-xs text-gray-400">{f.fromAirport}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{f.departTz.replace('Asia/', '')} ({departUtc})</p>
                           </div>
 
                           <div className="flex-1 flex flex-col items-center px-2">
@@ -269,9 +268,9 @@ export default function TodayPage() {
                             <p className="text-2xl font-bold text-gray-900">
                               {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
                             </p>
-                            <p className="text-[10px] text-gray-400">{f.arriveTz.replace('Asia/', '')} ({fmtOffset(arriveOffset)})</p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.toIata}</p>
                             <p className="text-xs text-gray-400">{f.toAirport}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{f.arriveTz.replace('Asia/', '')} ({arriveUtc})</p>
                           </div>
                         </div>
 
