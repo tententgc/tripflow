@@ -55,7 +55,7 @@ export default async function HomePage() {
             <p className="text-primary-200 text-sm">สวัสดี,</p>
             <h1 className="text-xl font-bold">{dbUser.name}</h1>
           </div>
-          <a href="/profile">
+          <a href="/profile" className="btn-icon">
             {dbUser.avatarUrl ? (
               <img src={dbUser.avatarUrl} alt="" className="w-10 h-10 rounded-full ring-2 ring-white/40" />
             ) : (
@@ -84,7 +84,7 @@ export default async function HomePage() {
             const countdown = getTripCountdown(tour.startDate, tour.endDate)
             return (
               <a key={tour.id} href={`/tour/${tour.id}/today`} className="block">
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden active:scale-[0.98] transition-transform">
+                <div className="card-interactive bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="h-28 bg-gradient-to-br from-primary-400 to-primary-600 relative">
                     {tour.coverImageUrl && (
                       <img src={tour.coverImageUrl} alt="" className="w-full h-full object-cover absolute inset-0" />

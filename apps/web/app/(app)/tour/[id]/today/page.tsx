@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { BottomNav } from '@/components/layout/BottomNav'
 
 interface TourData {
   id: string
@@ -196,25 +197,3 @@ export default function TodayPage() {
   )
 }
 
-function BottomNav({ activeTab, tourId, isChina }: { activeTab: string; tourId: string; isChina: boolean }) {
-  const tabs = [
-    { id: 'today', label: 'วันนี้', icon: '🏠', href: `/tour/${tourId}/today` },
-    { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
-    { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
-    { id: 'documents', label: 'ตั๋ว', icon: '🎫', href: `/tour/${tourId}/documents` },
-    { id: 'chat', label: 'ช่วยเหลือ', icon: '💬', href: `/tour/${tourId}/chat` },
-  ]
-
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
-      <div className="flex">
-        {tabs.map((tab) => (
-          <a key={tab.id} href={tab.href} className={`flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] transition-colors ${activeTab === tab.id ? 'text-primary-600' : 'text-gray-400'}`}>
-            <span className="text-xl">{tab.icon}</span>
-            <span className="text-xs mt-0.5">{tab.label}</span>
-          </a>
-        ))}
-      </div>
-    </nav>
-  )
-}

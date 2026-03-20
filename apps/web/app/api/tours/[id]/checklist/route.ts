@@ -26,7 +26,7 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params: _params }: { params: { id: string } }
+  _ctx: { params: Promise<{ id: string }> }
 ) {
   try {
     const { itemId, userId, checked } = await req.json() as {
