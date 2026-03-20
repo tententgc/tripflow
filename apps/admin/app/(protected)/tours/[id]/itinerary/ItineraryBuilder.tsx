@@ -24,7 +24,20 @@ interface Day {
   mealLunch: boolean
   mealDinner: boolean
   activities: Activity[]
-  accommodation: { name: string; wifiName: string | null; wifiPassword: string | null } | null
+  accommodation: {
+    id: string
+    name: string
+    nameLocal: string | null
+    address: string | null
+    phone: string | null
+    checkIn: string | null
+    checkOut: string | null
+    confirmationNo: string | null
+    wifiName: string | null
+    wifiPassword: string | null
+    roomType: string | null
+    notes: string | null
+  } | null
 }
 
 interface Tour {
@@ -323,6 +336,52 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
   const [addingActivity, setAddingActivity] = useState<string | null>(null)
   const [editingActivity, setEditingActivity] = useState<string | null>(null)
   const [addingDay, setAddingDay] = useState(false)
+  const [editingAccom, setEditingAccom] = useState<string | null>(null)
+  const [accomForm, setAccomForm] = useState({
+    name: '', nameLocal: '', address: '', phone: '',
+    checkIn: '', checkOut: '', confirmationNo: '',
+    wifiName: '', wifiPassword: '', roomType: '', notes: '',
+  })
+  const [savingAccom, setSavingAccom] = useState(false)
+
+  function startEditAccom(day: Day) {
+    setEditingAccom(day.id)
+    const a = day.accommodation
+    setAccomForm({
+      name: a?.name ?? '', nameLocal: a?.nameLocal ?? '', address: a?.address ?? '',
+      phone: a?.phone ?? '', checkIn: a?.checkIn ?? '', checkOut: a?.checkOut ?? '',
+      confirmationNo: a?.confirmationNo ?? '', wifiName: a?.wifiName ?? '',
+      wifiPassword: a?.wifiPassword ?? '', roomType: a?.roomType ?? '', notes: a?.notes ?? '',
+    })
+  }
+
+  async function saveAccom(dayId: string) {
+    if (!accomForm.name.trim()) return
+    setSavingAccom(true)
+    try {
+      const res = await fetch(`/api/tours/${tour.id}/days/${dayId}/accommodation`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accomForm),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setDays(prev => prev.map(d => d.id === dayId ? { ...d, accommodation: updated } : d))
+        setEditingAccom(null)
+      }
+    } finally {
+      setSavingAccom(false)
+    }
+  }
+
+  async function deleteAccom(dayId: string) {
+    if (!confirm('ลบที่พักของวันนี้?')) return
+    const res = await fetch(`/api/tours/${tour.id}/days/${dayId}/accommodation`, { method: 'DELETE' })
+    if (res.ok) {
+      setDays(prev => prev.map(d => d.id === dayId ? { ...d, accommodation: null } : d))
+      setEditingAccom(null)
+    }
+  }
 
   async function addDay() {
     setAddingDay(true)
@@ -470,6 +529,74 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                   ))}
                 </div>
               )}
+
+              {/* Accommodation */}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                {editingAccom === day.id ? (
+                  <div className="bg-violet-50 rounded-xl p-3 space-y-2">
+                    <p className="text-xs font-semibold text-violet-700">🏨 ที่พัก</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="text" value={accomForm.name} onChange={e => setAccomForm(p => ({ ...p, name: e.target.value }))}
+                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ชื่อโรงแรม *" autoFocus />
+                      <input type="text" value={accomForm.nameLocal} onChange={e => setAccomForm(p => ({ ...p, nameLocal: e.target.value }))}
+                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ชื่อภาษาท้องถิ่น" />
+                      <input type="text" value={accomForm.address} onChange={e => setAccomForm(p => ({ ...p, address: e.target.value }))}
+                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ที่อยู่" />
+                      <input type="text" value={accomForm.phone} onChange={e => setAccomForm(p => ({ ...p, phone: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เบอร์โทร" />
+                      <input type="text" value={accomForm.roomType} onChange={e => setAccomForm(p => ({ ...p, roomType: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ประเภทห้อง" />
+                      <input type="text" value={accomForm.checkIn} onChange={e => setAccomForm(p => ({ ...p, checkIn: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เช็คอิน (14:00)" />
+                      <input type="text" value={accomForm.checkOut} onChange={e => setAccomForm(p => ({ ...p, checkOut: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เช็คเอาต์ (12:00)" />
+                      <input type="text" value={accomForm.confirmationNo} onChange={e => setAccomForm(p => ({ ...p, confirmationNo: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="Confirmation No." />
+                      <input type="text" value={accomForm.wifiName} onChange={e => setAccomForm(p => ({ ...p, wifiName: e.target.value }))}
+                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="WiFi ชื่อ" />
+                      <input type="text" value={accomForm.wifiPassword} onChange={e => setAccomForm(p => ({ ...p, wifiPassword: e.target.value }))}
+                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="WiFi รหัส" />
+                      <input type="text" value={accomForm.notes} onChange={e => setAccomForm(p => ({ ...p, notes: e.target.value }))}
+                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="หมายเหตุ" />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => saveAccom(day.id)} disabled={savingAccom || !accomForm.name.trim()}
+                        className="flex-1 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+                        {savingAccom ? 'กำลังบันทึก...' : 'บันทึกที่พัก'}
+                      </button>
+                      <button onClick={() => setEditingAccom(null)}
+                        className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm">ยกเลิก</button>
+                      {day.accommodation && (
+                        <button onClick={() => deleteAccom(day.id)}
+                          className="px-3 py-2 text-red-400 hover:text-red-600 rounded-lg text-sm">🗑️</button>
+                      )}
+                    </div>
+                  </div>
+                ) : day.accommodation ? (
+                  <button
+                    onClick={() => startEditAccom(day)}
+                    className="w-full flex items-center gap-3 p-2.5 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors text-left group"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-violet-200 flex items-center justify-center flex-shrink-0 text-lg">🏨</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{day.accommodation.name}</p>
+                      <div className="flex gap-2 text-[10px] text-gray-500 mt-0.5">
+                        {day.accommodation.checkIn && <span>เช็คอิน {day.accommodation.checkIn}</span>}
+                        {day.accommodation.confirmationNo && <span>#{day.accommodation.confirmationNo}</span>}
+                        {day.accommodation.wifiName && <span>📶 {day.accommodation.wifiName}</span>}
+                      </div>
+                    </div>
+                    <span className="text-gray-300 group-hover:text-violet-400 flex-shrink-0 text-sm">✏️</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => startEditAccom(day)}
+                    className="w-full py-2 border border-dashed border-violet-300 text-violet-500 rounded-xl text-xs hover:bg-violet-50 transition-colors"
+                  >
+                    + เพิ่มที่พัก
+                  </button>
+                )}
+              </div>
 
               {addingActivity === day.id ? (
                 <ActivityForm
