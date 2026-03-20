@@ -5,7 +5,11 @@
       "WebFetch(domain:api.github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(gh api:*)",
-      "Bash(for f:*)"
+      "Bash(for f:*)",
+      "Bash(chmod:*)",
+      "Bash(bash setup.sh 2>&1)",
+      "Bash(cd:*)",
+      "Bash(grep:*)"
     ]
   }
 }

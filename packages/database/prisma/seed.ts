@@ -455,6 +455,132 @@ async function main() {
 
   console.log('✓ Japan tour complete')
 
+  // ─────────────────────────────────────────────────────────────
+  // DOCUMENTS — China Tour
+  // ─────────────────────────────────────────────────────────────
+  const chinaDocs = [
+    {
+      id: 'doc-cn-1',
+      title: 'ตั๋วเครื่องบิน TG614',
+      titleEn: 'TG614 Bangkok → Beijing',
+      type: 'FLIGHT_TICKET' as const,
+      qrData: 'BCBP:TG614/BKK/PEK/2026-04-10/SOMSAK JAIDEE',
+      description: 'Thai Airways TG614 • BKK → PEK • 10 เม.ย. 2569 • 00:55',
+    },
+    {
+      id: 'doc-cn-2',
+      title: 'เวาเชอร์โรงแรม Holiday Inn',
+      titleEn: 'Holiday Inn Beijing Booking',
+      type: 'HOTEL_VOUCHER' as const,
+      qrData: 'HOTEL:HOLIDAYINN-BEIJING/CN2026-04/CONF-88812345',
+      description: 'Holiday Inn Express Beijing • 10-15 เม.ย. • Conf# 88812345',
+    },
+    {
+      id: 'doc-cn-3',
+      title: 'ตั๋วพระราชวังต้องห้าม',
+      titleEn: 'Forbidden City Entrance',
+      type: 'TOUR_VOUCHER' as const,
+      qrData: 'TICKET:FORBIDDEN-CITY/2026-04-11/09:00/GROUP-30',
+      description: 'เข้าชม 11 เม.ย. • เวลา 09:00 • กลุ่ม 30 คน',
+    },
+    {
+      id: 'doc-cn-4',
+      title: 'ตั๋วกำแพงเมืองจีน (บาดาลิ่ง)',
+      titleEn: 'Great Wall Badaling Ticket',
+      type: 'TOUR_VOUCHER' as const,
+      qrData: 'TICKET:GREAT-WALL-BADALING/2026-04-12/10:00/GROUP-30',
+      description: 'เข้าชม 12 เม.ย. • เวลา 10:00 • ประตู A',
+    },
+    {
+      id: 'doc-cn-5',
+      title: 'China Health Kit',
+      titleEn: 'China Health Declaration QR',
+      type: 'CHINA_HEALTH_KIT' as const,
+      qrData: 'HEALTH:CHK/SOMSAK-JAIDEE/PASSPORT-AA1234567/2026-04-10',
+      description: 'แสดงเมื่อผ่านด่านตรวจคนเข้าเมือง',
+    },
+    {
+      id: 'doc-cn-6',
+      title: 'ประกันเดินทาง AXA',
+      titleEn: 'AXA Travel Insurance',
+      type: 'INSURANCE' as const,
+      qrData: 'AXA-TRAVEL/POL-TH2026-98765/+66-2-118-8111',
+      description: 'กรมธรรม์ POL-TH2026-98765 • แจ้งเคลม +66-2-118-8111',
+    },
+  ]
+
+  for (const doc of chinaDocs) {
+    await db.tourDocument.upsert({
+      where: { id: doc.id },
+      update: {},
+      create: { ...doc, tourId: chinaTour.id },
+    })
+  }
+  console.log('✓ China tour documents')
+
+  // ─────────────────────────────────────────────────────────────
+  // DOCUMENTS — Japan Tour
+  // ─────────────────────────────────────────────────────────────
+  const japanDocs = [
+    {
+      id: 'doc-jp-1',
+      title: 'ตั๋วเครื่องบิน TG676',
+      titleEn: 'TG676 Bangkok → Tokyo',
+      type: 'FLIGHT_TICKET' as const,
+      qrData: 'BCBP:TG676/BKK/NRT/2026-04-18/SOMSAK JAIDEE',
+      description: 'Thai Airways TG676 • BKK → NRT • 18 เม.ย. 2569 • 08:40',
+    },
+    {
+      id: 'doc-jp-2',
+      title: 'Visit Japan Web QR',
+      titleEn: 'Visit Japan Web — Immigration',
+      type: 'VISIT_JAPAN_WEB' as const,
+      qrData: 'VJW:JP-IMM/SOMSAK-JAIDEE/TH/2026-04-18',
+      description: 'แสดงที่ด่านตรวจคนเข้าเมืองญี่ปุ่น (ทดแทนกรอกบัตรขาเข้า)',
+    },
+    {
+      id: 'doc-jp-3',
+      title: 'JR Pass — 7 วัน',
+      titleEn: 'JR Pass 7-Day Ordinary',
+      type: 'TOUR_VOUCHER' as const,
+      qrData: 'JRPASS:7DAY/ORD/SOMSAK-JAIDEE/2026-04-19/2026-04-25',
+      description: 'เริ่มใช้ 19 เม.ย. • หมดอายุ 25 เม.ย. • แลกที่เคาน์เตอร์ JR',
+    },
+    {
+      id: 'doc-jp-4',
+      title: 'ตั๋ว Universal Studios Japan',
+      titleEn: 'Universal Studios Japan 1-Day',
+      type: 'TOUR_VOUCHER' as const,
+      qrData: 'USJ:1DAY/2026-04-23/SOMSAK-JAIDEE/GATE-MAIN',
+      description: 'วันที่ 23 เม.ย. • 1 วัน Studio Pass • ประตูหลัก',
+    },
+    {
+      id: 'doc-jp-5',
+      title: 'เวาเชอร์โรงแรม Shinjuku',
+      titleEn: 'Keio Plaza Hotel Tokyo Booking',
+      type: 'HOTEL_VOUCHER' as const,
+      qrData: 'HOTEL:KEIO-PLAZA-TOKYO/JP2026-04/CONF-KP556789',
+      description: 'Keio Plaza Hotel • 18-21 เม.ย. • Conf# KP556789',
+    },
+    {
+      id: 'doc-jp-6',
+      title: 'ประกันเดินทาง AXA',
+      titleEn: 'AXA Travel Insurance',
+      type: 'INSURANCE' as const,
+      qrData: 'AXA-TRAVEL/POL-TH2026-98766/+66-2-118-8111',
+      description: 'กรมธรรม์ POL-TH2026-98766 • แจ้งเคลม +66-2-118-8111',
+    },
+  ]
+
+  for (const doc of japanDocs) {
+    await db.tourDocument.upsert({
+      where: { id: doc.id },
+      update: {},
+      create: { ...doc, tourId: japanTour.id },
+    })
+  }
+  console.log('✓ Japan tour documents')
+
   console.log('\n✅ Seed complete!')
   console.log(`\nChina Tour ID: ${chinaTour.id}`)
   console.log(`Japan Tour ID: ${japanTour.id}`)

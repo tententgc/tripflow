@@ -1,7 +1,10 @@
 {
   "name": "tripflow",
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -14,11 +17,11 @@
     "start:all": "bash start.sh"
   },
   "devDependencies": {
-    "turbo": "^2.0.0",
-    "typescript": "^5.4.0",
     "@types/node": "^20.0.0",
+    "eslint": "^8.57.0",
     "prettier": "^3.2.0",
-    "eslint": "^8.57.0"
+    "turbo": "^2.8.20",
+    "typescript": "^5.4.0"
   },
   "engines": {
     "node": ">=18.0.0"
