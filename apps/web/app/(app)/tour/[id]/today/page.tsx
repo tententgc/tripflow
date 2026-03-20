@@ -235,31 +235,80 @@ export default function TodayPage() {
 
       <div className="px-4 -mt-2 space-y-3">
         {/* Tour info card */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="font-semibold text-gray-900 text-sm">{tour.title}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
-            <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''} — {tour.days[tour.days.length - 1]?.city ?? ''}</span>
-            <span>📅 {tour.days.length} วัน</span>
-            <span>👥 {tour.members.length} คน</span>
-            <span className="text-indigo-600 font-medium">วันที่ {currentDay.dayNumber}/{tour.days.length}</span>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full" />
+          <p className="font-bold text-gray-900 text-sm relative">{tour.title}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-xs text-gray-500 relative">
+            <span className="flex items-center gap-1">
+              <span className="text-sm">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
+              {tour.days[0]?.city ?? ''} — {tour.days[tour.days.length - 1]?.city ?? ''}
+            </span>
+            <span className="flex items-center gap-1"><span className="text-sm">📅</span> {tour.days.length} วัน</span>
+            <span className="flex items-center gap-1"><span className="text-sm">👥</span> {tour.members.length} คน</span>
+            <span className="bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">
+              วันที่ {currentDay.dayNumber}/{tour.days.length}
+            </span>
           </div>
         </div>
 
         {/* Pre-trip: countdown + flights */}
         {isBeforeTrip && (
           <>
-            <div className="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl p-5 text-white shadow-lg">
-              <p className="text-white/70 text-xs font-medium">ออกเดินทางอีก</p>
-              <p className="text-4xl font-bold mt-1">{daysUntilTrip} <span className="text-lg font-normal">วัน</span></p>
-              <p className="text-white/60 text-xs mt-1">
-                {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              </p>
+            <div className="relative bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-600 rounded-3xl p-6 text-white shadow-xl overflow-hidden">
+              {/* Decorative elements */}
+              <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full bg-white/10 blur-xl animate-pulse" />
+              <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 blur-lg" />
+              <div className="absolute top-4 right-12 w-3 h-3 rounded-full bg-yellow-300/60 animate-ping" style={{ animationDuration: '2s' }} />
+              <div className="absolute top-12 right-6 w-2 h-2 rounded-full bg-pink-300/50 animate-ping" style={{ animationDuration: '3s' }} />
+              <div className="absolute bottom-8 right-20 w-2.5 h-2.5 rounded-full bg-cyan-300/40 animate-ping" style={{ animationDuration: '2.5s' }} />
+              {/* Plane icon */}
+              <div className="absolute top-5 right-5 text-5xl opacity-15 rotate-12">✈️</div>
+
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
+                  <p className="text-white/80 text-xs font-semibold uppercase tracking-widest">ออกเดินทางอีก</p>
+                </div>
+
+                <div className="flex items-baseline gap-2 mt-3">
+                  <span className="text-6xl font-extrabold tracking-tight drop-shadow-lg" style={{ fontFeatureSettings: '"tnum"' }}>
+                    {daysUntilTrip}
+                  </span>
+                  <span className="text-xl font-medium text-white/80">วัน</span>
+                </div>
+
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="w-8 h-[1px] bg-white/30" />
+                  <p className="text-white/70 text-xs font-medium">
+                    {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+
+                {/* Progress bar */}
+                {(() => {
+                  const totalDays = Math.max(1, Math.ceil((tripStart.getTime() - new Date(Date.now() - 30 * 86400000).getTime()) / 86400000))
+                  const elapsed = totalDays - daysUntilTrip
+                  const pct = Math.min(100, Math.max(5, (elapsed / totalDays) * 100))
+                  return (
+                    <div className="mt-4">
+                      <div className="h-1.5 bg-white/15 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-300 to-orange-400 rounded-full transition-all duration-1000"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-white/50 mt-1.5 text-right">กำลังนับถอยหลัง...</p>
+                    </div>
+                  )
+                })()}
+              </div>
             </div>
 
             {tour.flights.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-blue-50">
-                  <h3 className="font-semibold text-sky-700 text-sm">✈️ เที่ยวบิน ({tour.flights.length})</h3>
+              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-sky-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+                  <div className="absolute -right-3 -top-3 w-14 h-14 rounded-full bg-sky-200/30 blur-lg" />
+                  <h3 className="font-bold text-sky-700 text-sm relative">✈️ เที่ยวบิน ({tour.flights.length})</h3>
                 </div>
                 <div className="divide-y divide-gray-50">
                   {tour.flights.map((f) => {
@@ -424,19 +473,30 @@ export default function TodayPage() {
               const totalCount = cl.items.length
               const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
               return (
-                <div key={cl.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-green-700 text-sm">
-                        {cl.emoji && <span className="mr-1">{cl.emoji}</span>}
+                <div key={cl.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
+                    <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-green-200/30 blur-lg" />
+                    <div className="flex items-center justify-between relative">
+                      <h3 className="font-bold text-green-700 text-sm">
+                        {cl.emoji && <span className="mr-1.5 text-base">{cl.emoji}</span>}
                         {cl.title}
                       </h3>
-                      <span className="text-xs text-green-600 font-medium">{checkedCount}/{totalCount}</span>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                        checkedCount === totalCount && totalCount > 0
+                          ? 'bg-green-500 text-white'
+                          : 'bg-green-100 text-green-700'
+                      }`}>
+                        {checkedCount === totalCount && totalCount > 0 ? '✓ ครบแล้ว' : `${checkedCount}/${totalCount}`}
+                      </span>
                     </div>
                     {totalCount > 0 && (
-                      <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="mt-3 h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
                         <div
-                          className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-300"
+                          className={`h-full rounded-full transition-all duration-500 ease-out ${
+                            checkedCount === totalCount
+                              ? 'bg-gradient-to-r from-green-400 to-emerald-400'
+                              : 'bg-gradient-to-r from-green-400 to-teal-400'
+                          }`}
                           style={{ width: `${progress}%` }}
                         />
                       </div>
@@ -449,19 +509,21 @@ export default function TodayPage() {
                         <button
                           key={item.id}
                           onClick={() => toggleCheck(item.id, isChecked)}
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+                          className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all duration-200 ${
+                            isChecked ? 'bg-green-50/50' : 'active:bg-gray-50'
+                          }`}
                           style={{ minHeight: '48px' }}
                         >
-                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
                             isChecked
-                              ? 'bg-green-500 border-green-500'
-                              : 'border-gray-300'
+                              ? 'bg-green-500 border-green-500 scale-110 shadow-sm shadow-green-200'
+                              : 'border-gray-300 hover:border-green-400'
                           }`}>
-                            {isChecked && <span className="text-white text-xs">✓</span>}
+                            {isChecked && <span className="text-white text-xs font-bold">✓</span>}
                           </div>
-                          <span className={`text-sm flex-1 ${
-                            isChecked ? 'text-gray-400 line-through' : 'text-gray-800'
-                          } ${item.isImportant ? 'font-medium' : ''}`}>
+                          <span className={`text-sm flex-1 transition-all duration-200 ${
+                            isChecked ? 'text-gray-400 line-through decoration-green-400' : 'text-gray-800'
+                          } ${item.isImportant ? 'font-semibold' : ''}`}>
                             {item.label}
                             {item.isImportant && <span className="text-red-500 ml-0.5">*</span>}
                           </span>
