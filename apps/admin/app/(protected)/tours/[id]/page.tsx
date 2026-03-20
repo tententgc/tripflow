@@ -2,6 +2,7 @@ import { db } from '@tripflow/database'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import TourDetailClient from './TourDetailClient'
+import CoverImageEditor from './CoverImageEditor'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
@@ -120,6 +121,9 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
               </div>
             )}
           </div>
+
+          {/* Cover Image */}
+          <CoverImageEditor tourId={tour.id} currentUrl={tour.coverImageUrl ?? null} />
 
           {/* Tour info */}
           <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">

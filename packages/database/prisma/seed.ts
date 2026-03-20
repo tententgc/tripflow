@@ -48,9 +48,10 @@ async function main() {
   // ─────────────────────────────────────────────────────────────
   const chinaTour = await db.tour.upsert({
     where: { tourCode: 'CN2026-04' },
-    update: {},
+    update: { coverImageUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&q=80' },
     create: {
       operatorId: operator.id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=800&q=80',
       title: 'ทัวร์จีน ปักกิ่ง-กำแพงเมืองจีน 6 วัน 5 คืน',
       titleEn: 'Beijing Great Wall China Tour 6D5N',
       countries: ['CN'],
@@ -194,9 +195,10 @@ async function main() {
   // ─────────────────────────────────────────────────────────────
   const japanTour = await db.tour.upsert({
     where: { tourCode: 'JP2026-04' },
-    update: {},
+    update: { coverImageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80' },
     create: {
       operatorId: operator.id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80',
       title: 'ทัวร์ญี่ปุ่น โตเกียว-ฟูจิ-เกียวโต-โอซาก้า 7 วัน 5 คืน',
       titleEn: 'Japan Tokyo-Fuji-Kyoto-Osaka Tour 7D5N',
       countries: ['JP'],

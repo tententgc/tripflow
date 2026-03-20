@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { TopBar } from '@/components/layout/TopBar'
 
 interface ChecklistItem {
   id: string
@@ -41,7 +42,6 @@ export default function ChecklistPage() {
 
   async function toggleItem(itemId: string, currentlyChecked: boolean) {
     if (!userId) return
-    // Optimistic update
     setChecklists((prev) =>
       prev.map((cl) => ({
         ...cl,
@@ -68,11 +68,7 @@ export default function ChecklistPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 px-4 pt-safe-top pb-4">
-        <div className="pt-4">
-          <h1 className="text-xl font-bold text-gray-900">เช็คลิสต์</h1>
-        </div>
-      </div>
+      <TopBar title="เช็คลิสต์" />
 
       <div className="px-4 py-4 space-y-4">
         {checklists.length === 0 ? (
@@ -95,7 +91,10 @@ export default function ChecklistPage() {
                     <span className="text-sm text-gray-400">{checkedCount}/{cl.items.length}</span>
                   </div>
                   <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-primary-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+                    <div
+                      className="h-full bg-gradient-to-r from-indigo-500 to-violet-600 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
                   </div>
                 </div>
                 <div className="divide-y divide-gray-50">
@@ -107,7 +106,7 @@ export default function ChecklistPage() {
                         onClick={() => toggleItem(item.id, isChecked)}
                         className="w-full flex items-center gap-3 px-4 py-3 min-h-[48px] text-left active:bg-gray-50"
                       >
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isChecked ? 'bg-primary-600 border-primary-600' : 'border-gray-300'}`}>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isChecked ? 'bg-gradient-to-br from-indigo-500 to-violet-600 border-transparent shadow-sm shadow-indigo-300' : 'border-gray-300'}`}>
                           {isChecked && <span className="text-white text-xs">✓</span>}
                         </div>
                         <span className={`text-sm flex-1 ${isChecked ? 'line-through text-gray-400' : 'text-gray-700'}`}>
@@ -131,9 +130,8 @@ export default function ChecklistPage() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }
-

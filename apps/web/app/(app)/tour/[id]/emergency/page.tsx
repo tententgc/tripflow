@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { BottomNav } from '@/components/layout/BottomNav'
+import { TopBar } from '@/components/layout/TopBar'
 
 const CHINA_EMERGENCY_NUMBERS = [
   { number: '110', label: 'ตำรวจ', icon: '👮', color: 'bg-blue-600' },
@@ -56,8 +58,8 @@ export default function EmergencyPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -68,12 +70,11 @@ export default function EmergencyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-red-600 text-white px-4 pt-safe-top pb-6">
-        <div className="pt-4">
-          <h1 className="text-xl font-bold">ฉุกเฉิน</h1>
-          <p className="text-red-200 text-sm mt-1">แตะเบอร์เพื่อโทรได้ทันที</p>
-        </div>
-      </div>
+      <TopBar
+        title="ฉุกเฉิน"
+        subtitle="แตะเบอร์เพื่อโทรได้ทันที"
+        gradient="bg-gradient-to-br from-red-600 to-rose-700"
+      />
 
       <div className="px-4 py-4 space-y-4">
         {/* Emergency numbers grid */}
@@ -82,7 +83,7 @@ export default function EmergencyPage() {
             <a
               key={item.number}
               href={`tel:${item.number}`}
-              className={`${item.color} text-white rounded-2xl p-4 flex flex-col items-center justify-center min-h-[100px] active:opacity-80 transition-opacity`}
+              className={`${item.color} text-white rounded-2xl p-4 flex flex-col items-center justify-center min-h-[100px] shadow-md active:opacity-80 transition-opacity`}
             >
               <span className="text-3xl mb-2">{item.icon}</span>
               <span className="text-2xl font-bold">{item.number}</span>
@@ -91,14 +92,15 @@ export default function EmergencyPage() {
           ))}
         </div>
 
-        {/* Guide / Emergency contact */}
+        {/* Emergency contact */}
         {emergencyContact && (
           <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-4">
             <h3 className="font-semibold text-gray-900 mb-2">📞 ผู้ติดต่อฉุกเฉิน</h3>
             <div className="flex items-center justify-between">
               <p className="font-medium text-gray-900">{emergencyContact.name}</p>
               {emergencyContact.phone && (
-                <a href={`tel:${emergencyContact.phone}`} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium">
+                <a href={`tel:${emergencyContact.phone}`}
+                  className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-700 text-white rounded-xl text-sm font-medium shadow-sm">
                   โทร
                 </a>
               )}
@@ -109,8 +111,8 @@ export default function EmergencyPage() {
         {/* Thai Embassy contacts for China */}
         {isChina && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 border-b border-gray-100">
-              <h3 className="font-semibold text-gray-900">🇹🇭 สถานทูตและสถานกงสุลไทยในจีน</h3>
+            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+              <h3 className="font-semibold text-indigo-700">🇹🇭 สถานทูตและสถานกงสุลไทยในจีน</h3>
             </div>
             <div className="divide-y divide-gray-50">
               {THAI_EMBASSIES_CHINA.map((embassy) => (
@@ -123,7 +125,7 @@ export default function EmergencyPage() {
                     <p className="text-sm font-medium text-gray-900">{embassy.city}</p>
                     <p className="text-sm text-gray-500">{embassy.phone}</p>
                   </div>
-                  <span className="text-primary-600 text-xl">📞</span>
+                  <span className="text-indigo-500 text-xl">📞</span>
                 </a>
               ))}
             </div>
@@ -132,27 +134,26 @@ export default function EmergencyPage() {
 
         {/* Insurance info */}
         {tour?.emergencyInfo?.insuranceCompany ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <h3 className="font-semibold text-gray-900 mb-2">🛡️ ประกันเดินทาง</h3>
             <p className="text-sm font-medium text-gray-900">{tour.emergencyInfo.insuranceCompany}</p>
             {tour.emergencyInfo.insurancePolicyNo && (
               <p className="text-sm text-gray-600 mt-1">กรมธรรม์: {tour.emergencyInfo.insurancePolicyNo}</p>
             )}
             {tour.emergencyInfo.insurancePhone && (
-              <a href={`tel:${tour.emergencyInfo.insurancePhone}`} className="mt-3 flex items-center gap-2 text-primary-600 font-medium text-sm">
+              <a href={`tel:${tour.emergencyInfo.insurancePhone}`} className="mt-3 flex items-center gap-2 text-indigo-600 font-medium text-sm">
                 <span>📞</span>
                 <span>{tour.emergencyInfo.insurancePhone}</span>
               </a>
             )}
           </div>
         ) : (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <h3 className="font-semibold text-gray-900 mb-2">🛡️ ประกันเดินทาง</h3>
             <p className="text-sm text-gray-600">กรุณาติดต่อบริษัทประกันของท่านโดยตรง</p>
           </div>
         )}
 
-        {/* China tourist hotline */}
         {isChina && (
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
             <h3 className="font-semibold text-gray-900 mb-2">ℹ️ สายด่วนท่องเที่ยว 12301</h3>
@@ -161,25 +162,7 @@ export default function EmergencyPage() {
         )}
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 pb-safe">
-        <div className="flex">
-          {[
-            { id: 'today', label: 'วันนี้', icon: '🏠', href: `/tour/${tourId}/today` },
-            { id: 'itinerary', label: 'แผนเที่ยว', icon: '📅', href: `/tour/${tourId}/itinerary` },
-            { id: 'checklist', label: 'เช็คลิสต์', icon: '✅', href: `/tour/${tourId}/checklist` },
-            { id: 'chat', label: 'ช่วยเหลือ', icon: '💬', href: `/tour/${tourId}/chat` },
-          ].map((tab) => (
-            <a
-              key={tab.id}
-              href={tab.href}
-              className="flex-1 flex flex-col items-center justify-center py-2 min-h-[56px] text-gray-400"
-            >
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-xs mt-0.5">{tab.label}</span>
-            </a>
-          ))}
-        </div>
-      </nav>
+      <BottomNav activeTab="chat" tourId={tourId} isChina={isChina} />
     </div>
   )
 }
