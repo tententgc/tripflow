@@ -94,7 +94,7 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 -mt-4 pb-8 max-w-5xl mx-auto w-full">
+      <div className="px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full">
         {/* Section title */}
         <div className="flex items-center justify-between mb-4 animate-slide-up delay-1">
           <h2 className="font-bold text-gray-900 text-lg">ทริปของฉัน</h2>
