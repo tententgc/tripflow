@@ -330,12 +330,12 @@ export default function DocumentsPage() {
               {myDocs.map(doc => {
                 const cfg = typeConfig[doc.type] ?? typeConfig['OTHER']!
                 return (
-                  <div key={doc.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                    <button
-                      onClick={() => setSelectedDoc(doc)}
-                      className="w-full p-4 flex items-center gap-3 text-left active:bg-gray-50 transition-colors"
-                      style={{ minHeight: '64px' }}
-                    >
+                  <div
+                    key={doc.id}
+                    className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden cursor-pointer active:bg-gray-50 transition-colors"
+                    onClick={() => setSelectedDoc(doc)}
+                  >
+                    <div className="p-4 flex items-center gap-3" style={{ minHeight: '64px' }}>
                       {doc.fileUrl && isPdf(doc.fileUrl) ? (
                         <div className={`w-12 h-14 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center flex-shrink-0`}>
                           <span className="text-white text-lg">{cfg.emoji}</span>
@@ -366,7 +366,7 @@ export default function DocumentsPage() {
                       >
                         🗑️
                       </button>
-                    </button>
+                    </div>
                   </div>
                 )
               })}
