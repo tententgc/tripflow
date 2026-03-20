@@ -440,43 +440,52 @@ export default function TodayPage() {
 
                         {/* Route section */}
                         <div className="p-5 pt-4">
-                          <div className="flex items-stretch">
+                          {/* Route visualization */}
+                          <div className="flex items-center gap-4 mb-1">
                             {/* Departure */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-3xl font-black text-gray-900 tracking-tight">
+                            <div className="w-[85px] flex-shrink-0">
+                              <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">
                                 {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
                               </p>
-                              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{departUtc}</p>
-                              <p className="text-base font-bold text-gray-800 mt-2">{f.fromIata}</p>
-                              <p className="text-[11px] text-gray-400 leading-tight">{f.fromAirport}</p>
+                              <p className="text-[10px] text-gray-400 font-medium mt-1">{departUtc}</p>
                             </div>
 
-                            {/* Route line */}
-                            <div className="flex flex-col items-center justify-center px-3 py-2" style={{ minWidth: '80px' }}>
-                              <p className="text-[10px] text-gray-400 font-medium mb-2">{hours}h {mins}m</p>
-                              <div className="w-full flex items-center gap-0.5">
-                                <div className="w-2.5 h-2.5 rounded-full border-2 border-indigo-400 flex-shrink-0" />
-                                <div className="flex-1 relative h-[2px]">
-                                  <div className="absolute inset-0 border-t-2 border-dashed border-indigo-200" />
+                            {/* Route line — takes remaining space */}
+                            <div className="flex-1 flex flex-col items-center py-1">
+                              <div className="w-full flex items-center">
+                                <div className="w-3 h-3 rounded-full border-2 border-indigo-400 bg-white flex-shrink-0 shadow-sm" />
+                                <div className="flex-1 relative h-0 mx-1">
+                                  <div className="absolute inset-x-0 top-0 border-t-[2px] border-dashed border-indigo-300/60" />
+                                  {/* Animated plane on the line */}
+                                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
+                                    <div className="bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-md shadow-indigo-200">
+                                      <span className="text-[9px]">✈</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="flex-shrink-0 bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center">
-                                  <span className="text-[8px]">✈</span>
-                                </div>
-                                <div className="flex-1 relative h-[2px]">
-                                  <div className="absolute inset-0 border-t-2 border-dashed border-indigo-200" />
-                                </div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                                <div className="w-3 h-3 rounded-full bg-indigo-500 flex-shrink-0 shadow-sm shadow-indigo-200" />
                               </div>
+                              <p className="text-[10px] text-indigo-400 font-semibold mt-2">{hours}h {mins}m</p>
                             </div>
 
                             {/* Arrival */}
-                            <div className="flex-1 min-w-0 text-right">
-                              <p className="text-3xl font-black text-gray-900 tracking-tight">
+                            <div className="w-[85px] flex-shrink-0 text-right">
+                              <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">
                                 {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
                               </p>
-                              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{arriveUtc}</p>
-                              <p className="text-base font-bold text-gray-800 mt-2">{f.toIata}</p>
-                              <p className="text-[11px] text-gray-400 leading-tight">{f.toAirport}</p>
+                              <p className="text-[10px] text-gray-400 font-medium mt-1">{arriveUtc}</p>
+                            </div>
+                          </div>
+
+                          {/* Airport names row */}
+                          <div className="flex items-start justify-between mt-1">
+                            <div className="max-w-[45%]">
+                              <p className="text-sm font-bold text-gray-800">{f.fromIata}</p>
+                              <p className="text-[11px] text-gray-400 leading-snug">{f.fromAirport}</p>
+                            </div>
+                            <div className="max-w-[45%] text-right">
+                              <p className="text-sm font-bold text-gray-800">{f.toIata}</p>
+                              <p className="text-[11px] text-gray-400 leading-snug">{f.toAirport}</p>
                             </div>
                           </div>
 
