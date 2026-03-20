@@ -9,7 +9,12 @@
       "Bash(chmod:*)",
       "Bash(bash setup.sh 2>&1)",
       "Bash(cd:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(wc:*)",
+      "Bash(ls:*)",
+      "Bash(\\\\ git:*)",
+      "Bash(git add:*)"
     ]
   }
 }
