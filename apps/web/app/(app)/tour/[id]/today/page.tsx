@@ -153,16 +153,6 @@ export default function TodayPage() {
       />
 
       <div className="px-4 -mt-2 space-y-3">
-        {/* Meal badges */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 mb-2">อาหารวันนี้</p>
-          <div className="flex gap-2 flex-wrap">
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealBreakfast ? 'bg-orange-50 text-orange-700' : 'bg-gray-50 text-gray-300 line-through'}`}>🍳 เช้า</span>
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealLunch ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-300 line-through'}`}>🍱 กลางวัน</span>
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealDinner ? 'bg-violet-50 text-violet-700' : 'bg-gray-50 text-gray-300 line-through'}`}>🍽️ เย็น</span>
-          </div>
-        </div>
-
         {/* Summary */}
         {currentDay.summary && (
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
