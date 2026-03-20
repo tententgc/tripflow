@@ -183,7 +183,7 @@ export default function TodayPage() {
                   <div className="flex gap-2">
                     {c.phone && (
                       <a href={`tel:${c.phone}`} className="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
-                        <span className="text-white text-sm">📱</span>
+                        <span className="text-white text-sm">📞</span>
                       </a>
                     )}
                     {tour.isChina && c.wechat && (
