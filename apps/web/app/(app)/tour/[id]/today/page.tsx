@@ -153,29 +153,52 @@ export default function TodayPage() {
       />
 
       <div className="px-4 -mt-2 space-y-3">
-        {/* Guide contact */}
-        {guide && (
-          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-            <p className="text-xs text-indigo-600 font-medium mb-1">ไกด์ของกลุ่ม</p>
-            <div className="flex items-center justify-between">
-              <p className="font-semibold text-gray-900">{guide.name}</p>
-              <div className="flex gap-2">
-                {guide.phone && (
-                  <a href={`tel:${guide.phone}`} className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
-                    <span className="text-white text-lg">📱</span>
-                  </a>
-                )}
-                {tour.isChina && guide.wechat && (
-                  <button onClick={() => navigator.clipboard.writeText(guide.wechat!)} className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">微信</span>
-                  </button>
-                )}
-                {!tour.isChina && guide.line && (
-                  <a href={`line://ti/p/~${guide.line}`} className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">LINE</span>
-                  </a>
-                )}
-              </div>
+        {/* Tour info card */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <p className="font-semibold text-gray-900 text-sm">{tour.title}</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-500">
+            <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''} — {tour.days[tour.days.length - 1]?.city ?? ''}</span>
+            <span>📅 {tour.days.length} วัน</span>
+            <span>👥 {tour.members.length} คน</span>
+            <span className="text-indigo-600 font-medium">วันที่ {currentDay.dayNumber}/{tour.days.length}</span>
+          </div>
+        </div>
+
+        {/* Guide + contacts */}
+        {(guide || tour.contacts.length > 0) && (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+              <h3 className="font-semibold text-indigo-700 text-sm">ผู้ติดต่อ</h3>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {tour.contacts.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{c.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'}
+                      {c.phone && ` · ${c.phone}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {c.phone && (
+                      <a href={`tel:${c.phone}`} className="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
+                        <span className="text-white text-sm">📱</span>
+                      </a>
+                    )}
+                    {tour.isChina && c.wechat && (
+                      <button onClick={() => navigator.clipboard.writeText(c.wechat!)} className="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold">微信</span>
+                      </button>
+                    )}
+                    {!tour.isChina && c.line && (
+                      <a href={`line://ti/p/~${c.line}`} className="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-[10px] font-bold">LINE</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
