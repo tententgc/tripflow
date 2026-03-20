@@ -7,6 +7,7 @@ interface Activity {
   time: string | null
   title: string
   titleLocal: string | null
+  description: string | null
   category: string
   order: number
   imageUrls: string[]
@@ -50,6 +51,7 @@ type EditState = {
   time: string
   title: string
   titleLocal: string
+  description: string
   category: string
   imageUrls: string[]
 }
@@ -215,6 +217,7 @@ function ActivityForm({
           time: form.time || null,
           title: form.title.trim(),
           titleLocal: form.titleLocal.trim() || null,
+          description: form.description.trim() || null,
           category: form.category,
           imageUrls: form.imageUrls,
         }),
@@ -260,6 +263,13 @@ function ActivityForm({
         onChange={(e) => setForm((p) => ({ ...p, titleLocal: e.target.value }))}
         className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
         placeholder={isChina ? 'ชื่อภาษาจีน (故宫博物院)' : 'ชื่อภาษาท้องถิ่น (英語名)'}
+      />
+      <textarea
+        value={form.description}
+        onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+        rows={3}
+        className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+        placeholder="คำอธิบายกิจกรรม เช่น รายละเอียด สิ่งที่น่าสนใจ ทิปส์ต่างๆ..."
       />
       <select
         value={form.category}
@@ -402,6 +412,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                             time: act.time ?? '',
                             title: act.title,
                             titleLocal: act.titleLocal ?? '',
+                            description: act.description ?? '',
                             category: act.category,
                             imageUrls: act.imageUrls ?? [],
                           }}
@@ -462,7 +473,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
 
               {addingActivity === day.id ? (
                 <ActivityForm
-                  initial={{ time: '', title: '', titleLocal: '', category: 'SIGHTSEEING', imageUrls: [] }}
+                  initial={{ time: '', title: '', titleLocal: '', description: '', category: 'SIGHTSEEING', imageUrls: [] }}
                   tourId={tour.id}
                   dayId={day.id}
                   isChina={tour.isChina}
