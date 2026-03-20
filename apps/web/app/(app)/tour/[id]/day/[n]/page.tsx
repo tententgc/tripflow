@@ -253,7 +253,7 @@ export default function DayDetailPage() {
                     <div className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500" />
                     {i < day.activities.length - 1 && <div className="w-0.5 bg-gray-100 flex-1 mt-1 min-h-[20px]" />}
                   </div>
-                  <div className="pb-4 flex-1">
+                  <div className="pb-4 flex-1 min-w-0">
                     {activity.time && <p className="text-xs text-gray-400 mb-0.5">{activity.time}</p>}
 
                     {/* Place images — horizontal scroll gallery */}
