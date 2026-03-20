@@ -241,6 +241,7 @@ export default function TodayPage() {
                             <p className="text-2xl font-bold text-gray-900">
                               {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
                             </p>
+                            <p className="text-[10px] text-gray-400">{f.departTz.replace('Asia/', '')}</p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.fromIata}</p>
                             <p className="text-xs text-gray-400">{f.fromAirport}</p>
                           </div>
@@ -259,6 +260,7 @@ export default function TodayPage() {
                             <p className="text-2xl font-bold text-gray-900">
                               {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
                             </p>
+                            <p className="text-[10px] text-gray-400">{f.arriveTz.replace('Asia/', '')}</p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.toIata}</p>
                             <p className="text-xs text-gray-400">{f.toAirport}</p>
                           </div>
