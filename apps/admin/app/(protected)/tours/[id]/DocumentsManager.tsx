@@ -72,6 +72,7 @@ export default function DocumentsManager({
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadErr, setUploadErr] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
   const editFileRef = useRef<HTMLInputElement>(null)
 
@@ -132,13 +133,21 @@ export default function DocumentsManager({
 
   async function uploadFile(file: File): Promise<string | null> {
     setUploading(true)
+    setUploadErr('')
     try {
       const formData = new FormData()
       formData.append('file', file)
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      if (!res.ok) return null
       const data = await res.json()
+      if (!res.ok) {
+        setUploadErr(data.error ?? `Upload failed (${res.status})`)
+        return null
+      }
       return data.url as string
+    } catch (err) {
+      setUploadErr('เกิดข้อผิดพลาดในการอัพโหลด')
+      console.error('Upload error:', err)
+      return null
     } finally {
       setUploading(false)
     }
@@ -277,6 +286,7 @@ export default function DocumentsManager({
                 </a>
               )}
             </div>
+            {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
           </div>
 
           <div>
@@ -459,6 +469,7 @@ export default function DocumentsManager({
                 <span className="self-center text-xs text-green-600">อัพโหลดแล้ว</span>
               )}
             </div>
+            {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
           </div>
 
           {/* QR data (optional) */}

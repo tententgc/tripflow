@@ -11,11 +11,14 @@ export async function DELETE(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const dbUser = await db.user.findUnique({ where: { email: user.email! } })
+    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
     const { docId } = await params
 
     // Only allow deleting own personal documents
     const doc = await db.tourDocument.findUnique({ where: { id: docId } })
-    if (!doc || doc.userId !== user.id) {
+    if (!doc || doc.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

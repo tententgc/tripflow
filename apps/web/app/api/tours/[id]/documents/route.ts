@@ -7,9 +7,27 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
     const { id } = await params
+
+    // Get dbUser to filter personal docs
+    let dbUserId: string | null = null
+    if (user?.email) {
+      const dbUser = await db.user.findUnique({ where: { email: user.email } })
+      dbUserId = dbUser?.id ?? null
+    }
+
+    // Return: group docs + only this user's personal docs
     const documents = await db.tourDocument.findMany({
-      where: { tourId: id },
+      where: {
+        tourId: id,
+        OR: [
+          { isPersonal: false },
+          ...(dbUserId ? [{ isPersonal: true, userId: dbUserId }] : []),
+        ],
+      },
       orderBy: { id: 'asc' },
     })
     return NextResponse.json(documents)
@@ -28,6 +46,10 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    // Lookup DB user by email
+    const dbUser = await db.user.findUnique({ where: { email: user.email! } })
+    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
     const { id } = await params
     const body = await req.json() as {
       title: string
@@ -38,7 +60,6 @@ export async function POST(
       description?: string
     }
 
-    // User-uploaded documents are always personal
     const doc = await db.tourDocument.create({
       data: {
         tourId: id,
@@ -49,7 +70,7 @@ export async function POST(
         qrData: body.qrData || null,
         description: body.description || null,
         isPersonal: true,
-        userId: user.id,
+        userId: dbUser.id,
       },
     })
 
