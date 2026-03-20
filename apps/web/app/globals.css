@@ -240,6 +240,39 @@ div[onclick] {
   .animate-progress-glow { animation: progress-glow 2s ease-in-out infinite; }
   .animate-count-pulse { animation: count-pulse 3s ease-in-out infinite; }
   .animate-wave { animation: wave 8s linear infinite; }
+
+  /* Entrance animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out both;
+  }
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out both;
+  }
+  .animate-scale-in {
+    animation: scaleIn 0.4s ease-out both;
+  }
+
+  /* Stagger delays */
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+  .delay-5 { animation-delay: 0.5s; }
+  .delay-6 { animation-delay: 0.6s; }
+  .delay-7 { animation-delay: 0.7s; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @font-face {
