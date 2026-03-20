@@ -12,7 +12,7 @@ export async function PATCH(
       title?: string
       titleLocal?: string | null
       category?: string
-      imageUrl?: string | null
+      imageUrls?: string[]
     }
 
     const activity = await db.activity.update({
@@ -22,7 +22,7 @@ export async function PATCH(
         ...(body.title !== undefined && { title: body.title }),
         ...(body.titleLocal !== undefined && { titleLocal: body.titleLocal }),
         ...(body.category !== undefined && { category: body.category as any }),
-        ...(body.imageUrl !== undefined && { imageUrl: body.imageUrl }),
+        ...(body.imageUrls !== undefined && { imageUrls: body.imageUrls }),
       },
     })
 
