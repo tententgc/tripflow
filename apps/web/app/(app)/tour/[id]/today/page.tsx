@@ -47,6 +47,7 @@ interface Accommodation {
   checkOut: string | null
   wifiName: string | null
   wifiPassword: string | null
+  imageUrl: string | null
 }
 
 interface Flight {
@@ -744,13 +745,28 @@ export default function TodayPage() {
 
         {/* Accommodation — only during trip */}
         {!isBeforeTrip && currentDay.accommodation && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
-              <h3 className="font-semibold text-indigo-700 text-sm">🏨 ที่พักคืนนี้</h3>
-            </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-6">
+            {currentDay.accommodation.imageUrl ? (
+              <div className="w-full h-40 relative">
+                <img src={currentDay.accommodation.imageUrl} alt={currentDay.accommodation.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4">
+                  <h3 className="text-white font-bold drop-shadow-md">{currentDay.accommodation.name}</h3>
+                  {currentDay.accommodation.nameLocal && <p className="text-white/80 text-xs drop-shadow-md">{currentDay.accommodation.nameLocal}</p>}
+                </div>
+              </div>
+            ) : (
+              <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+                <h3 className="font-semibold text-indigo-700 text-sm">🏨 ที่พักคืนนี้</h3>
+              </div>
+            )}
             <div className="p-4 space-y-2">
-              <p className="font-semibold text-gray-900">{currentDay.accommodation.name}</p>
-              {currentDay.accommodation.nameLocal && <p className="text-xs text-gray-400">{currentDay.accommodation.nameLocal}</p>}
+              {!currentDay.accommodation.imageUrl && (
+                <>
+                  <p className="font-semibold text-gray-900">{currentDay.accommodation.name}</p>
+                  {currentDay.accommodation.nameLocal && <p className="text-xs text-gray-400">{currentDay.accommodation.nameLocal}</p>}
+                </>
+              )}
               {(currentDay.accommodation.checkIn || currentDay.accommodation.checkOut) && (
                 <div className="flex gap-4 text-xs text-gray-500">
                   {currentDay.accommodation.checkIn && <span>เช็คอิน: {currentDay.accommodation.checkIn}</span>}
