@@ -53,6 +53,7 @@ interface Flight {
   id: string
   flightNo: string
   airline: string
+  airlineIata: string | null
   fromAirport: string
   fromIata: string
   toAirport: string
@@ -216,8 +217,17 @@ export default function TodayPage() {
                     return (
                       <div key={f.id} className="p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl">✈️</span>
+                          <div className="flex items-center gap-2.5">
+                            {f.airlineIata ? (
+                              <img
+                                src={`https://pics.avs.io/60/60/${f.airlineIata}.png`}
+                                alt={f.airline}
+                                className="w-9 h-9 rounded-lg object-contain bg-gray-50 p-0.5"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                              />
+                            ) : (
+                              <span className="text-xl">✈️</span>
+                            )}
                             <div>
                               <p className="text-sm font-bold text-gray-900">{f.flightNo}</p>
                               <p className="text-xs text-gray-400">{f.airline}</p>
