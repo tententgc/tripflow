@@ -49,9 +49,27 @@ interface Accommodation {
   wifiPassword: string | null
 }
 
+interface Flight {
+  id: string
+  flightNo: string
+  airline: string
+  fromAirport: string
+  fromIata: string
+  toAirport: string
+  toIata: string
+  departAt: string
+  arriveAt: string
+  departTz: string
+  arriveTz: string
+  terminal: string | null
+  gate: string | null
+}
+
 interface TourData {
   id: string
   title: string
+  startDate: string
+  endDate: string
   isChina: boolean
   countries: string[]
   days: Array<{
@@ -69,6 +87,7 @@ interface TourData {
     transports: Transport[]
     accommodation: Accommodation | null
   }>
+  flights: Flight[]
   contacts: Array<{ id: string; name: string; phone: string | null; wechat: string | null; line: string | null; type: string }>
   members: Array<{ user: { name: string } }>
 }
@@ -126,6 +145,13 @@ export default function TodayPage() {
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
+  const tripStart = new Date(tour.startDate)
+  tripStart.setHours(0, 0, 0, 0)
+  const tripEnd = new Date(tour.endDate)
+  tripEnd.setHours(0, 0, 0, 0)
+  const isBeforeTrip = today < tripStart
+  const daysUntilTrip = isBeforeTrip ? Math.ceil((tripStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0
+
   const currentDay = tour.days.find((d) => {
     const dayDate = new Date(d.date)
     dayDate.setHours(0, 0, 0, 0)
@@ -163,6 +189,84 @@ export default function TodayPage() {
             <span className="text-indigo-600 font-medium">วันที่ {currentDay.dayNumber}/{tour.days.length}</span>
           </div>
         </div>
+
+        {/* Pre-trip: countdown + flights */}
+        {isBeforeTrip && (
+          <>
+            <div className="bg-gradient-to-r from-indigo-500 to-violet-600 rounded-2xl p-5 text-white shadow-lg">
+              <p className="text-white/70 text-xs font-medium">ออกเดินทางอีก</p>
+              <p className="text-4xl font-bold mt-1">{daysUntilTrip} <span className="text-lg font-normal">วัน</span></p>
+              <p className="text-white/60 text-xs mt-1">
+                {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+
+            {tour.flights.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-sky-50 to-blue-50">
+                  <h3 className="font-semibold text-sky-700 text-sm">✈️ เที่ยวบิน ({tour.flights.length})</h3>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {tour.flights.map((f) => {
+                    const depart = new Date(f.departAt)
+                    const arrive = new Date(f.arriveAt)
+                    const durationMs = arrive.getTime() - depart.getTime()
+                    const hours = Math.floor(durationMs / 3600000)
+                    const mins = Math.floor((durationMs % 3600000) / 60000)
+                    return (
+                      <div key={f.id} className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">✈️</span>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{f.flightNo}</p>
+                              <p className="text-xs text-gray-400">{f.airline}</p>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-400">{hours}h {mins}m</p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="text-center flex-1">
+                            <p className="text-2xl font-bold text-gray-900">
+                              {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
+                            </p>
+                            <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.fromIata}</p>
+                            <p className="text-xs text-gray-400">{f.fromAirport}</p>
+                          </div>
+
+                          <div className="flex-1 flex flex-col items-center px-2">
+                            <div className="w-full flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full border-2 border-indigo-400" />
+                              <div className="flex-1 border-t-2 border-dashed border-indigo-200" />
+                              <span className="text-indigo-400 text-xs">✈</span>
+                              <div className="flex-1 border-t-2 border-dashed border-indigo-200" />
+                              <div className="w-2 h-2 rounded-full bg-indigo-500" />
+                            </div>
+                          </div>
+
+                          <div className="text-center flex-1">
+                            <p className="text-2xl font-bold text-gray-900">
+                              {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
+                            </p>
+                            <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.toIata}</p>
+                            <p className="text-xs text-gray-400">{f.toAirport}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3 mt-3 text-xs text-gray-500">
+                          <span>📅 {depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          {f.terminal && <span>🏢 Terminal {f.terminal}</span>}
+                          {f.gate && <span>🚪 Gate {f.gate}</span>}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Guide + contacts */}
         {(guide || tour.contacts.length > 0) && (
