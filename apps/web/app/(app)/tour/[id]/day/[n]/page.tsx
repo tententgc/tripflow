@@ -5,33 +5,40 @@ import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
 
-function MapEmbed({ query, isChina }: { query: string; titleEn?: string | null; titleLocal?: string | null; isChina: boolean }) {
-  const encodedQuery = encodeURIComponent(query)
+function mapUrl(query: string, isChina: boolean) {
+  const q = encodeURIComponent(query)
+  return isChina
+    ? `https://www.amap.com/search?query=${q}`
+    : `https://www.google.com/maps/search/?api=1&query=${q}`
+}
 
+function MapLink({ query, isChina }: { query: string; isChina: boolean }) {
+  const encodedQuery = encodeURIComponent(query)
   if (isChina) {
     return (
       <a
         href={`https://www.amap.com/search?query=${encodedQuery}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-2 flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-3 py-2 text-xs text-green-700 font-medium"
+        className="mt-2 inline-flex items-center gap-1.5 bg-green-50 border border-green-100 rounded-lg px-3 py-1.5 text-xs text-green-700 font-medium"
       >
         <span>🗺️</span>
-        <span>เปิดใน Amap (高德地图)</span>
-        <span className="ml-auto text-green-400">↗</span>
+        <span>Amap (高德地图)</span>
+        <span className="text-green-400">↗</span>
       </a>
     )
   }
-
   return (
-    <div className="mt-2 rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-      <iframe
-        src={`https://maps.google.com/maps?q=${encodedQuery}&output=embed&hl=th&z=16`}
-        className="w-full h-48 border-0"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-      />
-    </div>
+    <a
+      href={`https://www.google.com/maps/search/?api=1&query=${encodedQuery}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-2 inline-flex items-center gap-1.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5 text-xs text-blue-700 font-medium"
+    >
+      <span>🗺️</span>
+      <span>Google Maps</span>
+      <span className="text-blue-400">↗</span>
+    </a>
   )
 }
 
@@ -51,6 +58,7 @@ interface Activity {
   costCurrency: string | null
   costTHB: number | null
   tips: string | null
+  imageUrl: string | null
 }
 
 interface Transport {
@@ -132,12 +140,6 @@ const transportIcons: Record<string, string> = {
   BUS: '🚌', TAXI: '🚕', FERRY: '⛴️', CABLE_CAR: '🚡', WALK: '🚶', OTHER: '🚗',
 }
 
-function mapUrl(query: string, isChina: boolean) {
-  const q = encodeURIComponent(query)
-  return isChina
-    ? `https://www.amap.com/search?query=${q}`
-    : `https://www.google.com/maps/search/?api=1&query=${q}`
-}
 
 export default function DayDetailPage() {
   const params = useParams()
@@ -251,80 +253,60 @@ export default function DayDetailPage() {
                     <div className="w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500" />
                     {i < day.activities.length - 1 && <div className="w-0.5 bg-gray-100 flex-1 mt-1 min-h-[20px]" />}
                   </div>
-                  <div className="pb-2 flex-1">
+                  <div className="pb-4 flex-1">
                     {activity.time && <p className="text-xs text-gray-400 mb-0.5">{activity.time}</p>}
+
+                    {/* Place image */}
+                    {activity.imageUrl && (
+                      <div className="mb-2 rounded-2xl overflow-hidden w-full aspect-[16/7]">
+                        <img
+                          src={activity.imageUrl}
+                          alt={activity.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <a
-                          href={mapUrl(activity.titleLocal ?? activity.titleEn ?? activity.title, tour.isChina)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"
-                        >
+                        <p className="text-sm font-semibold text-gray-900">
                           {categoryIcons[activity.category]} {activity.title}
-                        </a>
+                        </p>
                         {activity.titleLocal && (
-                          <a
-                            href={mapUrl(activity.titleLocal, tour.isChina)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-xs text-gray-400 hover:text-indigo-500 transition-colors"
-                          >
-                            {activity.titleLocal}
-                          </a>
+                          <p className="text-xs text-gray-400 mt-0.5">{activity.titleLocal}</p>
                         )}
                         {activity.titleEn && !activity.titleLocal && (
-                          <a
-                            href={mapUrl(activity.titleEn, tour.isChina)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-xs text-gray-400 hover:text-indigo-500 transition-colors"
-                          >
-                            {activity.titleEn}
-                          </a>
+                          <p className="text-xs text-gray-400 mt-0.5">{activity.titleEn}</p>
                         )}
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${categoryColors[activity.category] ?? 'bg-gray-100 text-gray-500'}`}>
                         {activity.category.toLowerCase()}
                       </span>
                     </div>
+
                     {activity.locationName && (
-                      <a
-                        href={mapUrl(activity.addressLocal ?? activity.address ?? activity.locationName, tour.isChina)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-indigo-600 mt-1 hover:text-indigo-800 active:opacity-70"
-                      >
-                        📍 {activity.locationName}
-                        <span className="text-indigo-400">↗</span>
-                      </a>
+                      <p className="text-xs text-gray-500 mt-1">📍 {activity.locationName}</p>
                     )}
                     {activity.addressLocal && (
-                      <a
-                        href={mapUrl(activity.addressLocal, tour.isChina)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block text-xs text-gray-400 hover:text-indigo-500 transition-colors"
-                      >
-                        {activity.addressLocal}
-                      </a>
+                      <p className="text-xs text-gray-400">{activity.addressLocal}</p>
                     )}
-                    {(activity.locationName || activity.titleLocal || activity.titleEn) && (
-                      <MapEmbed
+
+                    {/* Map link (compact) */}
+                    {(activity.locationName || activity.titleLocal || activity.titleEn || activity.address) && (
+                      <MapLink
                         query={activity.addressLocal ?? activity.address ?? activity.locationName ?? activity.titleLocal ?? activity.titleEn ?? activity.title}
-                        titleEn={activity.titleEn}
-                        titleLocal={activity.titleLocal}
                         isChina={tour.isChina}
                       />
                     )}
-                    {activity.durationMins && <p className="text-xs text-gray-400 mt-0.5">⏱️ {activity.durationMins} นาที</p>}
+
+                    {activity.durationMins && <p className="text-xs text-gray-400 mt-1.5">⏱️ {activity.durationMins} นาที</p>}
                     {activity.costTHB && (
                       <p className="text-xs text-gray-500 mt-0.5">
                         💰 ≈ ฿{activity.costTHB.toLocaleString()}
                         {activity.cost && activity.costCurrency && ` (${activity.costCurrency} ${activity.cost})`}
                       </p>
                     )}
-                    {activity.description && <p className="text-xs text-gray-500 mt-1 leading-relaxed">{activity.description}</p>}
+                    {activity.description && <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{activity.description}</p>}
                     {activity.tips && (
                       <div className="mt-2 bg-yellow-50 rounded-xl p-2.5">
                         <p className="text-xs text-yellow-800">💡 {activity.tips}</p>
@@ -394,10 +376,8 @@ export default function DayDetailPage() {
                   {day.accommodation.addressLocal}
                 </a>
               )}
-              <MapEmbed
+              <MapLink
                 query={day.accommodation.nameLocal ?? day.accommodation.name}
-                titleEn={day.accommodation.name}
-                titleLocal={day.accommodation.nameLocal}
                 isChina={tour.isChina}
               />
             </div>
