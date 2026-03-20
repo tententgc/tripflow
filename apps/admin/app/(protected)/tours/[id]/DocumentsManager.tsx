@@ -68,12 +68,67 @@ export default function DocumentsManager({
 }) {
   const [docs, setDocs] = useState<DocItem[]>(initialDocuments)
   const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const editFileRef = useRef<HTMLInputElement>(null)
 
   const memberMap = Object.fromEntries(members.map(m => [m.userId, m.name]))
+
+  function startEdit(doc: DocItem) {
+    setEditingId(doc.id)
+    setForm({
+      title: doc.title,
+      titleEn: doc.titleEn ?? '',
+      type: doc.type,
+      description: doc.description ?? '',
+      qrData: doc.qrData ?? '',
+      fileUrl: doc.fileUrl ?? '',
+      userId: doc.userId ?? '',
+    })
+    setAdding(false)
+  }
+
+  async function saveEdit() {
+    if (!editingId || !form.title.trim()) return
+    setSaving(true)
+    try {
+      const isPersonal = form.userId !== ''
+      const res = await fetch(`/api/tours/${tourId}/documents/${editingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          titleEn: form.titleEn.trim() || null,
+          type: form.type,
+          description: form.description.trim() || null,
+          qrData: form.qrData.trim() || null,
+          fileUrl: form.fileUrl.trim() || null,
+          isPersonal,
+          userId: isPersonal ? form.userId : null,
+        }),
+      })
+      if (res.ok) {
+        const updated = await res.json() as DocItem
+        setDocs(prev => prev.map(d => d.id === editingId ? updated : d))
+        setEditingId(null)
+        setForm(emptyForm)
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleEditFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = await uploadFile(file)
+    if (url) {
+      setForm(p => ({ ...p, fileUrl: url }))
+    }
+  }
 
   async function uploadFile(file: File): Promise<string | null> {
     setUploading(true)
@@ -167,15 +222,97 @@ export default function DocumentsManager({
         </div>
       )}
 
+      {/* Edit form (shown when editing a doc) */}
+      {editingId && (
+        <div className="bg-blue-50 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-semibold text-blue-700">แก้ไขเอกสาร</p>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">เจ้าของตั๋ว</label>
+            <select
+              value={form.userId}
+              onChange={e => setForm(p => ({ ...p, userId: e.target.value }))}
+              className={`w-full ${inputCls}`}
+            >
+              <option value="">ทุกคน (เอกสารรวม)</option>
+              {members.map(m => (
+                <option key={m.userId} value={m.userId}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="col-span-2">
+              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อเอกสาร</label>
+              <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className={`w-full ${inputCls}`} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อ EN</label>
+              <input type="text" value={form.titleEn} onChange={e => setForm(p => ({ ...p, titleEn: e.target.value }))} className={`w-full ${inputCls}`} />
+            </div>
+            <div>
+              <label className="text-xs text-gray-500 mb-0.5 block">ประเภท</label>
+              <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className={`w-full ${inputCls}`}>
+                {docTypes.map(t => (<option key={t.value} value={t.value}>{t.emoji} {t.label}</option>))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">รายละเอียด</label>
+            <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className={`w-full ${inputCls}`} />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">ไฟล์แนบ</label>
+            <input ref={editFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleEditFileSelect} className="hidden" />
+            <div className="flex gap-2">
+              <button type="button" onClick={() => editFileRef.current?.click()} disabled={uploading}
+                className="px-3 py-2 border border-dashed border-gray-300 bg-white rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex-1">
+                {uploading ? 'กำลังอัพโหลด...' : form.fileUrl ? '📎 เปลี่ยนไฟล์' : '📎 เลือกไฟล์'}
+              </button>
+              {form.fileUrl && (
+                <a href={form.fileUrl} target="_blank" rel="noopener noreferrer" className="self-center text-xs text-blue-500 hover:underline">
+                  ดูไฟล์ปัจจุบัน
+                </a>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">QR Code data (ถ้ามี)</label>
+            <input type="text" value={form.qrData} onChange={e => setForm(p => ({ ...p, qrData: e.target.value }))} className={`w-full ${inputCls}`} />
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button onClick={saveEdit} disabled={saving || !form.title.trim()} className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+            </button>
+            <button onClick={() => { setEditingId(null); setForm(emptyForm) }} className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm">
+              ยกเลิก
+            </button>
+            <button onClick={() => { deleteDoc(editingId); setEditingId(null); setForm(emptyForm) }}
+              className="px-3 py-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-sm">
+              🗑️
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Group documents */}
       {groupDocs.length > 0 && (
         <div>
           <p className="text-xs text-gray-400 font-medium mb-1.5">เอกสารรวม ({groupDocs.length})</p>
           <div className="space-y-2">
             {groupDocs.map(doc => {
+              if (editingId === doc.id) return null
               const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
               return (
-                <div key={doc.id} className="bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 p-3">
+                <button
+                  key={doc.id}
+                  onClick={() => startEdit(doc)}
+                  className="w-full bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 p-3 text-left hover:border-blue-200 transition-colors"
+                >
                   <span className="text-xl">{cfg.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
@@ -185,13 +322,8 @@ export default function DocumentsManager({
                       {doc.qrData && <span className="text-[10px] text-gray-500">⬛ QR</span>}
                     </div>
                   </div>
-                  {doc.fileUrl && (
-                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex-shrink-0">
-                      ดู
-                    </a>
-                  )}
-                  <button onClick={() => deleteDoc(doc.id)} className="text-gray-300 hover:text-red-500 flex-shrink-0">🗑️</button>
-                </div>
+                  <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
+                </button>
               )
             })}
           </div>
@@ -212,9 +344,14 @@ export default function DocumentsManager({
                 </div>
                 <div className="divide-y divide-gray-50">
                   {memberDocs.map(doc => {
+                    if (editingId === doc.id) return null
                     const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
                     return (
-                      <div key={doc.id} className="flex items-center gap-3 px-3 py-2.5">
+                      <button
+                        key={doc.id}
+                        onClick={() => startEdit(doc)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50 transition-colors"
+                      >
                         <span className="text-lg">{cfg.emoji}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm text-gray-900 truncate">{doc.title}</p>
@@ -223,13 +360,8 @@ export default function DocumentsManager({
                             {doc.fileUrl && <span className="text-[10px] text-blue-600">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
                           </div>
                         </div>
-                        {doc.fileUrl && (
-                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex-shrink-0">
-                            ดู
-                          </a>
-                        )}
-                        <button onClick={() => deleteDoc(doc.id)} className="text-gray-300 hover:text-red-500 flex-shrink-0 text-sm">✕</button>
-                      </div>
+                        <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
+                      </button>
                     )
                   })}
                 </div>
