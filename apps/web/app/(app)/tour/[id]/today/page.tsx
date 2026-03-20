@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
@@ -66,6 +66,28 @@ interface Flight {
   gate: string | null
 }
 
+interface ChecklistCheck {
+  id: string
+  userId: string
+}
+
+interface ChecklistItemData {
+  id: string
+  label: string
+  labelEn: string | null
+  isImportant: boolean
+  order: number
+  checks: ChecklistCheck[]
+}
+
+interface ChecklistData {
+  id: string
+  title: string
+  emoji: string | null
+  type: string
+  items: ChecklistItemData[]
+}
+
 interface TourData {
   id: string
   title: string
@@ -120,13 +142,45 @@ export default function TodayPage() {
   const tourId = params.id as string
   const [tour, setTour] = useState<TourData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [checklists, setChecklists] = useState<ChecklistData[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch(`/api/tours/${tourId}`)
-      .then((r) => r.json())
-      .then((data) => { setTour(data); setLoading(false) })
-      .catch(() => setLoading(false))
+    Promise.all([
+      fetch(`/api/tours/${tourId}`).then(r => r.json()),
+      fetch(`/api/tours/${tourId}/checklist`).then(r => r.json()).catch(() => []),
+      fetch('/api/auth/me').then(r => r.json()).catch(() => null),
+    ]).then(([tourData, checklistData, userData]) => {
+      setTour(tourData)
+      setChecklists(Array.isArray(checklistData) ? checklistData : [])
+      setUserId(userData?.id ?? null)
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [tourId])
+
+  const toggleCheck = useCallback(async (itemId: string, currentlyChecked: boolean) => {
+    if (!userId) return
+    // Optimistic update
+    setChecklists(prev => prev.map(cl => ({
+      ...cl,
+      items: cl.items.map(item =>
+        item.id === itemId
+          ? {
+              ...item,
+              checks: currentlyChecked
+                ? item.checks.filter(c => c.userId !== userId)
+                : [...item.checks, { id: 'temp', userId }],
+            }
+          : item
+      ),
+    })))
+
+    await fetch(`/api/tours/${tourId}/checklist`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId, userId, checked: !currentlyChecked }),
+    })
+  }, [userId, tourId])
 
   if (loading) {
     return (
@@ -328,8 +382,8 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* Transports */}
-        {currentDay.transports.length > 0 && (
+        {/* Transports — only during trip */}
+        {!isBeforeTrip && currentDay.transports.length > 0 && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
               <h3 className="font-semibold text-indigo-700 text-sm">การเดินทางวันนี้</h3>
@@ -362,69 +416,127 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* Activities */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
-            <h3 className="font-semibold text-indigo-700 text-sm">กำหนดการวันนี้ ({currentDay.activities.length})</h3>
-          </div>
-          {currentDay.activities.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-8">ยังไม่มีกิจกรรม</p>
-          ) : (
-            <div className="p-4 space-y-4">
-              {currentDay.activities.map((activity, i) => (
-                <div key={activity.id} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${categoryColors[activity.category] ?? 'bg-gray-400'}`} />
-                    {i < currentDay.activities.length - 1 && <div className="w-0.5 bg-gray-100 flex-1 mt-1 min-h-[20px]" />}
-                  </div>
-                  <div className="pb-4 flex-1 min-w-0">
-                    {activity.time && <p className="text-xs text-gray-400 mb-0.5">{activity.time}</p>}
-
-                    {/* Images */}
-                    {(activity.imageUrls ?? []).length > 0 && (
-                      <div className="mb-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                        {(activity.imageUrls ?? []).map((src, j) => (
-                          <div key={j} className="flex-shrink-0 rounded-xl overflow-hidden w-44 h-28">
-                            <img src={src} alt="" className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <p className="text-sm font-semibold text-gray-900">
-                      {categoryIcons[activity.category]} {activity.title}
-                    </p>
-                    {activity.titleLocal && <p className="text-xs text-gray-400 mt-0.5">{activity.titleLocal}</p>}
-                    {activity.titleEn && !activity.titleLocal && <p className="text-xs text-gray-400 mt-0.5">{activity.titleEn}</p>}
-
-                    {activity.locationName && <p className="text-xs text-gray-500 mt-1">📍 {activity.locationName}</p>}
-
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
-                      {activity.durationMins && <p className="text-xs text-gray-400">⏱️ {activity.durationMins} นาที</p>}
-                      {activity.costTHB && (
-                        <p className="text-xs text-gray-500">
-                          💰 ≈ ฿{activity.costTHB.toLocaleString()}
-                          {activity.cost && activity.costCurrency && ` (${activity.costCurrency} ${activity.cost})`}
-                        </p>
-                      )}
+        {/* Before trip: Preparation checklist / During trip: Today's activities */}
+        {isBeforeTrip && checklists.length > 0 ? (
+          <div className="space-y-3">
+            {checklists.map(cl => {
+              const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
+              const totalCount = cl.items.length
+              const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
+              return (
+                <div key={cl.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-green-700 text-sm">
+                        {cl.emoji && <span className="mr-1">{cl.emoji}</span>}
+                        {cl.title}
+                      </h3>
+                      <span className="text-xs text-green-600 font-medium">{checkedCount}/{totalCount}</span>
                     </div>
-
-                    {activity.description && <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{activity.description}</p>}
-
-                    {activity.tips && (
-                      <div className="mt-2 bg-yellow-50 rounded-xl p-2.5">
-                        <p className="text-xs text-yellow-800">💡 {activity.tips}</p>
+                    {totalCount > 0 && (
+                      <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        />
                       </div>
                     )}
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {cl.items.map(item => {
+                      const isChecked = item.checks.some(c => c.userId === userId)
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => toggleCheck(item.id, isChecked)}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left active:bg-gray-50 transition-colors"
+                          style={{ minHeight: '48px' }}
+                        >
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            isChecked
+                              ? 'bg-green-500 border-green-500'
+                              : 'border-gray-300'
+                          }`}>
+                            {isChecked && <span className="text-white text-xs">✓</span>}
+                          </div>
+                          <span className={`text-sm flex-1 ${
+                            isChecked ? 'text-gray-400 line-through' : 'text-gray-800'
+                          } ${item.isImportant ? 'font-medium' : ''}`}>
+                            {item.label}
+                            {item.isImportant && <span className="text-red-500 ml-0.5">*</span>}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
-              ))}
+              )
+            })}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+              <h3 className="font-semibold text-indigo-700 text-sm">กำหนดการวันนี้ ({currentDay.activities.length})</h3>
             </div>
-          )}
-        </div>
+            {currentDay.activities.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">ยังไม่มีกิจกรรม</p>
+            ) : (
+              <div className="p-4 space-y-4">
+                {currentDay.activities.map((activity, i) => (
+                  <div key={activity.id} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${categoryColors[activity.category] ?? 'bg-gray-400'}`} />
+                      {i < currentDay.activities.length - 1 && <div className="w-0.5 bg-gray-100 flex-1 mt-1 min-h-[20px]" />}
+                    </div>
+                    <div className="pb-4 flex-1 min-w-0">
+                      {activity.time && <p className="text-xs text-gray-400 mb-0.5">{activity.time}</p>}
 
-        {/* Accommodation */}
-        {currentDay.accommodation && (
+                      {/* Images */}
+                      {(activity.imageUrls ?? []).length > 0 && (
+                        <div className="mb-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                          {(activity.imageUrls ?? []).map((src, j) => (
+                            <div key={j} className="flex-shrink-0 rounded-xl overflow-hidden w-44 h-28">
+                              <img src={src} alt="" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-sm font-semibold text-gray-900">
+                        {categoryIcons[activity.category]} {activity.title}
+                      </p>
+                      {activity.titleLocal && <p className="text-xs text-gray-400 mt-0.5">{activity.titleLocal}</p>}
+                      {activity.titleEn && !activity.titleLocal && <p className="text-xs text-gray-400 mt-0.5">{activity.titleEn}</p>}
+
+                      {activity.locationName && <p className="text-xs text-gray-500 mt-1">📍 {activity.locationName}</p>}
+
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                        {activity.durationMins && <p className="text-xs text-gray-400">⏱️ {activity.durationMins} นาที</p>}
+                        {activity.costTHB && (
+                          <p className="text-xs text-gray-500">
+                            💰 ≈ ฿{activity.costTHB.toLocaleString()}
+                            {activity.cost && activity.costCurrency && ` (${activity.costCurrency} ${activity.cost})`}
+                          </p>
+                        )}
+                      </div>
+
+                      {activity.description && <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{activity.description}</p>}
+
+                      {activity.tips && (
+                        <div className="mt-2 bg-yellow-50 rounded-xl p-2.5">
+                          <p className="text-xs text-yellow-800">💡 {activity.tips}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Accommodation — only during trip */}
+        {!isBeforeTrip && currentDay.accommodation && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
               <h3 className="font-semibold text-indigo-700 text-sm">🏨 ที่พักคืนนี้</h3>

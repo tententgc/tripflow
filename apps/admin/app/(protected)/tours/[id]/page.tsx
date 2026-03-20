@@ -5,6 +5,8 @@ import TourDetailClient from './TourDetailClient'
 import CoverImageEditor from './CoverImageEditor'
 import FlightsManager from './FlightsManager'
 import ContactsManager from './ContactsManager'
+import TourInfoEditor from './TourInfoEditor'
+import ChecklistsManager from './ChecklistsManager'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
@@ -109,6 +111,21 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
             tourId={tour.id}
             initialContacts={tour.contacts}
           />
+
+          {/* Checklists */}
+          <ChecklistsManager
+            tourId={tour.id}
+            initialChecklists={tour.checklists.map(cl => ({
+              ...cl,
+              items: cl.items.map(item => ({
+                id: item.id,
+                label: item.label,
+                labelEn: item.labelEn,
+                isImportant: item.isImportant,
+                order: item.order,
+              })),
+            }))}
+          />
         </div>
 
         {/* Sidebar info */}
@@ -145,35 +162,23 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           <CoverImageEditor tourId={tour.id} currentUrl={tour.coverImageUrl ?? null} />
 
           {/* Tour info */}
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-            <h3 className="font-semibold text-gray-900 text-sm mb-3">ข้อมูลทัวร์</h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-gray-500">ประเทศ</span>
-                <span className="text-gray-900">{tour.countries.join(', ')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">เมือง</span>
-                <span className="text-gray-900">{tour.cities.join(', ') || '-'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">จำนวนสูงสุด</span>
-                <span className="text-gray-900">{tour.maxMembers ?? 'ไม่จำกัด'}</span>
-              </div>
-              {tour.tourCode && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Tour Code</span>
-                  <span className="text-gray-900 font-mono">{tour.tourCode}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-gray-500">China Mode</span>
-                <span className={tour.isChina ? 'text-red-600 font-medium' : 'text-gray-400'}>
-                  {tour.isChina ? 'เปิด' : 'ปิด'}
-                </span>
-              </div>
-            </div>
-          </div>
+          <TourInfoEditor tour={{
+            id: tour.id,
+            title: tour.title,
+            titleEn: tour.titleEn,
+            description: tour.description,
+            countries: tour.countries,
+            primaryCountry: tour.primaryCountry,
+            cities: tour.cities,
+            startDate: tour.startDate.toISOString(),
+            endDate: tour.endDate.toISOString(),
+            timezone: tour.timezone,
+            maxMembers: tour.maxMembers,
+            tourCode: tour.tourCode,
+            currency: tour.currency,
+            destCurrency: tour.destCurrency,
+            isChina: tour.isChina,
+          }} />
         </div>
       </div>
     </div>
