@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { TopBar } from '@/components/layout/TopBar'
 
 interface TourData {
   id: string
@@ -38,7 +39,7 @@ const categoryIcons: Record<string, string> = {
 
 const categoryColors: Record<string, string> = {
   SIGHTSEEING: 'bg-blue-500', FOOD: 'bg-orange-500',
-  TRANSPORT: 'bg-gray-400', ACCOMMODATION: 'bg-purple-500',
+  TRANSPORT: 'bg-gray-400', ACCOMMODATION: 'bg-violet-500',
   SHOPPING: 'bg-pink-500', TEMPLE: 'bg-yellow-500',
 }
 
@@ -57,9 +58,9 @@ export default function TodayPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
           <p className="text-gray-500 text-sm">กำลังโหลด...</p>
         </div>
       </div>
@@ -68,13 +69,12 @@ export default function TodayPage() {
 
   if (!tour) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-gray-500">ไม่พบทริปนี้</p>
       </div>
     )
   }
 
-  // Find today's day
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const currentDay = tour.days.find((d) => {
@@ -88,10 +88,7 @@ export default function TodayPage() {
   if (!currentDay) {
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
-        <div className="bg-primary-600 text-white px-4 pt-6 pb-8">
-          <h1 className="text-xl font-bold">{tour.title}</h1>
-          <p className="text-primary-200 text-sm mt-1">ยังไม่มีกำหนดการ</p>
-        </div>
+        <TopBar title={tour.title} subtitle="ยังไม่มีกำหนดการ" backHref="/home" />
         <BottomNav activeTab="today" tourId={tourId} isChina={tour.isChina} />
       </div>
     )
@@ -99,17 +96,12 @@ export default function TodayPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Hero */}
-      <div className={`text-white px-4 pt-6 pb-8 ${tour.isChina ? 'bg-red-700' : 'bg-primary-600'}`}>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-xl">{countryFlags[currentDay.country ?? ''] ?? '🌍'}</span>
-          <span className="text-white/80 text-sm">{currentDay.city ?? ''}</span>
-        </div>
-        <h1 className="text-lg font-bold">{currentDay.title}</h1>
-        <p className="text-white/70 text-sm mt-1">
-          {new Date(currentDay.date).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-        </p>
-      </div>
+      <TopBar
+        title={currentDay.title}
+        subtitle={`${countryFlags[currentDay.country ?? ''] ?? '🌍'} ${currentDay.city ?? ''} · ${new Date(currentDay.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+        backHref="/home"
+        gradient={tour.isChina ? 'bg-gradient-to-br from-red-600 to-red-800' : undefined}
+      />
 
       <div className="px-4 -mt-2 space-y-3">
         {/* Meal badges */}
@@ -122,7 +114,7 @@ export default function TodayPage() {
             <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealLunch ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-300 line-through'}`}>
               🍱 กลางวัน
             </span>
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealDinner ? 'bg-purple-50 text-purple-700' : 'bg-gray-50 text-gray-300 line-through'}`}>
+            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${currentDay.mealDinner ? 'bg-violet-50 text-violet-700' : 'bg-gray-50 text-gray-300 line-through'}`}>
               🍽️ เย็น
             </span>
           </div>
@@ -130,14 +122,14 @@ export default function TodayPage() {
 
         {/* Guide contact */}
         {guide && (
-          <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4">
-            <p className="text-xs text-primary-600 font-medium mb-1">ไกด์ของกลุ่ม</p>
+          <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+            <p className="text-xs text-indigo-600 font-medium mb-1">ไกด์ของกลุ่ม</p>
             <div className="flex items-center justify-between">
               <p className="font-semibold text-gray-900">{guide.name}</p>
               <div className="flex gap-2">
                 {guide.phone && (
-                  <a href={`tel:${guide.phone}`} className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center">
-                    <span className="text-white">📞</span>
+                  <a href={`tel:${guide.phone}`} className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-full flex items-center justify-center shadow-md shadow-indigo-500/20">
+                    <span>📞</span>
                   </a>
                 )}
                 {tour.isChina && guide.wechat && (
@@ -158,7 +150,7 @@ export default function TodayPage() {
           </div>
         )}
 
-        {/* WiFi card for China hotels */}
+        {/* WiFi */}
         {tour.isChina && currentDay.accommodation?.wifiName && (
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
             <p className="text-xs text-blue-600 font-medium mb-1">📶 WiFi โรงแรม</p>
@@ -196,4 +188,3 @@ export default function TodayPage() {
     </div>
   )
 }
-

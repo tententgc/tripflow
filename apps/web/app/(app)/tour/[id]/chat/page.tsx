@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
+import { TopBar } from '@/components/layout/TopBar'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -48,10 +49,7 @@ export default function ChatPage() {
       const res = await fetch(`/api/tours/${tourId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: [...messages, userMsg],
-          tourContext: { tourId },
-        }),
+        body: JSON.stringify({ messages: [...messages, userMsg], tourContext: { tourId } }),
       })
 
       if (!res.ok || !res.body) throw new Error('no response')
@@ -90,25 +88,20 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-white border-b border-gray-200 px-4 pt-safe-top pb-3">
-        <div className="pt-3 flex items-center gap-3">
-          <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-            <span className="text-white text-xs font-bold">AI</span>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">AI ช่วยเหลือ</p>
-            <p className="text-xs text-green-500">
-              {isOffline ? '● ออฟไลน์' : isChina ? '● Qwen (จีน)' : '● Claude'}
-            </p>
-          </div>
-        </div>
-      </div>
+      <TopBar
+        title="AI ช่วยเหลือ"
+        subtitle={isOffline ? '● ออฟไลน์' : isChina ? '● Qwen (จีน)' : '● Claude'}
+      />
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 pb-36">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${msg.role === 'user' ? 'bg-primary-600 text-white rounded-br-sm' : 'bg-white text-gray-900 shadow-sm border border-gray-100 rounded-bl-sm'}`}>
+            <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+              msg.role === 'user'
+                ? 'bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-br-sm shadow-md shadow-indigo-500/20'
+                : 'bg-white text-gray-900 shadow-sm border border-gray-100 rounded-bl-sm'
+            }`}>
               {msg.content || (isLoading && msg.role === 'assistant' ? <span className="animate-pulse">กำลังพิมพ์...</span> : '')}
             </div>
           </div>
@@ -117,10 +110,11 @@ export default function ChatPage() {
       </div>
 
       {/* Input area */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 space-y-2 pb-safe">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-3 space-y-2 pb-safe shadow-lg">
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {quickReplies.map((r) => (
-            <button key={r} onClick={() => sendMessage(r)} className="flex-shrink-0 px-3 py-1.5 bg-primary-50 text-primary-700 rounded-full text-xs font-medium whitespace-nowrap">
+            <button key={r} onClick={() => sendMessage(r)}
+              className="flex-shrink-0 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium whitespace-nowrap border border-indigo-100">
               {r}
             </button>
           ))}
@@ -132,12 +126,12 @@ export default function ChatPage() {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
             placeholder={isOffline ? 'ไม่มีอินเทอร์เน็ต' : 'พิมพ์ข้อความ...'}
             disabled={isOffline}
-            className="flex-1 px-4 py-2.5 bg-gray-100 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 bg-gray-100 rounded-2xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 disabled:opacity-50"
           />
           <button
             onClick={() => sendMessage(input)}
             disabled={!input.trim() || isLoading}
-            className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center disabled:opacity-40"
+            className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-full flex items-center justify-center disabled:opacity-40 shadow-md shadow-indigo-500/20"
           >
             <span className="text-white text-sm">↑</span>
           </button>

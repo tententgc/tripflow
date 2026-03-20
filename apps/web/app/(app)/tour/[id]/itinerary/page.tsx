@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { TopBar } from '@/components/layout/TopBar'
 
 interface Day {
   id: string
@@ -44,15 +45,7 @@ export default function ItineraryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 px-4 pt-safe-top pb-4">
-        <div className="pt-4 flex items-center gap-3">
-          <a href="/home" className="text-gray-500 text-2xl leading-none">←</a>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">แผนเที่ยว</h1>
-            <p className="text-gray-500 text-xs">{tour?.title}</p>
-          </div>
-        </div>
-      </div>
+      <TopBar title="แผนเที่ยว" subtitle={tour?.title} backHref="/home" />
 
       <div className="px-4 py-4 space-y-3">
         {!tour?.days.length ? (
@@ -66,9 +59,9 @@ export default function ItineraryPage() {
               <div className="card-interactive bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
-                      <span className="text-xs text-primary-600">วันที่</span>
-                      <span className="text-lg font-bold text-primary-700">{day.dayNumber}</span>
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-100 rounded-xl flex flex-col items-center justify-center flex-shrink-0">
+                      <span className="text-xs text-indigo-500">วันที่</span>
+                      <span className="text-lg font-bold text-indigo-700">{day.dayNumber}</span>
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 text-sm">{day.title}</p>
@@ -83,7 +76,7 @@ export default function ItineraryPage() {
                 <div className="flex gap-2 mt-3">
                   {day.mealBreakfast && <span className="text-xs px-2 py-1 bg-orange-50 text-orange-600 rounded-full">🍳 เช้า</span>}
                   {day.mealLunch && <span className="text-xs px-2 py-1 bg-green-50 text-green-600 rounded-full">🍱 กลางวัน</span>}
-                  {day.mealDinner && <span className="text-xs px-2 py-1 bg-purple-50 text-purple-600 rounded-full">🍽️ เย็น</span>}
+                  {day.mealDinner && <span className="text-xs px-2 py-1 bg-violet-50 text-violet-600 rounded-full">🍽️ เย็น</span>}
                 </div>
               </div>
             </a>
@@ -98,9 +91,8 @@ export default function ItineraryPage() {
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }
-
