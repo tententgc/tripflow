@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { TopBar } from '@/components/layout/TopBar'
+import ReactMarkdown from 'react-markdown'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -49,7 +50,7 @@ export default function ChatPage() {
       const res = await fetch(`/api/tours/${tourId}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMsg], tourContext: { tourId } }),
+        body: JSON.stringify({ messages: [...messages, userMsg] }),
       })
 
       if (!res.ok || !res.body) throw new Error('no response')
@@ -57,26 +58,35 @@ export default function ChatPage() {
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
       let assistantText = ''
+      let buffer = ''
 
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
 
-      while (true) {
+      outer: while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n').filter((l) => l.startsWith('data: '))
+        // { stream: true } preserves state across chunks — fixes multi-byte Thai chars
+        buffer += decoder.decode(value, { stream: true })
+
+        // Process all complete lines in buffer
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? '' // keep incomplete last line
+
         for (const line of lines) {
-          const data = line.slice(6)
-          if (data === '[DONE]') break
+          if (!line.startsWith('data: ')) continue
+          const data = line.slice(6).trim()
+          if (data === '[DONE]') break outer
           try {
-            const { text } = JSON.parse(data) as { text: string }
-            assistantText += text
-            setMessages((prev) => {
-              const updated = [...prev]
-              updated[updated.length - 1] = { role: 'assistant', content: assistantText }
-              return updated
-            })
-          } catch { /* skip */ }
+            const parsed = JSON.parse(data) as { text: string }
+            if (parsed.text) {
+              assistantText += parsed.text
+              setMessages((prev) => {
+                const updated = [...prev]
+                updated[updated.length - 1] = { role: 'assistant', content: assistantText }
+                return updated
+              })
+            }
+          } catch { /* skip malformed chunk */ }
         }
       }
     } catch {
@@ -90,7 +100,7 @@ export default function ChatPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <TopBar
         title="AI ช่วยเหลือ"
-        subtitle={isOffline ? '● ออฟไลน์' : isChina ? '● Qwen (จีน)' : '● Claude'}
+        subtitle={isOffline ? '● ออฟไลน์' : isChina ? '● Qwen (จีน)' : '● GPT-4o mini'}
       />
 
       {/* Messages */}
@@ -102,7 +112,33 @@ export default function ChatPage() {
                 ? 'bg-gradient-to-br from-indigo-600 to-violet-700 text-white rounded-br-sm shadow-md shadow-indigo-500/20'
                 : 'bg-white text-gray-900 shadow-sm border border-gray-100 rounded-bl-sm'
             }`}>
-              {msg.content || (isLoading && msg.role === 'assistant' ? <span className="animate-pulse">กำลังพิมพ์...</span> : '')}
+              {msg.role === 'assistant' ? (
+                msg.content ? (
+                  <ReactMarkdown
+                    components={{
+                      p:      ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                      strong: ({ children }) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                      em:     ({ children }) => <em className="italic">{children}</em>,
+                      ul:     ({ children }) => <ul className="list-disc list-inside space-y-0.5 mt-1">{children}</ul>,
+                      ol:     ({ children }) => <ol className="list-decimal list-inside space-y-0.5 mt-1">{children}</ol>,
+                      li:     ({ children }) => <li className="text-sm">{children}</li>,
+                      h3:     ({ children }) => <h3 className="font-bold text-sm mt-2 mb-0.5">{children}</h3>,
+                      code:   ({ children }) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
+                      hr:     () => <hr className="border-gray-200 my-2" />,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                ) : isLoading ? (
+                  <span className="flex gap-1 items-center py-0.5">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                  </span>
+                ) : null
+              ) : (
+                msg.content
+              )}
             </div>
           </div>
         ))}

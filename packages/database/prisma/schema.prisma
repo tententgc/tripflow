@@ -63,6 +63,8 @@ model User {
   expenseShares   ExpenseParticipant[]
   notifications   Notification[]
   checklistChecks ChecklistCheck[]
+  fundContributions       GroupFundTransaction[] @relation("FundContributor")
+  fundTransactionsCreated GroupFundTransaction[] @relation("FundTxCreator")
 }
 
 // ── TOURS ─────────────────────────────────────────────────────
@@ -101,6 +103,7 @@ model Tour {
   emergencyInfo   EmergencyInfo?
   chatMessages    ChatMessage[]
   usefulPhrases   UsefulPhrase[]                   // Thai→destination language phrases
+  groupFund       GroupFund?
 }
 
 model TourMember {
@@ -353,15 +356,47 @@ model Expense {
 }
 
 model ExpenseParticipant {
-  id        String  @id @default(cuid())
-  expenseId String
-  userId    String
-  share     Float
-  isPaid    Boolean @default(false)
+  id               String  @id @default(cuid())
+  expenseId        String
+  userId           String
+  share            Float
+  isPaid           Boolean @default(false)
+  settleReceiptUrl String?
 
   expense   Expense @relation(fields: [expenseId], references: [id])
   user      User    @relation(fields: [userId], references: [id])
   @@unique([expenseId, userId])
+}
+
+// ── GROUP FUND (กองกลาง) ──────────────────────────────────────
+
+model GroupFund {
+  id        String   @id @default(cuid())
+  tourId    String   @unique
+  name      String   @default("กองกลาง")
+  balance   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tour         Tour                   @relation(fields: [tourId], references: [id])
+  transactions GroupFundTransaction[]
+}
+
+model GroupFundTransaction {
+  id          String     @id @default(cuid())
+  fundId      String
+  type        FundTxType
+  amount      Float
+  description String
+  userId      String?
+  receiptUrl  String?
+  isPaid      Boolean    @default(false)
+  createdById String
+  createdAt   DateTime   @default(now())
+
+  fund      GroupFund @relation(fields: [fundId], references: [id])
+  user      User?     @relation("FundContributor", fields: [userId], references: [id])
+  createdBy User      @relation("FundTxCreator", fields: [createdById], references: [id])
 }
 
 // ── CONTACTS & EMERGENCY ──────────────────────────────────────
@@ -585,4 +620,9 @@ enum NotificationType {
 enum ChatRole {
   USER
   ASSISTANT
+}
+
+enum FundTxType {
+  DEPOSIT
+  WITHDRAWAL
 }

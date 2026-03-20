@@ -45,10 +45,7 @@ export default function ProfilePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, nameEn: nameEn || null, phone: phone || null }),
     })
-    if (res.ok) {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2500)
-    }
+    if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2500) }
     setSaving(false)
   }
 
@@ -61,7 +58,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -71,17 +68,15 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-primary-600 text-white px-4 pt-safe-top pb-8">
+      <div className="bg-gradient-to-br from-indigo-600 to-violet-700 text-white px-4 pt-safe-top pb-8 shadow-lg shadow-indigo-500/20">
         <div className="flex items-center gap-3 pt-4">
-          <button onClick={() => router.back()} className="text-white/70 hover:text-white p-1">
+          <button onClick={() => router.back()} className="text-white/70 hover:text-white p-1 transition-colors">
             ←
           </button>
           <h1 className="text-lg font-bold">โปรไฟล์</h1>
         </div>
-
-        {/* Avatar */}
         <div className="flex flex-col items-center mt-4">
-          <div className="w-20 h-20 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border-4 border-white/40">
+          <div className="w-20 h-20 rounded-full overflow-hidden bg-white/20 flex items-center justify-center border-4 border-white/30 shadow-lg">
             {profile.avatarUrl ? (
               <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : (
@@ -89,7 +84,7 @@ export default function ProfilePage() {
             )}
           </div>
           <p className="text-white font-semibold mt-2">{profile.name}</p>
-          <p className="text-primary-200 text-sm">{profile.email}</p>
+          <p className="text-indigo-200 text-sm">{profile.email}</p>
         </div>
       </div>
 
@@ -103,7 +98,7 @@ export default function ProfilePage() {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400"
               placeholder="สมชาย ใจดี"
             />
           </div>
@@ -113,7 +108,7 @@ export default function ProfilePage() {
             <input
               value={nameEn}
               onChange={(e) => setNameEn(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400"
               placeholder="SOMCHAI JAIDEE"
             />
           </div>
@@ -124,7 +119,7 @@ export default function ProfilePage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               type="tel"
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400"
               placeholder="+66-81-000-0000"
             />
           </div>
@@ -142,13 +137,12 @@ export default function ProfilePage() {
           <button
             onClick={save}
             disabled={saving || !name.trim()}
-            className="w-full py-3 bg-primary-600 text-white rounded-xl font-medium text-sm hover:bg-primary-700 disabled:opacity-50 transition-colors"
+            className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-700 text-white rounded-xl font-medium text-sm disabled:opacity-50 shadow-md shadow-indigo-500/20 transition-all"
           >
             {saving ? 'กำลังบันทึก...' : saved ? '✓ บันทึกแล้ว' : 'บันทึกข้อมูล'}
           </button>
         </div>
 
-        {/* Passport info (read-only, edit via operator) */}
         {(profile.passportNo || profile.passportExpiry) && (
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <h2 className="font-semibold text-gray-900 mb-3">ข้อมูลพาสปอร์ต</h2>
@@ -164,7 +158,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Logout */}
         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
           <button
             onClick={logout}

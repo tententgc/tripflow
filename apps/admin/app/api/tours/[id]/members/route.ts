@@ -7,16 +7,21 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const { email } = await req.json() as { email: string }
+    const body = await req.json() as { email?: string; userId?: string }
 
-    let user = await db.user.findUnique({ where: { email } })
-    if (!user) {
-      user = await db.user.create({
-        data: {
-          email,
-          name: email.split('@')[0] ?? email,
-        },
-      })
+    let user
+    if (body.userId) {
+      user = await db.user.findUnique({ where: { id: body.userId } })
+      if (!user) return NextResponse.json({ error: 'ไม่พบผู้ใช้นี้' }, { status: 404 })
+    } else if (body.email) {
+      user = await db.user.findUnique({ where: { email: body.email } })
+      if (!user) {
+        user = await db.user.create({
+          data: { email: body.email, name: body.email.split('@')[0] ?? body.email },
+        })
+      }
+    } else {
+      return NextResponse.json({ error: 'ต้องระบุ userId หรือ email' }, { status: 400 })
     }
 
     const member = await db.tourMember.upsert({

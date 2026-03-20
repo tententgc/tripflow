@@ -2,9 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@tripflow/database'
 
 // GET all travelers (users) with their tour memberships
-export async function GET() {
+// Supports ?q=search to filter by name/email, and ?simple=1 to return minimal fields
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url)
+    const q = searchParams.get('q')?.trim() ?? ''
+    const simple = searchParams.get('simple') === '1'
+
+    const where = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' as const } },
+            { email: { contains: q, mode: 'insensitive' as const } },
+            { phone: { contains: q, mode: 'insensitive' as const } },
+          ],
+        }
+      : {}
+
+    if (simple) {
+      const users = await db.user.findMany({
+        where,
+        select: { id: true, name: true, email: true, phone: true, avatarUrl: true },
+        orderBy: { name: 'asc' },
+        take: 50,
+      })
+      return NextResponse.json(users)
+    }
+
     const users = await db.user.findMany({
+      where,
       include: {
         tourMembers: {
           include: {

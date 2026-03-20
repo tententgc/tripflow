@@ -124,6 +124,54 @@ export class QwenAdapter implements AIAdapter {
 }
 
 /**
+ * GPT adapter (OpenAI) — Global tours
+ * Uses gpt-4o-mini for cost efficiency, falls back to Claude if no key
+ */
+export class GPTAdapter implements AIAdapter {
+  private client: OpenAI
+
+  constructor(apiKey: string) {
+    this.client = new OpenAI({ apiKey })
+  }
+
+  async streamChat(
+    messages: Message[],
+    systemPrompt: string,
+    _region: TourRegion
+  ): Promise<ReadableStream<string>> {
+    const stream = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      stream: true,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+      ],
+    })
+
+    return new ReadableStream<string>({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content
+          if (text) controller.enqueue(text)
+        }
+        controller.close()
+      },
+    })
+  }
+
+  async chat(messages: Message[], systemPrompt: string, _region: TourRegion): Promise<string> {
+    const response = await this.client.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        ...messages.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+      ],
+    })
+    return response.choices[0]?.message?.content ?? ''
+  }
+}
+
+/**
  * Factory: returns the correct AI adapter based on tour region
  */
 export function createAIAdapter(region: TourRegion): AIAdapter {
@@ -132,9 +180,12 @@ export function createAIAdapter(region: TourRegion): AIAdapter {
     if (!apiKey) throw new Error('DASHSCOPE_API_KEY is required for China tours')
     return new QwenAdapter(apiKey)
   }
-  const apiKey = process.env['ANTHROPIC_API_KEY']
-  if (!apiKey) throw new Error('ANTHROPIC_API_KEY is required for global tours')
-  return new ClaudeAdapter(apiKey)
+  // Global: prefer GPT, fallback to Claude
+  const openaiKey = process.env['OPENAI_API_KEY']
+  if (openaiKey) return new GPTAdapter(openaiKey)
+  const anthropicKey = process.env['ANTHROPIC_API_KEY']
+  if (!anthropicKey) throw new Error('OPENAI_API_KEY or ANTHROPIC_API_KEY is required')
+  return new ClaudeAdapter(anthropicKey)
 }
 
 /**
