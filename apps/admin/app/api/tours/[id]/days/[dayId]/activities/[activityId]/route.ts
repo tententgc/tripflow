@@ -11,6 +11,7 @@ export async function PATCH(
       time?: string | null
       title?: string
       titleLocal?: string | null
+      description?: string | null
       category?: string
       imageUrls?: string[]
     }
@@ -21,6 +22,7 @@ export async function PATCH(
         ...(body.time !== undefined && { time: body.time }),
         ...(body.title !== undefined && { title: body.title }),
         ...(body.titleLocal !== undefined && { titleLocal: body.titleLocal }),
+        ...(body.description !== undefined && { description: body.description }),
         ...(body.category !== undefined && { category: body.category as any }),
         ...(body.imageUrls !== undefined && { imageUrls: body.imageUrls }),
       },

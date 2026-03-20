@@ -11,6 +11,7 @@ export async function POST(
       time?: string | null
       title: string
       titleLocal?: string | null
+      description?: string | null
       category: string
       imageUrls?: string[]
     }
@@ -27,6 +28,7 @@ export async function POST(
         time: body.time ?? null,
         title: body.title,
         titleLocal: body.titleLocal ?? null,
+        description: body.description ?? null,
         category: body.category as any,
         imageUrls: body.imageUrls ?? [],
       },
