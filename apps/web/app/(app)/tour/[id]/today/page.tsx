@@ -128,8 +128,8 @@ export default function TodayPage() {
               <p className="font-semibold text-gray-900">{guide.name}</p>
               <div className="flex gap-2">
                 {guide.phone && (
-                  <a href={`tel:${guide.phone}`} className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-full flex items-center justify-center shadow-md shadow-indigo-500/20">
-                    <span>📞</span>
+                  <a href={`tel:${guide.phone}`} className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
+                    <span className="text-white text-lg">📱</span>
                   </a>
                 )}
                 {tour.isChina && guide.wechat && (
