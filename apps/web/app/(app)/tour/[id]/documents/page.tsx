@@ -93,7 +93,7 @@ function DocumentDetail({ doc, onBack }: { doc: Document; onBack: () => void }) 
       </div>
 
       {/* Content */}
-      <div className="px-4 pt-4 max-w-2xl mx-auto">
+      <div className="px-4 pt-4 max-w-3xl mx-auto">
         {/* PDF viewer */}
         {doc.fileUrl && isPdf(doc.fileUrl) && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -265,7 +265,7 @@ export default function DocumentsPage() {
     <div className="min-h-screen bg-gray-50 pb-24">
       <TopBar title="ตั๋ว / เอกสาร" subtitle={tour.title} />
 
-      <div className="px-4 pt-4 space-y-4 max-w-2xl mx-auto">
+      <div className="px-4 pt-4 space-y-4 max-w-3xl mx-auto">
         {/* Group documents (from admin) */}
         {groupDocs.length > 0 && (
           <div>
