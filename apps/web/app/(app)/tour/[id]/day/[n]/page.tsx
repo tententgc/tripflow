@@ -87,6 +87,7 @@ interface Accommodation {
   wifiName: string | null
   wifiPassword: string | null
   confirmationNo: string | null
+  imageUrl: string | null
   notes: string | null
 }
 
@@ -322,20 +323,35 @@ export default function DayDetailPage() {
         {/* Accommodation */}
         {day.accommodation && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
-              <h3 className="font-semibold text-indigo-700 text-sm">🏨 ที่พัก</h3>
-            </div>
+            {/* Hotel image */}
+            {day.accommodation.imageUrl && (
+              <div className="w-full h-40 relative">
+                <img src={day.accommodation.imageUrl} alt={day.accommodation.name} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                <div className="absolute bottom-3 left-4 right-4">
+                  <h3 className="text-white font-bold text-sm drop-shadow-md">{day.accommodation.name}</h3>
+                  {day.accommodation.nameLocal && <p className="text-white/80 text-xs drop-shadow-md">{day.accommodation.nameLocal}</p>}
+                </div>
+              </div>
+            )}
+            {!day.accommodation.imageUrl && (
+              <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+                <h3 className="font-semibold text-indigo-700 text-sm">🏨 ที่พัก</h3>
+              </div>
+            )}
             <div className="p-4 space-y-2">
-              <a
-                href={mapUrl(day.accommodation.nameLocal ?? day.accommodation.name, tour.isChina)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
-              >
-                {day.accommodation.name}
-                <span className="text-xs text-indigo-400">↗</span>
-              </a>
-              {day.accommodation.nameLocal && <p className="text-xs text-gray-400">{day.accommodation.nameLocal}</p>}
+              {!day.accommodation.imageUrl && (
+                <a
+                  href={mapUrl(day.accommodation.nameLocal ?? day.accommodation.name, tour.isChina)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-semibold text-gray-900 hover:text-indigo-600 transition-colors"
+                >
+                  {day.accommodation.name}
+                  <span className="text-xs text-indigo-400">↗</span>
+                </a>
+              )}
+              {!day.accommodation.imageUrl && day.accommodation.nameLocal && <p className="text-xs text-gray-400">{day.accommodation.nameLocal}</p>}
               {(day.accommodation.checkIn || day.accommodation.checkOut) && (
                 <div className="flex gap-4 text-xs text-gray-500">
                   {day.accommodation.checkIn && <span>เช็คอิน: {day.accommodation.checkIn}</span>}
