@@ -530,49 +530,48 @@ export default function TodayPage() {
                 : 'from-gray-500 to-gray-600'
 
               return (
-                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="p-4 flex items-center gap-4">
-                    {/* Avatar icon */}
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-md`}>
-                      <span className="text-xl">{typeIcon}</span>
+                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                      <span className="text-lg">{typeIcon}</span>
                     </div>
 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-900 truncate">{c.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{typeLabel}</span>
-                        {c.phone && <span className="text-[11px] text-gray-400">{c.phone}</span>}
-                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{typeLabel}</p>
                     </div>
+                  </div>
 
-                    {/* Action buttons */}
-                    <div className="flex gap-2 flex-shrink-0">
-                      {c.phone && (
-                        <a
-                          href={`tel:${c.phone}`}
-                          className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-200 active:scale-95 transition-transform"
-                        >
-                          <span className="text-white text-base">📞</span>
-                        </a>
-                      )}
-                      {tour.isChina && c.wechat && (
-                        <button
-                          onClick={() => navigator.clipboard.writeText(c.wechat!)}
-                          className="w-11 h-11 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md shadow-green-200 active:scale-95 transition-transform"
-                        >
-                          <span className="text-white text-[10px] font-black">微信</span>
-                        </button>
-                      )}
-                      {!tour.isChina && c.line && (
-                        <a
-                          href={`line://ti/p/~${c.line}`}
-                          className="w-11 h-11 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center shadow-md shadow-green-200 active:scale-95 transition-transform"
-                        >
-                          <span className="text-white text-[9px] font-black tracking-tight">LINE</span>
-                        </a>
-                      )}
-                    </div>
+                  {/* Action row */}
+                  <div className="flex gap-2 mt-3 ml-14">
+                    {c.phone && (
+                      <a
+                        href={`tel:${c.phone}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform"
+                      >
+                        <span>📞</span>
+                        <span>{c.phone}</span>
+                      </a>
+                    )}
+                    {tour.isChina && c.wechat && (
+                      <button
+                        onClick={() => navigator.clipboard.writeText(c.wechat!)}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform"
+                      >
+                        <span className="font-black">微信</span>
+                        <span>{c.wechat}</span>
+                      </button>
+                    )}
+                    {!tour.isChina && c.line && (
+                      <a
+                        href={`line://ti/p/~${c.line}`}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform"
+                      >
+                        <span className="font-black">LINE</span>
+                      </a>
+                    )}
                   </div>
                 </div>
               )
