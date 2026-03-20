@@ -5,6 +5,13 @@ import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
 
+interface Accommodation {
+  name: string
+  imageUrl: string | null
+  checkIn: string | null
+  checkOut: string | null
+}
+
 interface Day {
   id: string
   dayNumber: number
@@ -15,6 +22,7 @@ interface Day {
   mealBreakfast: boolean
   mealLunch: boolean
   mealDinner: boolean
+  accommodation: Accommodation | null
 }
 
 interface TourBasic {
@@ -73,11 +81,37 @@ export default function ItineraryPage() {
                   </div>
                   <span className="text-gray-300 text-lg">›</span>
                 </div>
-                <div className="flex gap-2 mt-3">
+                {/* Meals + Accommodation row */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
                   {day.mealBreakfast && <span className="text-xs px-2 py-1 bg-orange-50 text-orange-600 rounded-full">🍳 เช้า</span>}
                   {day.mealLunch && <span className="text-xs px-2 py-1 bg-green-50 text-green-600 rounded-full">🍱 กลางวัน</span>}
                   {day.mealDinner && <span className="text-xs px-2 py-1 bg-violet-50 text-violet-600 rounded-full">🍽️ เย็น</span>}
                 </div>
+
+                {/* Accommodation */}
+                {day.accommodation && (
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3">
+                    {day.accommodation.imageUrl ? (
+                      <div className="w-14 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={day.accommodation.imageUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-base">🏨</span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-800 truncate">{day.accommodation.name}</p>
+                      {(day.accommodation.checkIn || day.accommodation.checkOut) && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {day.accommodation.checkIn && `เช็คอิน ${day.accommodation.checkIn}`}
+                          {day.accommodation.checkIn && day.accommodation.checkOut && ' · '}
+                          {day.accommodation.checkOut && `เช็คเอาต์ ${day.accommodation.checkOut}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </a>
           ))

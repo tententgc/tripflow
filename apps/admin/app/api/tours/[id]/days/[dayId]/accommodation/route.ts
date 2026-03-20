@@ -20,6 +20,7 @@ export async function PUT(
       wifiName?: string
       wifiPassword?: string
       roomType?: string
+      imageUrl?: string
       notes?: string
     }
 
@@ -39,6 +40,7 @@ export async function PUT(
         wifiName: body.wifiName || null,
         wifiPassword: body.wifiPassword || null,
         roomType: body.roomType || null,
+        imageUrl: body.imageUrl || null,
         notes: body.notes || null,
       },
       update: {
@@ -54,6 +56,7 @@ export async function PUT(
         wifiName: body.wifiName || null,
         wifiPassword: body.wifiPassword || null,
         roomType: body.roomType || null,
+        imageUrl: body.imageUrl || null,
         notes: body.notes || null,
       },
     })

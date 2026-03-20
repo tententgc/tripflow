@@ -264,6 +264,7 @@ model Accommodation {
   isPaid          Boolean  @default(false)
   wifiName        String?                            // Important for China travelers
   wifiPassword    String?
+  imageUrl        String?                            // Hotel exterior/room photo
   breakfastInfo   String?
   notes           String?
 
