@@ -55,13 +55,15 @@ export default async function HomePage() {
             <p className="text-primary-200 text-sm">สวัสดี,</p>
             <h1 className="text-xl font-bold">{dbUser.name}</h1>
           </div>
-          {dbUser.avatarUrl ? (
-            <img src={dbUser.avatarUrl} alt="" className="w-10 h-10 rounded-full" />
-          ) : (
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <span className="text-white font-semibold">{dbUser.name[0]}</span>
-            </div>
-          )}
+          <a href="/profile">
+            {dbUser.avatarUrl ? (
+              <img src={dbUser.avatarUrl} alt="" className="w-10 h-10 rounded-full ring-2 ring-white/40" />
+            ) : (
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center ring-2 ring-white/40">
+                <span className="text-white font-semibold">{dbUser.name[0]}</span>
+              </div>
+            )}
+          </a>
         </div>
       </div>
 

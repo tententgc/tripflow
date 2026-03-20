@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { db } from '@tripflow/database'
 
@@ -20,6 +20,28 @@ export async function GET() {
       },
     })
   }
+
+  return NextResponse.json(dbUser)
+}
+
+export async function PATCH(req: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const body = await req.json() as { name?: string; phone?: string; nameEn?: string }
+
+  const dbUser = await db.user.update({
+    where: { email: user.email! },
+    data: {
+      ...(body.name != null && { name: body.name }),
+      ...(body.nameEn != null && { nameEn: body.nameEn }),
+      ...(body.phone != null && { phone: body.phone }),
+    },
+  })
 
   return NextResponse.json(dbUser)
 }
