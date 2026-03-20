@@ -14,6 +14,11 @@ interface DocItem {
   userId: string | null
 }
 
+interface MemberInfo {
+  userId: string
+  name: string
+}
+
 const docTypes = [
   { value: 'FLIGHT_TICKET',    label: 'ตั๋วเครื่องบิน',  emoji: '✈️' },
   { value: 'HOTEL_VOUCHER',    label: 'เวาเชอร์โรงแรม',  emoji: '🏨' },
@@ -39,6 +44,7 @@ type FormState = {
   description: string
   qrData: string
   fileUrl: string
+  userId: string // '' = group, otherwise specific user
 }
 
 const emptyForm: FormState = {
@@ -48,14 +54,17 @@ const emptyForm: FormState = {
   description: '',
   qrData: '',
   fileUrl: '',
+  userId: '',
 }
 
 export default function DocumentsManager({
   tourId,
   initialDocuments,
+  members,
 }: {
   tourId: string
   initialDocuments: DocItem[]
+  members: MemberInfo[]
 }) {
   const [docs, setDocs] = useState<DocItem[]>(initialDocuments)
   const [adding, setAdding] = useState(false)
@@ -63,6 +72,8 @@ export default function DocumentsManager({
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const memberMap = Object.fromEntries(members.map(m => [m.userId, m.name]))
 
   async function uploadFile(file: File): Promise<string | null> {
     setUploading(true)
@@ -91,6 +102,7 @@ export default function DocumentsManager({
     if (!form.title.trim()) return
     setSaving(true)
     try {
+      const isPersonal = form.userId !== ''
       const res = await fetch(`/api/tours/${tourId}/documents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -101,6 +113,8 @@ export default function DocumentsManager({
           description: form.description.trim() || null,
           qrData: form.qrData.trim() || null,
           fileUrl: form.fileUrl.trim() || null,
+          isPersonal,
+          userId: isPersonal ? form.userId : null,
         }),
       })
       if (res.ok) {
@@ -126,6 +140,19 @@ export default function DocumentsManager({
     return !!url && url.toLowerCase().endsWith('.pdf')
   }
 
+  // Group docs by owner
+  const groupDocs = docs.filter(d => !d.isPersonal)
+  const personalDocs = docs.filter(d => d.isPersonal)
+
+  // Group personal docs by member
+  const byMember = new Map<string, DocItem[]>()
+  for (const d of personalDocs) {
+    const uid = d.userId ?? 'unknown'
+    const arr = byMember.get(uid) ?? []
+    arr.push(d)
+    byMember.set(uid, arr)
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -140,70 +167,96 @@ export default function DocumentsManager({
         </div>
       )}
 
-      {docs.map(doc => {
-        const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
-        return (
-          <div key={doc.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="flex items-center gap-3 p-4">
-              <span className="text-2xl">{cfg.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{doc.title}</p>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full flex-shrink-0">{cfg.label}</span>
-                </div>
-                {doc.titleEn && <p className="text-xs text-gray-400 truncate">{doc.titleEn}</p>}
-                {doc.description && <p className="text-xs text-gray-500 mt-0.5 truncate">{doc.description}</p>}
-                <div className="flex gap-2 mt-1">
+      {/* Group documents */}
+      {groupDocs.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-400 font-medium mb-1.5">เอกสารรวม ({groupDocs.length})</p>
+          <div className="space-y-2">
+            {groupDocs.map(doc => {
+              const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
+              return (
+                <div key={doc.id} className="bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 p-3">
+                  <span className="text-xl">{cfg.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
+                    <div className="flex gap-2 mt-0.5">
+                      <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{cfg.label}</span>
+                      {doc.fileUrl && <span className="text-[10px] text-blue-600">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
+                      {doc.qrData && <span className="text-[10px] text-gray-500">⬛ QR</span>}
+                    </div>
+                  </div>
                   {doc.fileUrl && (
-                    <span className="text-[10px] text-blue-600">
-                      {isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์แนบ'}
-                    </span>
+                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex-shrink-0">
+                      ดู
+                    </a>
                   )}
-                  {doc.qrData && <span className="text-[10px] text-gray-500">⬛ QR</span>}
-                  {doc.isPersonal && <span className="text-[10px] text-orange-500">👤 ส่วนตัว</span>}
+                  <button onClick={() => deleteDoc(doc.id)} className="text-gray-300 hover:text-red-500 flex-shrink-0">🗑️</button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Personal documents grouped by member */}
+      {personalDocs.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-400 font-medium mb-1.5">ตั๋วรายบุคคล ({personalDocs.length})</p>
+          <div className="space-y-3">
+            {Array.from(byMember.entries()).map(([uid, memberDocs]) => (
+              <div key={uid} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+                  <p className="text-xs font-semibold text-gray-700">
+                    👤 {memberMap[uid] ?? 'ไม่ทราบชื่อ'}
+                  </p>
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {memberDocs.map(doc => {
+                    const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
+                    return (
+                      <div key={doc.id} className="flex items-center gap-3 px-3 py-2.5">
+                        <span className="text-lg">{cfg.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-900 truncate">{doc.title}</p>
+                          <div className="flex gap-2 mt-0.5">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{cfg.label}</span>
+                            {doc.fileUrl && <span className="text-[10px] text-blue-600">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
+                          </div>
+                        </div>
+                        {doc.fileUrl && (
+                          <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex-shrink-0">
+                            ดู
+                          </a>
+                        )}
+                        <button onClick={() => deleteDoc(doc.id)} className="text-gray-300 hover:text-red-500 flex-shrink-0 text-sm">✕</button>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
-
-              {/* PDF preview thumbnail */}
-              {doc.fileUrl && isPdf(doc.fileUrl) && (
-                <a
-                  href={doc.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-16 h-20 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center flex-shrink-0 hover:border-blue-300 transition-colors"
-                >
-                  <div className="text-center">
-                    <span className="text-2xl">📄</span>
-                    <p className="text-[8px] text-gray-400 mt-0.5">PDF</p>
-                  </div>
-                </a>
-              )}
-
-              {doc.fileUrl && !isPdf(doc.fileUrl) && (
-                <a
-                  href={doc.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-16 h-20 rounded-lg border border-gray-200 overflow-hidden flex-shrink-0 hover:border-blue-300 transition-colors"
-                >
-                  <img src={doc.fileUrl} alt="" className="w-full h-full object-cover" />
-                </a>
-              )}
-
-              <button
-                onClick={() => deleteDoc(doc.id)}
-                className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
-              >
-                🗑️
-              </button>
-            </div>
+            ))}
           </div>
-        )
-      })}
+        </div>
+      )}
 
       {/* Add document form */}
       {adding ? (
         <div className="bg-amber-50 rounded-xl p-3 space-y-2">
+          {/* Member assignment */}
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">เจ้าของตั๋ว</label>
+            <select
+              value={form.userId}
+              onChange={e => setForm(p => ({ ...p, userId: e.target.value }))}
+              className={`w-full ${inputCls}`}
+            >
+              <option value="">ทุกคน (เอกสารรวม)</option>
+              {members.map(m => (
+                <option key={m.userId} value={m.userId}>{m.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div className="col-span-2">
               <label className="text-xs text-gray-500 mb-0.5 block">ชื่อเอกสาร</label>

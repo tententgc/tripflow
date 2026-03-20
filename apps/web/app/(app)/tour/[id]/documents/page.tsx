@@ -254,7 +254,9 @@ export default function DocumentsPage() {
     )
   }
 
+  // Group docs = shared for everyone (not personal)
   const groupDocs = docs.filter(d => !d.isPersonal)
+  // My docs = personal tickets assigned to me (by admin or self-uploaded)
   const myDocs = docs.filter(d => d.isPersonal && d.userId === userId)
 
   const inputCls = 'w-full px-3 py-2 border border-gray-200 bg-white rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500'

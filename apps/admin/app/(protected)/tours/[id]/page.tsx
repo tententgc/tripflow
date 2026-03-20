@@ -133,6 +133,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           <DocumentsManager
             tourId={tour.id}
             initialDocuments={tour.documents}
+            members={tour.members.map(m => ({ userId: m.user.id, name: m.user.name }))}
           />
         </div>
 
