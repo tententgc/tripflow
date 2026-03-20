@@ -114,6 +114,42 @@ function FlightFormInline({
   const [form, setForm] = useState<FlightForm>(initial)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [looking, setLooking] = useState(false)
+  const [lookupErr, setLookupErr] = useState('')
+
+  async function lookupFlight() {
+    if (!form.flightNo.trim()) return
+    setLooking(true)
+    setLookupErr('')
+    try {
+      const dateParam = form.departAt ? `&date=${form.departAt.split('T')[0]}` : ''
+      const res = await fetch(`/api/flights/lookup?flight=${encodeURIComponent(form.flightNo.trim())}${dateParam}`)
+      const data = await res.json()
+      if (!res.ok || !data.found) {
+        setLookupErr(data.error ?? 'ไม่พบเที่ยวบินนี้')
+        return
+      }
+      setForm({
+        flightNo: data.flightNo ?? form.flightNo,
+        airline: data.airline ?? '',
+        airlineIata: data.airlineIata ?? '',
+        fromAirport: data.fromAirport ?? '',
+        fromIata: data.fromIata ?? '',
+        toAirport: data.toAirport ?? '',
+        toIata: data.toIata ?? '',
+        departAt: data.departAt ? toLocalDatetime(data.departAt) : form.departAt,
+        arriveAt: data.arriveAt ? toLocalDatetime(data.arriveAt) : form.arriveAt,
+        departTz: data.departTz ?? form.departTz,
+        arriveTz: data.arriveTz ?? form.arriveTz,
+        terminal: data.terminal ?? '',
+        gate: data.gate ?? '',
+      })
+    } catch {
+      setLookupErr('เกิดข้อผิดพลาด')
+    } finally {
+      setLooking(false)
+    }
+  }
 
   async function save() {
     if (!form.flightNo.trim() || !form.airline.trim()) return
@@ -162,15 +198,29 @@ function FlightFormInline({
 
   return (
     <div className="bg-blue-50 rounded-xl p-3 space-y-2">
-      <div className="grid grid-cols-3 gap-2">
+      {/* Flight lookup */}
+      <div className="flex gap-2">
         <input
           type="text"
           value={form.flightNo}
-          onChange={(e) => setForm((p) => ({ ...p, flightNo: e.target.value }))}
-          className={inputCls}
-          placeholder="เลขเที่ยวบิน (TG614) *"
+          onChange={(e) => setForm((p) => ({ ...p, flightNo: e.target.value.toUpperCase() }))}
+          onKeyDown={(e) => e.key === 'Enter' && lookupFlight()}
+          className={`flex-1 ${inputCls}`}
+          placeholder="เลขเที่ยวบิน (TG676) *"
           autoFocus
         />
+        <button
+          type="button"
+          onClick={lookupFlight}
+          disabled={looking || !form.flightNo.trim()}
+          className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm font-medium hover:bg-sky-600 disabled:opacity-50 flex-shrink-0"
+        >
+          {looking ? '🔍 กำลังค้นหา...' : '🔍 ค้นหาเที่ยวบิน'}
+        </button>
+      </div>
+      {lookupErr && <p className="text-xs text-red-500">{lookupErr}</p>}
+
+      <div className="grid grid-cols-3 gap-2">
         <input
           type="text"
           value={form.airline}
