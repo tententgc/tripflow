@@ -557,25 +557,41 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                   <div className="bg-violet-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-violet-700">🏨 ที่พัก</p>
 
-                    {/* Image upload */}
+                    {/* Image: upload or paste URL */}
                     <input ref={accomImgRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={uploadAccomImage} className="hidden" />
-                    <button
-                      type="button"
-                      onClick={() => accomImgRef.current?.click()}
-                      disabled={uploadingAccomImg}
-                      className="w-full h-28 border border-dashed border-violet-300 rounded-xl flex items-center justify-center overflow-hidden hover:border-violet-400 transition-colors bg-white"
-                    >
-                      {accomForm.imageUrl ? (
-                        <img src={accomForm.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                      ) : uploadingAccomImg ? (
-                        <span className="text-xs text-violet-400">กำลังอัพโหลด...</span>
-                      ) : (
-                        <div className="text-center">
-                          <span className="text-2xl">📷</span>
-                          <p className="text-[10px] text-violet-400 mt-1">เพิ่มรูปที่พัก</p>
-                        </div>
-                      )}
-                    </button>
+                    {accomForm.imageUrl ? (
+                      <div className="relative w-full h-28 rounded-xl overflow-hidden border border-violet-200">
+                        <img src={accomForm.imageUrl} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setAccomForm(p => ({ ...p, imageUrl: '' }))}
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center hover:bg-black/70"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => accomImgRef.current?.click()}
+                        disabled={uploadingAccomImg}
+                        className="w-full h-20 border border-dashed border-violet-300 rounded-xl flex items-center justify-center hover:border-violet-400 transition-colors bg-white"
+                      >
+                        {uploadingAccomImg ? (
+                          <span className="text-xs text-violet-400">กำลังอัพโหลด...</span>
+                        ) : (
+                          <div className="text-center">
+                            <span className="text-xl">📷</span>
+                            <p className="text-[10px] text-violet-400 mt-0.5">อัพโหลดรูปที่พัก</p>
+                          </div>
+                        )}
+                      </button>
+                    )}
+                    <input
+                      type="text"
+                      value={accomForm.imageUrl}
+                      onChange={e => setAccomForm(p => ({ ...p, imageUrl: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                      placeholder="หรือวาง URL รูปภาพ (https://...)"
+                    />
 
                     <div className="grid grid-cols-2 gap-2">
                       <input type="text" value={accomForm.name} onChange={e => setAccomForm(p => ({ ...p, name: e.target.value }))}
