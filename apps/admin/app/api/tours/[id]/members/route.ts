@@ -23,7 +23,18 @@ export async function POST(
       where: { tourId_userId: { tourId: id, userId: user.id } },
       create: { tourId: id, userId: user.id, role: 'MEMBER' },
       update: {},
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            avatarUrl: true,
+            passportExpiry: true,
+          },
+        },
+      },
     })
 
     return NextResponse.json(member, { status: 201 })
