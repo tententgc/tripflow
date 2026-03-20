@@ -36,6 +36,7 @@ interface Day {
     wifiName: string | null
     wifiPassword: string | null
     roomType: string | null
+    imageUrl: string | null
     notes: string | null
   } | null
 }
@@ -340,9 +341,28 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
   const [accomForm, setAccomForm] = useState({
     name: '', nameLocal: '', address: '', phone: '',
     checkIn: '', checkOut: '', confirmationNo: '',
-    wifiName: '', wifiPassword: '', roomType: '', notes: '',
+    wifiName: '', wifiPassword: '', roomType: '', imageUrl: '', notes: '',
   })
   const [savingAccom, setSavingAccom] = useState(false)
+  const [uploadingAccomImg, setUploadingAccomImg] = useState(false)
+  const accomImgRef = useRef<HTMLInputElement>(null)
+
+  async function uploadAccomImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingAccomImg(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        setAccomForm(p => ({ ...p, imageUrl: data.url }))
+      }
+    } finally {
+      setUploadingAccomImg(false)
+    }
+  }
 
   function startEditAccom(day: Day) {
     setEditingAccom(day.id)
@@ -351,7 +371,8 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
       name: a?.name ?? '', nameLocal: a?.nameLocal ?? '', address: a?.address ?? '',
       phone: a?.phone ?? '', checkIn: a?.checkIn ?? '', checkOut: a?.checkOut ?? '',
       confirmationNo: a?.confirmationNo ?? '', wifiName: a?.wifiName ?? '',
-      wifiPassword: a?.wifiPassword ?? '', roomType: a?.roomType ?? '', notes: a?.notes ?? '',
+      wifiPassword: a?.wifiPassword ?? '', roomType: a?.roomType ?? '',
+      imageUrl: a?.imageUrl ?? '', notes: a?.notes ?? '',
     })
   }
 
@@ -535,6 +556,27 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                 {editingAccom === day.id ? (
                   <div className="bg-violet-50 rounded-xl p-3 space-y-2">
                     <p className="text-xs font-semibold text-violet-700">🏨 ที่พัก</p>
+
+                    {/* Image upload */}
+                    <input ref={accomImgRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={uploadAccomImage} className="hidden" />
+                    <button
+                      type="button"
+                      onClick={() => accomImgRef.current?.click()}
+                      disabled={uploadingAccomImg}
+                      className="w-full h-28 border border-dashed border-violet-300 rounded-xl flex items-center justify-center overflow-hidden hover:border-violet-400 transition-colors bg-white"
+                    >
+                      {accomForm.imageUrl ? (
+                        <img src={accomForm.imageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
+                      ) : uploadingAccomImg ? (
+                        <span className="text-xs text-violet-400">กำลังอัพโหลด...</span>
+                      ) : (
+                        <div className="text-center">
+                          <span className="text-2xl">📷</span>
+                          <p className="text-[10px] text-violet-400 mt-1">เพิ่มรูปที่พัก</p>
+                        </div>
+                      )}
+                    </button>
+
                     <div className="grid grid-cols-2 gap-2">
                       <input type="text" value={accomForm.name} onChange={e => setAccomForm(p => ({ ...p, name: e.target.value }))}
                         className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ชื่อโรงแรม *" autoFocus />
@@ -577,7 +619,13 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                     onClick={() => startEditAccom(day)}
                     className="w-full flex items-center gap-3 p-2.5 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors text-left group"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-violet-200 flex items-center justify-center flex-shrink-0 text-lg">🏨</div>
+                    {day.accommodation.imageUrl ? (
+                      <div className="w-14 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src={day.accommodation.imageUrl} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-violet-200 flex items-center justify-center flex-shrink-0 text-lg">🏨</div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{day.accommodation.name}</p>
                       <div className="flex gap-2 text-[10px] text-gray-500 mt-0.5">
