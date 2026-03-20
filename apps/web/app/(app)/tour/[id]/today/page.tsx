@@ -248,10 +248,10 @@ export default function TodayPage() {
                           <div className="text-center flex-1">
                             <p className="text-2xl font-bold text-gray-900">
                               {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
+                              <span className="text-[10px] font-normal text-gray-400 ml-1">{departUtc}</span>
                             </p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.fromIata}</p>
                             <p className="text-xs text-gray-400">{f.fromAirport}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{f.departTz.replace('Asia/', '')} ({departUtc})</p>
                           </div>
 
                           <div className="flex-1 flex flex-col items-center px-2">
@@ -267,10 +267,10 @@ export default function TodayPage() {
                           <div className="text-center flex-1">
                             <p className="text-2xl font-bold text-gray-900">
                               {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
+                              <span className="text-[10px] font-normal text-gray-400 ml-1">{arriveUtc}</span>
                             </p>
                             <p className="text-sm font-semibold text-gray-700 mt-0.5">{f.toIata}</p>
                             <p className="text-xs text-gray-400">{f.toAirport}</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">{f.arriveTz.replace('Asia/', '')} ({arriveUtc})</p>
                           </div>
                         </div>
 
