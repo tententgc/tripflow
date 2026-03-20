@@ -516,40 +516,67 @@ export default function TodayPage() {
 
         {/* Guide + contacts */}
         {(guide || tour.contacts.length > 0) && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
-              <h3 className="font-semibold text-indigo-700 text-sm">ผู้ติดต่อ</h3>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {tour.contacts.map((c) => (
-                <div key={c.id} className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{c.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'}
-                      {c.phone && ` · ${c.phone}`}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    {c.phone && (
-                      <a href={`tel:${c.phone}`} className="w-9 h-9 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
-                        <span className="text-white text-sm">📞</span>
-                      </a>
-                    )}
-                    {tour.isChina && c.wechat && (
-                      <button onClick={() => navigator.clipboard.writeText(c.wechat!)} className="w-9 h-9 bg-green-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold">微信</span>
-                      </button>
-                    )}
-                    {!tour.isChina && c.line && (
-                      <a href={`line://ti/p/~${c.line}`} className="w-9 h-9 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-[10px] font-bold">LINE</span>
-                      </a>
-                    )}
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider px-1">📋 ผู้ติดต่อ ({tour.contacts.length})</p>
+            {tour.contacts.map((c) => {
+              const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : '👤'
+              const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'
+              const gradientBg = c.type === 'THAI_GUIDE'
+                ? 'from-blue-500 to-indigo-600'
+                : c.type === 'LOCAL_GUIDE'
+                ? 'from-emerald-500 to-teal-600'
+                : c.type === 'HOTEL'
+                ? 'from-violet-500 to-purple-600'
+                : 'from-gray-500 to-gray-600'
+
+              return (
+                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4 flex items-center gap-4">
+                    {/* Avatar icon */}
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-md`}>
+                      <span className="text-xl">{typeIcon}</span>
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{c.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{typeLabel}</span>
+                        {c.phone && <span className="text-[11px] text-gray-400">{c.phone}</span>}
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-2 flex-shrink-0">
+                      {c.phone && (
+                        <a
+                          href={`tel:${c.phone}`}
+                          className="w-11 h-11 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md shadow-blue-200 active:scale-95 transition-transform"
+                        >
+                          <span className="text-white text-base">📞</span>
+                        </a>
+                      )}
+                      {tour.isChina && c.wechat && (
+                        <button
+                          onClick={() => navigator.clipboard.writeText(c.wechat!)}
+                          className="w-11 h-11 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-md shadow-green-200 active:scale-95 transition-transform"
+                        >
+                          <span className="text-white text-[10px] font-black">微信</span>
+                        </button>
+                      )}
+                      {!tour.isChina && c.line && (
+                        <a
+                          href={`line://ti/p/~${c.line}`}
+                          className="w-11 h-11 bg-gradient-to-br from-green-400 to-green-500 rounded-xl flex items-center justify-center shadow-md shadow-green-200 active:scale-95 transition-transform"
+                        >
+                          <span className="text-white text-[9px] font-black tracking-tight">LINE</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         )}
 
