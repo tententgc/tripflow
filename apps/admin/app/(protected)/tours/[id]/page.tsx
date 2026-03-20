@@ -3,6 +3,8 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import TourDetailClient from './TourDetailClient'
 import CoverImageEditor from './CoverImageEditor'
+import FlightsManager from './FlightsManager'
+import ContactsManager from './ContactsManager'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
@@ -19,6 +21,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
         orderBy: { dayNumber: 'asc' },
       },
       members: { include: { user: { select: { id: true, name: true, email: true, phone: true, avatarUrl: true } } } },
+      flights: { orderBy: { departAt: 'asc' } },
       contacts: true,
       checklists: { include: { items: { orderBy: { order: 'asc' } } } },
       _count: { select: { members: true } },
@@ -90,6 +93,22 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
               </div>
             ))
           )}
+
+          {/* Flights */}
+          <FlightsManager
+            tourId={tour.id}
+            initialFlights={tour.flights.map((f) => ({
+              ...f,
+              departAt: f.departAt.toISOString(),
+              arriveAt: f.arriveAt.toISOString(),
+            }))}
+          />
+
+          {/* Contacts */}
+          <ContactsManager
+            tourId={tour.id}
+            initialContacts={tour.contacts}
+          />
         </div>
 
         {/* Sidebar info */}
