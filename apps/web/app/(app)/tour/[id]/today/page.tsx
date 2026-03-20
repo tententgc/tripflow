@@ -153,13 +153,6 @@ export default function TodayPage() {
       />
 
       <div className="px-4 -mt-2 space-y-3">
-        {/* Summary */}
-        {currentDay.summary && (
-          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <p className="text-sm text-gray-700 leading-relaxed">{currentDay.summary}</p>
-          </div>
-        )}
-
         {/* Guide contact */}
         {guide && (
           <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
