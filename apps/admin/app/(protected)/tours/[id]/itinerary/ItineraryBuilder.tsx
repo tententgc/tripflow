@@ -10,6 +10,7 @@ interface Activity {
   titleLocal: string | null
   category: string
   order: number
+  imageUrl: string | null
 }
 
 interface Day {
@@ -54,7 +55,8 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
   const router = useRouter()
   const [days, setDays] = useState<Day[]>(tour.days)
   const [addingActivity, setAddingActivity] = useState<string | null>(null) // dayId
-  const [newActivity, setNewActivity] = useState({ time: '', title: '', titleLocal: '', category: 'SIGHTSEEING' })
+  const [newActivity, setNewActivity] = useState({ time: '', title: '', titleLocal: '', category: 'SIGHTSEEING', imageUrl: '' })
+  const [imageUploading, setImageUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [addingDay, setAddingDay] = useState(false)
 
@@ -87,6 +89,20 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
     }
   }
 
+  async function uploadImage(file: File): Promise<string | null> {
+    setImageUploading(true)
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      if (!res.ok) return null
+      const { url } = await res.json() as { url: string }
+      return url
+    } finally {
+      setImageUploading(false)
+    }
+  }
+
   async function addActivity(dayId: string) {
     if (!newActivity.title) return
     setSaving(true)
@@ -99,6 +115,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
           title: newActivity.title,
           titleLocal: newActivity.titleLocal || null,
           category: newActivity.category,
+          imageUrl: newActivity.imageUrl || null,
         }),
       })
       if (res.ok) {
@@ -108,7 +125,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
             ? { ...d, activities: [...d.activities, activity] }
             : d
         ))
-        setNewActivity({ time: '', title: '', titleLocal: '', category: 'SIGHTSEEING' })
+        setNewActivity({ time: '', title: '', titleLocal: '', category: 'SIGHTSEEING', imageUrl: '' })
         setAddingActivity(null)
       }
     } finally {
@@ -177,14 +194,18 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                 <div className="space-y-2 mb-3">
                   {day.activities.map((act) => (
                     <div key={act.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
+                      {act.imageUrl ? (
+                        <img src={act.imageUrl} alt="" className="w-12 h-10 rounded-lg object-cover flex-shrink-0" />
+                      ) : (
+                        <div className="w-12 h-10 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0 text-lg">
+                          {categoryOptions.find((c) => c.value === act.category)?.emoji ?? '📍'}
+                        </div>
+                      )}
                       {act.time && <span className="text-xs text-gray-500 w-12 flex-shrink-0">{act.time}</span>}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{act.title}</p>
                         {act.titleLocal && <p className="text-xs text-gray-400">{act.titleLocal}</p>}
                       </div>
-                      <span className="text-xs px-2 py-0.5 bg-white border border-gray-200 rounded-full text-gray-500">
-                        {categoryOptions.find((c) => c.value === act.category)?.emoji ?? '📍'}
-                      </span>
                     </div>
                   ))}
                 </div>
@@ -225,6 +246,37 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                       <option key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</option>
                     ))}
                   </select>
+
+                  {/* Image upload */}
+                  <div className="flex items-center gap-3">
+                    {newActivity.imageUrl ? (
+                      <div className="relative flex-shrink-0">
+                        <img src={newActivity.imageUrl} alt="" className="w-16 h-14 rounded-lg object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setNewActivity((p) => ({ ...p, imageUrl: '' }))}
+                          className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
+                        >✕</button>
+                      </div>
+                    ) : null}
+                    <label className={`flex-1 flex items-center justify-center gap-2 py-2 border border-dashed rounded-lg text-xs cursor-pointer transition-colors ${imageUploading ? 'opacity-50 cursor-wait' : 'border-gray-300 text-gray-500 hover:border-blue-400 hover:text-blue-600'}`}>
+                      <span>🖼️</span>
+                      <span>{imageUploading ? 'กำลังอัพโหลด...' : newActivity.imageUrl ? 'เปลี่ยนรูป' : 'เพิ่มรูปสถานที่ (ไม่บังคับ)'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={imageUploading}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          const url = await uploadImage(file)
+                          if (url) setNewActivity((p) => ({ ...p, imageUrl: url }))
+                        }}
+                      />
+                    </label>
+                  </div>
+
                   <div className="flex gap-2">
                     <button
                       onClick={() => addActivity(day.id)}

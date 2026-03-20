@@ -175,6 +175,7 @@ model Activity {
   cost           Float?
   costCurrency   String?
   costTHB        Float?                             // Pre-converted estimate
+  imageUrl       String?                            // Place photo uploaded by admin
   tips           String?                            // Thai tips: "ต้องจองล่วงหน้าออนไลน์"
   tipsEn         String?
   entryType      String?                            // "Free" / "Paid" / "Pre-book required"
