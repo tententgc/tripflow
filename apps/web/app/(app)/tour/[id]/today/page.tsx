@@ -255,6 +255,7 @@ export default function TodayPage() {
                           </div>
 
                           <div className="flex-1 flex flex-col items-center px-2">
+                            <p className="text-[10px] text-gray-400 mb-1">{hours}h {mins}m</p>
                             <div className="w-full flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full border-2 border-indigo-400" />
                               <div className="flex-1 border-t-2 border-dashed border-indigo-200" />
