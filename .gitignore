@@ -1,27 +1,64 @@
-# Dependencies
+# ── Dependencies ────────────────────────────────────────
 node_modules
 .pnp
 .pnp.js
 
-# Build outputs
+# ── Build outputs ────────────────────────────────────────
 .next
 .turbo
 dist
 build
 out
+.cache
 
-# Environment
+# ── Environment variables (NEVER commit these) ───────────
 .env
 .env.local
+.env.development
+.env.production
+.env.staging
+.env.test
 .env.*.local
+*.env
 
-# Prisma
+# ── Claude Code (may contain secrets in allowed commands) ─
+.claude/
+
+# ── Secrets & keys ───────────────────────────────────────
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+secrets/
+credentials/
+serviceAccountKey.json
+firebase-adminsdk*.json
+google-credentials*.json
+
+# ── Database ─────────────────────────────────────────────
 packages/database/prisma/migrations
 
-# Misc
+# ── OS ───────────────────────────────────────────────────
 .DS_Store
-*.pem
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# ── IDE ───────────────────────────────────────────────────
+.idea/
+*.swp
+*.swo
+.vscode/settings.json
+
+# ── Logs ─────────────────────────────────────────────────
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# ── Vercel ───────────────────────────────────────────────
 .vercel
