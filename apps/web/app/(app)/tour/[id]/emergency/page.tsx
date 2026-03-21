@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
+import { useApi } from '@/lib/swr'
 
 const CHINA_EMERGENCY_NUMBERS = [
   { number: '110', label: 'ตำรวจ', icon: '👮', color: 'bg-blue-600' },
@@ -46,15 +46,7 @@ interface TourData {
 export default function EmergencyPage() {
   const params = useParams()
   const tourId = params.id as string
-  const [tour, setTour] = useState<TourData | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch(`/api/tours/${tourId}`)
-      .then((r) => r.json())
-      .then((data) => { setTour(data); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [tourId])
+  const { data: tour, isLoading: loading } = useApi<TourData>(`/api/tours/${tourId}?fields=basic`)
 
   if (loading) {
     return (

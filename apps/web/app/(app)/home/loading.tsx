@@ -1,32 +1,36 @@
 export default function HomeLoading() {
   return (
-    <div className="min-h-screen bg-gray-50 animate-pulse">
-      {/* Header skeleton */}
-      <div className="bg-gradient-to-br from-indigo-600 via-violet-600 to-purple-700 px-4 pt-safe-top pb-10">
-        <div className="pt-6 max-w-5xl mx-auto flex items-center justify-between">
-          <div>
-            <div className="h-3 w-16 bg-white/20 rounded mb-2" />
-            <div className="h-6 w-48 bg-white/30 rounded" />
-            <div className="h-3 w-32 bg-white/15 rounded mt-2" />
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-white/20" />
-        </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20">
+      {/* Top bar skeleton */}
+      <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+      <div className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 py-4">
+        <div className="h-5 w-36 bg-gray-200/60 rounded-lg animate-pulse" />
+        <div className="h-3 w-52 bg-gray-100/60 rounded-lg animate-pulse mt-2" />
       </div>
 
-      <div className="px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto">
-        <div className="h-5 w-28 bg-gray-200 rounded mb-4" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white rounded-3xl border border-gray-100 overflow-hidden">
-              <div className="aspect-[16/10] bg-gray-200" />
-              <div className="p-4 space-y-2">
-                <div className="h-4 w-3/4 bg-gray-200 rounded" />
-                <div className="h-3 w-1/2 bg-gray-100 rounded" />
+      {/* Tour card skeletons */}
+      <div className="px-4 py-4 space-y-4">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden animate-pulse"
+          >
+            {/* Cover image placeholder */}
+            <div className="h-36 bg-indigo-50/60" />
+            <div className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-4 bg-gray-200/60 rounded" />
+                <div className="h-4 w-48 bg-gray-200/60 rounded-lg" />
+              </div>
+              <div className="h-3 w-32 bg-gray-100/60 rounded-lg" />
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-40 bg-gray-100/60 rounded-lg" />
+                <div className="h-6 w-20 bg-indigo-50/80 rounded-full" />
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
-  )
+  );
 }

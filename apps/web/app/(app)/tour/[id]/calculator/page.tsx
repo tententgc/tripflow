@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
+import { useApi } from '@/lib/swr'
 
 const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }> = {
   CNY: { name: 'หยวนจีน',      symbol: '¥',  flag: '🇨🇳' },
@@ -21,30 +22,27 @@ const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }>
 export default function CalculatorPage() {
   const params = useParams()
   const tourId = params.id as string
-  const [isChina, setIsChina] = useState(false)
-  const [destCurrency, setDestCurrency] = useState('CNY')
-  const [rates, setRates] = useState<Record<string, number>>({})
-  const [loadingRates, setLoadingRates] = useState(true)
 
-  // direction: 'thb-to-dest' or 'dest-to-thb'
+  const { data: tourData } = useApi<{ isChina: boolean; destCurrency: string | null }>(`/api/tours/${tourId}?fields=basic`)
+  const { data: ratesData, isLoading: loadingRates } = useApi<{ rates: Record<string, number> }>(
+    'https://api.exchangerate-api.com/v4/latest/THB',
+    { dedupingInterval: 60000 }
+  )
+
+  const isChina = tourData?.isChina ?? false
+  const [destCurrency, setDestCurrency] = useState('CNY')
+  const [destCurrencySet, setDestCurrencySet] = useState(false)
+
+  // Set destCurrency from tour data once loaded
+  if (tourData?.destCurrency && !destCurrencySet) {
+    setDestCurrency(tourData.destCurrency)
+    setDestCurrencySet(true)
+  }
+
+  const rates = ratesData?.rates ?? {}
+
   const [direction, setDirection] = useState<'thb-to-dest' | 'dest-to-thb'>('thb-to-dest')
   const [input, setInput] = useState('')
-
-  useEffect(() => {
-    fetch(`/api/tours/${tourId}`)
-      .then(r => r.json())
-      .then(data => {
-        setIsChina(data.isChina)
-        if (data.destCurrency) setDestCurrency(data.destCurrency)
-      })
-      .catch(() => {})
-
-    // Fetch exchange rates (THB base)
-    fetch('https://api.exchangerate-api.com/v4/latest/THB')
-      .then(r => r.json())
-      .then(data => { setRates(data.rates ?? {}); setLoadingRates(false) })
-      .catch(() => setLoadingRates(false))
-  }, [tourId])
 
   const rate = rates[destCurrency] ?? 0
   const inputNum = parseFloat(input.replace(/,/g, '')) || 0
@@ -70,25 +68,25 @@ export default function CalculatorPage() {
   const quick = [100, 500, 1000, 5000, 10000]
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
       <TopBar
         title="แปลงค่าเงิน"
         subtitle="อัตราแลกเปลี่ยนวันนี้"
       />
 
-      <div className="px-4 py-4 space-y-4">
+      <div className="px-4 py-4 space-y-3">
         {/* Currency selector */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium mb-3">สกุลเงินปลายทาง</p>
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40">
+          <p className="text-[11px] text-indigo-400 font-semibold uppercase tracking-wider mb-3">สกุลเงินปลายทาง</p>
           <div className="flex flex-wrap gap-2">
             {Object.entries(CURRENCIES).map(([code, info]) => (
               <button
                 key={code}
                 onClick={() => setDestCurrency(code)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   destCurrency === code
-                    ? 'bg-emerald-500 text-white shadow-md shadow-emerald-200'
-                    : 'bg-gray-100 text-gray-600'
+                    ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-sm shadow-indigo-200/50'
+                    : 'bg-white/60 text-gray-600 border border-gray-100/60 hover:border-indigo-200/50'
                 }`}
               >
                 <span>{info.flag}</span>
@@ -99,49 +97,46 @@ export default function CalculatorPage() {
         </div>
 
         {/* Direction toggle */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <div className="flex gap-2">
-            <button
-              onClick={() => setDirection('thb-to-dest')}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
-                direction === 'thb-to-dest'
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-500'
-              }`}
-            >
-              THB → {destCurrency}
-            </button>
-            <button
-              onClick={() => setDirection('dest-to-thb')}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
-                direction === 'dest-to-thb'
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-500'
-              }`}
-            >
-              {destCurrency} → THB
-            </button>
-          </div>
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-2 border border-indigo-100/40 flex gap-2">
+          <button
+            onClick={() => setDirection('thb-to-dest')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              direction === 'thb-to-dest'
+                ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-sm shadow-indigo-200/50'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            THB → {destCurrency}
+          </button>
+          <button
+            onClick={() => setDirection('dest-to-thb')}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              direction === 'dest-to-thb'
+                ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-sm shadow-indigo-200/50'
+                : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            {destCurrency} → THB
+          </button>
         </div>
 
         {/* Input */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium mb-2">{fromLabel}</p>
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40">
+          <p className="text-[11px] text-gray-400 font-medium mb-2">{fromLabel}</p>
           <input
             type="number"
             inputMode="decimal"
             value={input}
             onChange={e => setInput(e.target.value)}
             placeholder="0"
-            className="w-full text-3xl font-bold text-gray-900 focus:outline-none placeholder-gray-200"
+            className="w-full text-3xl font-bold text-gray-900 focus:outline-none placeholder-gray-200 bg-transparent"
           />
-          {/* Quick amounts */}
           <div className="flex gap-2 mt-3 flex-wrap">
             {quick.map(v => (
               <button
                 key={v}
                 onClick={() => setInput(String(v))}
-                className="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600 font-medium"
+                className="px-3 py-1 bg-indigo-50/80 border border-indigo-100/60 rounded-lg text-xs text-indigo-600 font-medium hover:bg-indigo-100/50 transition-colors"
               >
                 {v.toLocaleString()}
               </button>
@@ -149,33 +144,38 @@ export default function CalculatorPage() {
           </div>
         </div>
 
-        {/* Result */}
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-lg shadow-emerald-200">
-          <p className="text-emerald-100 text-xs font-medium mb-1">{toLabel}</p>
-          {loadingRates ? (
-            <p className="text-white text-2xl font-bold opacity-60">กำลังโหลด...</p>
-          ) : rate === 0 ? (
-            <p className="text-white text-2xl font-bold opacity-60">ไม่พบอัตรา</p>
-          ) : (
-            <>
-              <p className="text-white text-4xl font-bold tracking-tight">
-                {cur?.symbol}{formatNum(result)}
-              </p>
-              <p className="text-emerald-100 text-xs mt-2">
-                1 {direction === 'thb-to-dest' ? 'THB' : destCurrency} = {formatNum(direction === 'thb-to-dest' ? rate : 1 / rate)} {direction === 'thb-to-dest' ? destCurrency : 'THB'}
-              </p>
-            </>
-          )}
+        {/* Result — glass with accent */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-200/50 p-5 relative overflow-hidden">
+          <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-emerald-100/30 blur-xl" />
+          <div className="relative">
+            <p className="text-[11px] text-emerald-500 font-semibold mb-1">{toLabel}</p>
+            {loadingRates ? (
+              <p className="text-gray-400 text-2xl font-bold">กำลังโหลด...</p>
+            ) : rate === 0 ? (
+              <p className="text-gray-400 text-2xl font-bold">ไม่พบอัตรา</p>
+            ) : (
+              <>
+                <p className="text-emerald-700 text-4xl font-bold tracking-tight">
+                  {cur?.symbol}{formatNum(result)}
+                </p>
+                <p className="text-gray-400 text-xs mt-2">
+                  1 {direction === 'thb-to-dest' ? 'THB' : destCurrency} = {formatNum(direction === 'thb-to-dest' ? rate : 1 / rate)} {direction === 'thb-to-dest' ? destCurrency : 'THB'}
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Quick reference */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-          <p className="text-xs text-gray-400 font-medium mb-3">ตารางอ้างอิงด่วน (THB → {destCurrency})</p>
-          <div className="space-y-2">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
+          <div className="px-4 py-3 border-b border-indigo-100/30 bg-gradient-to-r from-indigo-50/50 to-violet-50/30">
+            <p className="text-[11px] text-indigo-500 font-semibold uppercase tracking-wider">ตารางอ้างอิงด่วน (THB → {destCurrency})</p>
+          </div>
+          <div className="divide-y divide-indigo-50/40">
             {[100, 500, 1000, 2000, 5000].map(v => (
-              <div key={v} className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">฿{v.toLocaleString()}</span>
-                <span className="text-sm font-semibold text-gray-900">
+              <div key={v} className="flex justify-between items-center px-4 py-3">
+                <span className="text-sm text-gray-500">฿{v.toLocaleString()}</span>
+                <span className="text-sm font-bold text-indigo-700">
                   {cur?.symbol}{formatNum(v * rate)}
                 </span>
               </div>

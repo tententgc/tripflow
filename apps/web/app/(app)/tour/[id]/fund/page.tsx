@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
+import { useApi } from '@/lib/swr'
 
 interface Member {
   id: string
@@ -38,11 +39,12 @@ export default function FundPage() {
   const tourId = params.id as string
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [isChina, setIsChina] = useState(false)
-  const [me, setMe] = useState<Member | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
-  const [fund, setFund] = useState<GroupFund | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: tourData, isLoading: loadingTour } = useApi<{ isChina: boolean; members: Array<{ user: Member }> }>(`/api/tours/${tourId}`)
+  const { data: fund, mutate: mutateFund } = useApi<GroupFund | null>(`/api/tours/${tourId}/fund`)
+  const { data: me } = useApi<Member>('/api/auth/me')
+  const isChina = tourData?.isChina ?? false
+  const members: Member[] = (tourData?.members ?? []).map((m: { user: Member }) => m.user)
+  const loading = loadingTour
   const [tab, setTab] = useState<Tab>('balance')
 
   // collect form
@@ -62,27 +64,6 @@ export default function FundPage() {
 
   const fmt = (n: number) => Math.ceil(n).toLocaleString('th-TH')
 
-  const loadData = useCallback(async () => {
-    const [tourRes, fundRes, meRes] = await Promise.all([
-      fetch(`/api/tours/${tourId}`),
-      fetch(`/api/tours/${tourId}/fund`),
-      fetch('/api/auth/me'),
-    ])
-    const tourData = await tourRes.json()
-    const fundData = await fundRes.json()
-    const meData: Member = await meRes.json()
-
-    setIsChina(tourData.isChina ?? false)
-    const ms: Member[] = (tourData.members ?? []).map((m: { user: Member }) => m.user)
-    setMembers(ms)
-    setMe(meData)
-    setFund(fundData ?? null)
-    setLoading(false)
-  }, [tourId])
-
-  useEffect(() => { loadData() }, [loadData])
-
-  // Ensure fund is created when page loads and none exists
   async function ensureFund() {
     if (fund) return fund
     const res = await fetch(`/api/tours/${tourId}/fund`, {
@@ -91,7 +72,7 @@ export default function FundPage() {
       body: JSON.stringify({}),
     })
     const data = await res.json() as GroupFund
-    setFund(data)
+    mutateFund(data, false)
     return data
   }
 
@@ -114,13 +95,24 @@ export default function FundPage() {
         return
       }
       const updated = await res.json() as GroupFund
-      setFund(updated)
+      mutateFund(updated, false)
       setCollectAmount('')
       setCollectDesc('')
       setTab('balance')
     } finally {
       setCollecting(false)
     }
+  }
+
+  async function deleteTx(txId: string) {
+    if (!confirm('ต้องการลบ/ยกเลิกรายการนี้?')) return
+    const res = await fetch(`/api/tours/${tourId}/fund/transactions/${txId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error ?? 'ลบไม่สำเร็จ')
+      return
+    }
+    await mutateFund()
   }
 
   function openSlipUpload(txId: string) {
@@ -137,7 +129,6 @@ export default function FundPage() {
     setSlipFile(file)
     setSlipPreview(URL.createObjectURL(file))
     setConfirmTxId(uploadingTxId)
-    // reset input so same file can be picked again
     e.target.value = ''
   }
 
@@ -168,7 +159,7 @@ export default function FundPage() {
       setSlipFile(null)
       setSlipPreview(null)
       setUploadingTxId(null)
-      await loadData()
+      await mutateFund()
     } finally {
       setSubmittingTxId(null)
     }
@@ -185,33 +176,35 @@ export default function FundPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-indigo-50/20">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
+  const inputCls = 'w-full px-4 py-3 border border-gray-200/80 bg-white/50 backdrop-blur-sm rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors'
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
       <TopBar
         title="กองกลาง"
         subtitle={fund ? `ยอดคงเหลือ ฿${fmt(fund.balance)}` : 'จัดการเงินกองกลางทริป'}
       />
 
-      {/* Tabs */}
-      <div className="flex bg-white border-b border-gray-100 sticky top-0 z-10">
+      {/* Tabs — glass */}
+      <div className="flex bg-white/70 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10">
         {([
-          ['balance', '💰 ยอดเงิน'],
-          ['collect', '📤 เรียกเก็บ'],
-          ['history', '📋 ประวัติ'],
+          ['balance', 'ยอดเงิน'],
+          ['collect', 'เรียกเก็บ'],
+          ['history', 'ประวัติ'],
         ] as const).map(([t, label]) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 py-3 text-xs font-medium transition-colors ${
+            className={`flex-1 py-3 text-xs font-semibold transition-all ${
               tab === t
-                ? 'text-emerald-600 border-b-2 border-emerald-500'
-                : 'text-gray-400'
+                ? 'text-indigo-600 border-b-2 border-indigo-500'
+                : 'text-gray-400 hover:text-gray-600'
             }`}
           >
             {label}
@@ -219,42 +212,32 @@ export default function FundPage() {
         ))}
       </div>
 
-      {/* Hidden file input for slip uploads */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={onFileChange}
-      />
+      {/* Hidden file input */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
       <div className="px-4 py-4 space-y-3">
 
         {/* ── SLIP CONFIRM MODAL ── */}
         {confirmTxId && slipPreview && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-end justify-center p-4">
-            <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
-              <div className="p-4 border-b border-gray-100">
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end justify-center p-4">
+            <div className="bg-white/90 backdrop-blur-2xl rounded-3xl w-full max-w-md overflow-hidden border border-gray-200/50">
+              <div className="p-4 border-b border-gray-100/60">
                 <p className="font-semibold text-gray-900 text-center">ยืนยันสลิปโอนเงิน</p>
               </div>
               <div className="p-4">
-                <img
-                  src={slipPreview}
-                  alt="slip"
-                  className="w-full max-h-64 object-contain rounded-2xl bg-gray-100"
-                />
+                <img src={slipPreview} alt="slip" className="w-full max-h-64 object-contain rounded-2xl bg-gray-50" />
               </div>
               <div className="flex gap-3 px-4 pb-6">
                 <button
                   onClick={() => { setConfirmTxId(null); setSlipFile(null); setSlipPreview(null) }}
-                  className="flex-1 py-3 rounded-2xl bg-gray-100 text-gray-600 font-medium text-sm"
+                  className="flex-1 py-3 rounded-2xl bg-white/80 border border-gray-200/60 text-gray-600 font-medium text-sm"
                 >
                   ยกเลิก
                 </button>
                 <button
                   onClick={() => submitSlip(confirmTxId)}
                   disabled={submittingTxId === confirmTxId}
-                  className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200 disabled:opacity-60"
+                  className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold text-sm disabled:opacity-60"
                 >
                   {submittingTxId === confirmTxId ? 'กำลังบันทึก...' : 'ยืนยันจ่ายแล้ว'}
                 </button>
@@ -263,75 +246,82 @@ export default function FundPage() {
           </div>
         )}
 
-        {/* ── SLIP VIEWER MODAL ── */}
+        {/* ── SLIP VIEWER ── */}
         {viewingSlip && (
-          <div
-            className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-            onClick={() => setViewingSlip(null)}
-          >
-            <img
-              src={viewingSlip}
-              alt="receipt"
-              className="max-w-full max-h-full rounded-2xl object-contain"
-            />
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setViewingSlip(null)}>
+            <img src={viewingSlip} alt="receipt" className="max-w-full max-h-full rounded-2xl object-contain" />
           </div>
         )}
 
         {/* ── BALANCE TAB ── */}
         {tab === 'balance' && (
           <>
-            {/* Fund balance card */}
             {!fund ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center">
-                <p className="text-4xl mb-3">💰</p>
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 p-8 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                  </svg>
+                </div>
                 <p className="text-gray-700 font-semibold mb-1">ยังไม่มีกองกลาง</p>
                 <p className="text-gray-400 text-sm mb-4">เริ่มเรียกเก็บเงินเพื่อสร้างกองกลางทริป</p>
                 <button
                   onClick={() => setTab('collect')}
-                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200"
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white font-semibold text-sm shadow-sm shadow-indigo-200/50 active:scale-[0.98] transition-all"
                 >
                   เรียกเก็บเงินรอบแรก
                 </button>
               </div>
             ) : (
               <>
-                {/* Main balance card */}
-                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-lg shadow-emerald-200">
-                  <p className="text-sm text-white/70 mb-1">{fund.name}</p>
-                  <p className="text-4xl font-bold">฿{fmt(fund.balance)}</p>
-                  <div className="flex items-center justify-between mt-3">
-                    <div>
-                      <p className="text-xs text-white/60">เรียกเก็บแล้ว</p>
-                      <p className="text-sm font-semibold">฿{fmt(totalCollected)}</p>
+                {/* Main balance card — glass with emerald accent */}
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-200/50 p-5 relative overflow-hidden">
+                  <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-emerald-100/30 blur-xl" />
+                  <div className="relative">
+                    <div className="flex items-start justify-between mb-1">
+                      <p className="text-[11px] text-emerald-500 font-semibold uppercase tracking-wider">{fund.name}</p>
+                      <button
+                        onClick={() => setTab('collect')}
+                        className="px-3 py-1 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white text-[11px] font-semibold active:scale-[0.97] transition-all"
+                      >
+                        + เรียกเก็บ
+                      </button>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-white/60">รอรับเงิน</p>
-                      <p className="text-sm font-semibold">{unpaidDeposits.length} คน</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-white/60">สมาชิก</p>
-                      <p className="text-sm font-semibold">{members.length} คน</p>
-                    </div>
-                  </div>
-                  {totalExpected > 0 && (
-                    <div className="mt-3">
-                      <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-white/70 rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (totalCollected / totalExpected) * 100)}%` }}
-                        />
+                    <p className="text-4xl font-bold text-emerald-700">฿{fmt(fund.balance)}</p>
+                    <div className="flex items-center justify-between mt-4">
+                      <div>
+                        <p className="text-[11px] text-gray-400">เก็บแล้ว</p>
+                        <p className="text-sm font-bold text-gray-900">฿{fmt(totalCollected)}</p>
                       </div>
-                      <p className="text-xs text-white/50 mt-1">
-                        {Math.round((totalCollected / totalExpected) * 100)}% ของที่เรียกเก็บ
-                      </p>
+                      <div className="text-center">
+                        <p className="text-[11px] text-gray-400">รอรับ</p>
+                        <p className="text-sm font-bold text-amber-600">{unpaidDeposits.length} คน</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[11px] text-gray-400">สมาชิก</p>
+                        <p className="text-sm font-bold text-gray-900">{members.length} คน</p>
+                      </div>
                     </div>
-                  )}
+                    {totalExpected > 0 && (
+                      <div className="mt-3">
+                        <div className="h-1.5 bg-emerald-100/60 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full transition-all"
+                            style={{ width: `${Math.min(100, (totalCollected / totalExpected) * 100)}%` }}
+                          />
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          {Math.round((totalCollected / totalExpected) * 100)}% ของที่เรียกเก็บ
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* My pending payment alert */}
+                {/* My pending payment */}
                 {myUnpaid.length > 0 && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <p className="font-semibold text-amber-800 text-sm mb-2">
+                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-amber-200/50 p-4">
+                    <p className="font-semibold text-amber-700 text-sm mb-2">
                       คุณยังค้างชำระ {myUnpaid.length} รายการ
                     </p>
                     {myUnpaid.map(tx => (
@@ -342,7 +332,7 @@ export default function FundPage() {
                         </div>
                         <button
                           onClick={() => openSlipUpload(tx.id)}
-                          className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-semibold"
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-white text-xs font-semibold active:scale-[0.97] transition-all"
                         >
                           จ่ายเงิน
                         </button>
@@ -351,20 +341,20 @@ export default function FundPage() {
                   </div>
                 )}
 
-                {/* Unpaid members section */}
+                {/* Unpaid members */}
                 {unpaidDeposits.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-4 pt-4 pb-2">
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">
-                        สมาชิกที่ยังไม่จ่าย ({unpaidDeposits.length} คน)
+                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-indigo-100/30 bg-gradient-to-r from-indigo-50/50 to-violet-50/30">
+                      <p className="text-[11px] text-indigo-500 font-semibold uppercase tracking-wider">
+                        ยังไม่จ่าย ({unpaidDeposits.length})
                       </p>
                     </div>
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-indigo-50/40">
                       {unpaidDeposits.map(tx => (
                         <div key={tx.id} className="px-4 py-3 flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500 flex-shrink-0 overflow-hidden">
                             {tx.user?.avatarUrl
-                              ? <img src={tx.user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                              ? <img src={tx.user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               : tx.user?.name?.[0] ?? '?'
                             }
                           </div>
@@ -372,32 +362,39 @@ export default function FundPage() {
                             <p className="text-sm font-medium text-gray-900 truncate">{tx.user?.name ?? 'ไม่ระบุ'}</p>
                             <p className="text-xs text-gray-400">{tx.description}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-gray-900">฿{fmt(tx.amount)}</p>
-                            <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
-                              ยังไม่จ่าย
-                            </span>
-                          </div>
+                          <p className="text-sm font-bold text-gray-900">฿{fmt(tx.amount)}</p>
+                          <span className="text-[10px] bg-rose-50 text-rose-500 border border-rose-100/60 px-2 py-0.5 rounded-md font-medium">
+                            ค้าง
+                          </span>
+                          <button
+                            onClick={() => deleteTx(tx.id)}
+                            className="text-gray-300 hover:text-red-500 transition-colors p-1 flex-shrink-0"
+                            title="ยกเลิกรายการ"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* Paid members section */}
+                {/* Paid members */}
                 {paidDeposits.length > 0 && (
-                  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-4 pt-4 pb-2">
-                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">
-                        สมาชิกที่จ่ายแล้ว ({paidDeposits.length} คน)
+                  <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-indigo-100/30 bg-gradient-to-r from-emerald-50/50 to-teal-50/30">
+                      <p className="text-[11px] text-emerald-500 font-semibold uppercase tracking-wider">
+                        จ่ายแล้ว ({paidDeposits.length})
                       </p>
                     </div>
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-indigo-50/40">
                       {paidDeposits.map(tx => (
                         <div key={tx.id} className="px-4 py-3 flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500 flex-shrink-0 overflow-hidden">
                             {tx.user?.avatarUrl
-                              ? <img src={tx.user.avatarUrl} alt="" className="w-full h-full object-cover" />
+                              ? <img src={tx.user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               : tx.user?.name?.[0] ?? '?'
                             }
                           </div>
@@ -405,34 +402,25 @@ export default function FundPage() {
                             <p className="text-sm font-medium text-gray-900 truncate">{tx.user?.name ?? 'ไม่ระบุ'}</p>
                             <p className="text-xs text-gray-400">{tx.description}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm font-bold text-gray-900">฿{fmt(tx.amount)}</p>
-                            {tx.receiptUrl ? (
-                              <button
-                                onClick={() => setViewingSlip(tx.receiptUrl!)}
-                                className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-medium"
-                              >
-                                ดูสลิป
-                              </button>
-                            ) : (
-                              <span className="text-[10px] bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full font-medium">
-                                จ่ายแล้ว
-                              </span>
-                            )}
-                          </div>
+                          <p className="text-sm font-bold text-gray-900">฿{fmt(tx.amount)}</p>
+                          {tx.receiptUrl ? (
+                            <button
+                              onClick={() => setViewingSlip(tx.receiptUrl!)}
+                              className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100/60 px-2 py-0.5 rounded-md font-medium"
+                            >
+                              ดูสลิป
+                            </button>
+                          ) : (
+                            <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100/60 px-2 py-0.5 rounded-md font-medium">
+                              จ่ายแล้ว
+                            </span>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {/* New collection round button */}
-                <button
-                  onClick={() => setTab('collect')}
-                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200 active:scale-[0.98] transition-transform"
-                >
-                  + เรียกเก็บเงินรอบใหม่
-                </button>
               </>
             )}
           </>
@@ -441,47 +429,40 @@ export default function FundPage() {
         {/* ── COLLECT TAB ── */}
         {tab === 'collect' && (
           <div className="space-y-3">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-4">
-              <p className="font-semibold text-gray-800">เรียกเก็บเงินกองกลาง</p>
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 p-4 space-y-4">
+              <p className="font-semibold text-gray-900 text-sm">เรียกเก็บเงินกองกลาง</p>
 
-              {/* Amount per person */}
               <div>
-                <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  จำนวนเงินต่อคน (฿)
-                </label>
+                <label className="text-[11px] text-gray-400 font-medium mb-1 block">จำนวนเงินต่อคน (฿)</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-medium">฿</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400 font-medium">฿</span>
                   <input
                     type="number"
                     inputMode="numeric"
                     value={collectAmount}
                     onChange={e => setCollectAmount(e.target.value)}
                     placeholder="500"
-                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 font-medium focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                    className={`${inputCls} pl-8`}
                   />
                 </div>
               </div>
 
-              {/* Description */}
               <div>
-                <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-                  รายละเอียด
-                </label>
+                <label className="text-[11px] text-gray-400 font-medium mb-1 block">รายละเอียด</label>
                 <input
                   type="text"
                   value={collectDesc}
                   onChange={e => setCollectDesc(e.target.value)}
                   placeholder="เช่น ค่าทริปวันแรก, ค่าอาหารเย็น"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+                  className={inputCls}
                 />
               </div>
 
-              {/* Summary preview */}
               {collectAmount && parseFloat(collectAmount) > 0 && members.length > 0 && (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3">
+                <div className="bg-indigo-50/60 backdrop-blur-sm border border-indigo-100/60 rounded-xl p-3">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600">฿{fmt(parseFloat(collectAmount))} × {members.length} คน</span>
-                    <span className="font-bold text-emerald-700">
+                    <span className="text-gray-600">฿{fmt(parseFloat(collectAmount))} x {members.length} คน</span>
+                    <span className="font-bold text-indigo-700">
                       รวม ฿{fmt(parseFloat(collectAmount) * members.length)}
                     </span>
                   </div>
@@ -495,7 +476,7 @@ export default function FundPage() {
             <button
               onClick={handleCollect}
               disabled={collecting || !collectAmount || parseFloat(collectAmount) <= 0}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm shadow-lg shadow-emerald-200 disabled:opacity-50 active:scale-[0.98] transition-all"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white font-semibold text-sm shadow-sm shadow-indigo-200/50 disabled:opacity-50 active:scale-[0.98] transition-all"
             >
               {collecting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -513,32 +494,31 @@ export default function FundPage() {
         {tab === 'history' && (
           <>
             {(!fund || fund.transactions.length === 0) ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
-                <p className="text-3xl mb-3">📋</p>
-                <p className="text-gray-500 text-sm">ยังไม่มีประวัติรายการ</p>
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 p-10 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-gray-400 text-sm">ยังไม่มีประวัติรายการ</p>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="divide-y divide-gray-50">
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
+                <div className="divide-y divide-indigo-50/40">
                   {fund.transactions.map(tx => {
                     const isDeposit = tx.type === 'DEPOSIT'
                     const date = new Date(tx.createdAt)
-                    const dateStr = date.toLocaleDateString('th-TH', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: '2-digit',
-                    })
-                    const timeStr = date.toLocaleTimeString('th-TH', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })
+                    const dateStr = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
+                    const timeStr = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
 
                     return (
                       <div key={tx.id} className="px-4 py-3 flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${
-                          isDeposit ? 'bg-emerald-100' : 'bg-red-100'
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                          isDeposit ? 'bg-emerald-50 border border-emerald-100' : 'bg-rose-50 border border-rose-100'
                         }`}>
-                          {isDeposit ? '↑' : '↓'}
+                          <svg className={`w-4 h-4 ${isDeposit ? 'text-emerald-500' : 'text-rose-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d={isDeposit ? 'M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18' : 'M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3'} />
+                          </svg>
                         </div>
 
                         <div className="flex-1 min-w-0">
@@ -552,21 +532,32 @@ export default function FundPage() {
                         </div>
 
                         <div className="flex flex-col items-end gap-1">
-                          <p className={`text-sm font-bold ${isDeposit ? 'text-emerald-600' : 'text-red-500'}`}>
+                          <p className={`text-sm font-bold ${isDeposit ? 'text-emerald-600' : 'text-rose-500'}`}>
                             {isDeposit ? '+' : '-'}฿{fmt(tx.amount)}
                           </p>
                           {isDeposit && (
                             tx.isPaid ? (
-                              <span className="text-[10px] bg-emerald-100 text-emerald-600 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100/60 px-1.5 py-0.5 rounded-md font-medium">
                                 จ่ายแล้ว
                               </span>
                             ) : (
-                              <span className="text-[10px] bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full">
+                              <span className="text-[10px] bg-rose-50 text-rose-500 border border-rose-100/60 px-1.5 py-0.5 rounded-md font-medium">
                                 รอจ่าย
                               </span>
                             )
                           )}
                         </div>
+
+                        {/* Delete button */}
+                        <button
+                          onClick={() => deleteTx(tx.id)}
+                          className="text-gray-300 hover:text-red-500 transition-colors p-1 flex-shrink-0"
+                          title="ลบรายการ"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        </button>
                       </div>
                     )
                   })}

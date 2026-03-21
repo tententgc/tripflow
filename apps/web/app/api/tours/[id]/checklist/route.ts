@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
+import { getCached, setCache, invalidateCache } from '@/lib/cache'
+import { getAuthUserLight } from '@/lib/auth'
 
 export async function GET(
   _req: NextRequest,
@@ -7,16 +9,31 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    const cached = getCached('checklist:' + id)
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300' },
+      })
+    }
+
     const checklists = await db.checklist.findMany({
       where: { tourId: id },
-      include: {
+      select: {
+        id: true, tourId: true, title: true, titleEn: true, emoji: true, type: true, order: true,
         items: {
-          include: { checks: true },
+          select: {
+            id: true, checklistId: true, label: true, labelEn: true, order: true, isImportant: true,
+            checks: { select: { id: true, itemId: true, userId: true, checkedAt: true } },
+          },
           orderBy: { order: 'asc' },
         },
       },
       orderBy: { order: 'asc' },
     })
+
+    setCache('checklist:' + id, checklists, 15_000)
+
     return NextResponse.json(checklists, {
       headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300' },
     })
@@ -50,7 +67,9 @@ export async function POST(
       })
     }
 
-    const actor = await db.user.findUnique({ where: { id: userId }, select: { name: true } })
+    invalidateCache('checklist:' + id)
+
+    const actor = await getAuthUserLight()
     logActivity({ action: 'checklist.check', entity: 'ChecklistCheck', description: checked ? 'ติ๊กเช็คลิสต์' : 'ยกเลิกติ๊กเช็คลิสต์', actorId: userId, ...(actor?.name ? { actorName: actor.name } : {}), tourId: id }).catch(() => {})
 
     return NextResponse.json({ success: true })

@@ -9,10 +9,24 @@ export async function GET(
     const { id } = await params
     const checklists = await db.checklist.findMany({
       where: { tourId: id },
-      include: { items: { orderBy: { order: 'asc' } } },
+      select: {
+        id: true,
+        tourId: true,
+        title: true,
+        titleEn: true,
+        emoji: true,
+        type: true,
+        order: true,
+        items: {
+          select: { id: true, checklistId: true, label: true, labelEn: true, order: true, isImportant: true },
+          orderBy: { order: 'asc' },
+        },
+      },
       orderBy: { order: 'asc' },
     })
-    return NextResponse.json(checklists)
+    const res = NextResponse.json(checklists)
+    res.headers.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30')
+    return res
   } catch (error) {
     console.error('Checklists GET error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })

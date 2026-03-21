@@ -150,6 +150,8 @@ model TourDay {
   transports     Transport[]
   accommodation  Accommodation?
   dayItems       DayChecklistItem[]
+
+  @@index([tourId])
 }
 
 model Activity {
@@ -181,6 +183,8 @@ model Activity {
   entryType      String?                            // "Free" / "Paid" / "Pre-book required"
 
   tourDay        TourDay @relation(fields: [tourDayId], references: [id])
+
+  @@index([tourDayId])
 }
 
 model Transport {
@@ -214,6 +218,8 @@ model Transport {
   notesEn        String?
 
   tourDay        TourDay @relation(fields: [tourDayId], references: [id])
+
+  @@index([tourDayId])
 }
 
 model FlightInfo {
@@ -236,6 +242,8 @@ model FlightInfo {
   connectionMinutes Int?
 
   tour            Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
 }
 
 model Accommodation {
@@ -287,6 +295,8 @@ model UsefulPhrase {
   order       Int    @default(0)
 
   tour        Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
 }
 
 // ── CHECKLISTS ────────────────────────────────────────────────
@@ -302,6 +312,8 @@ model Checklist {
 
   tour     Tour @relation(fields: [tourId], references: [id])
   items    ChecklistItem[]
+
+  @@index([tourId])
 }
 
 model ChecklistItem {
@@ -314,6 +326,8 @@ model ChecklistItem {
 
   checklist Checklist      @relation(fields: [checklistId], references: [id])
   checks    ChecklistCheck[]
+
+  @@index([checklistId])
 }
 
 model ChecklistCheck {
@@ -335,6 +349,8 @@ model DayChecklistItem {
   order    Int    @default(0)
 
   tourDay  TourDay @relation(fields: [tourDayId], references: [id])
+
+  @@index([tourDayId])
 }
 
 // ── EXPENSES / COST SPLIT ─────────────────────────────────────
@@ -355,6 +371,8 @@ model Expense {
   tour         Tour @relation(fields: [tourId], references: [id])
   paidBy       User @relation(fields: [paidById], references: [id])
   participants ExpenseParticipant[]
+
+  @@index([tourId])
 }
 
 model ExpenseParticipant {
@@ -417,6 +435,8 @@ model ImportantContact {
   notes        String?
 
   tour         Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
 }
 
 model EmergencyInfo {
@@ -455,6 +475,9 @@ model TourDocument {
   userId      String?
 
   tour        Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
+  @@index([tourId, isPersonal])
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────
@@ -487,6 +510,8 @@ model ChatMessage {
   createdAt DateTime @default(now())
 
   tour      Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
 }
 
 // ── ENUMS ─────────────────────────────────────────────────────

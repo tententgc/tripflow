@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUserLight } from '@/lib/auth'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
@@ -7,9 +7,8 @@ export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth check
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Auth check — lightweight JWT decode + cached DB lookup
+    const user = await getAuthUserLight()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const form = await req.formData()

@@ -43,15 +43,16 @@ export async function DELETE(
 
     logActivity({ actorName: 'Admin', action: 'user.delete', entity: 'User', entityId: userId, description: `ลบนักเดินทางออกจากระบบ` }).catch(() => {})
 
-    // Remove all related records first (FK constraints)
-    await db.checklistCheck.deleteMany({ where: { userId } })
-    await db.expenseParticipant.deleteMany({ where: { userId } })
-    await db.expense.deleteMany({ where: { paidById: userId } })
-    await db.notification.deleteMany({ where: { userId } })
-    await db.operatorStaff.deleteMany({ where: { userId } })
-    await db.tourMember.deleteMany({ where: { userId } })
-    // Remove personal documents
-    await db.tourDocument.deleteMany({ where: { userId } })
+    // Remove all related records first (FK constraints) — parallel where safe
+    await Promise.all([
+      db.checklistCheck.deleteMany({ where: { userId } }),
+      db.expenseParticipant.deleteMany({ where: { userId } }),
+      db.expense.deleteMany({ where: { paidById: userId } }),
+      db.notification.deleteMany({ where: { userId } }),
+      db.operatorStaff.deleteMany({ where: { userId } }),
+      db.tourMember.deleteMany({ where: { userId } }),
+      db.tourDocument.deleteMany({ where: { userId } }),
+    ])
     await db.user.delete({ where: { id: userId } })
 
     return NextResponse.json({ success: true })

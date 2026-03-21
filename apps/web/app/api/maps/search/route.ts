@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createMapsAdapter } from '@tripflow/adapters'
 import type { TourRegion } from '@tripflow/types'
 
+const HEADERS = {
+  'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const keyword = searchParams.get('keyword')
@@ -16,7 +20,7 @@ export async function GET(req: NextRequest) {
   try {
     const adapter = createMapsAdapter(region)
     const results = await adapter.searchNearby(keyword, lat, lon, region)
-    return NextResponse.json(results)
+    return NextResponse.json(results, { headers: HEADERS })
   } catch (error) {
     console.error('Maps search error:', error)
     return NextResponse.json({ error: 'ไม่สามารถค้นหาได้' }, { status: 500 })

@@ -1,23 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUserLight } from '@/lib/auth'
 
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Parallelize params resolution + auth
+    const [{ id, docId }, dbUser] = await Promise.all([
+      params,
+      getAuthUserLight(),
+    ])
 
-    const dbUser = await db.user.findUnique({ where: { email: user.email! } })
-    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-    const { id, docId } = await params
+    if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     // Only allow deleting own personal documents
-    const doc = await db.tourDocument.findUnique({ where: { id: docId } })
+    const doc = await db.tourDocument.findUnique({
+      where: { id: docId },
+      select: { id: true, userId: true },
+    })
     if (!doc || doc.userId !== dbUser.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }

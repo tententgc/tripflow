@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  // Skip auth check for API routes — they handle their own auth
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
+  // Skip for public assets
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
+  const isPublicPage = pathname === '/' || pathname.startsWith('/auth')
+
+  // Skip expensive Supabase call for public pages
+  if (isPublicPage) {
+    return NextResponse.next()
+  }
+
   const res = NextResponse.next()
 
   const supabase = createServerClient(
@@ -24,10 +40,7 @@ export async function proxy(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isAuthPage = req.nextUrl.pathname.startsWith('/login') || req.nextUrl.pathname.startsWith('/register')
-  const isPublicPage = req.nextUrl.pathname === '/' || req.nextUrl.pathname.startsWith('/auth')
-
-  if (!user && !isAuthPage && !isPublicPage) {
+  if (!user && !isAuthPage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
@@ -39,5 +52,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|logo.svg).*)'],
 }

@@ -3,6 +3,8 @@ import { db } from '@tripflow/database'
 import { getTripCountdown } from '@tripflow/utils'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
+import Image from 'next/image'
+import Link from 'next/link'
 import DevSetupButton from './DevSetupButton'
 
 export const metadata: Metadata = { title: 'ทริปของฉัน — TripFlow' }
@@ -16,10 +18,16 @@ const countryFlags: Record<string, string> = {
 
 export default async function HomePage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const w = console.warn; console.warn = () => {}
+  const { data: { session } } = await supabase.auth.getSession()
+  console.warn = w
+  const user = session?.user
   if (!user) redirect('/login')
 
-  let dbUser = await db.user.findUnique({ where: { email: user.email! } })
+  let dbUser = await db.user.findUnique({
+    where: { email: user.email! },
+    select: { id: true, name: true, email: true, avatarUrl: true },
+  })
   if (!dbUser) {
     dbUser = await db.user.create({
       data: {
@@ -27,6 +35,7 @@ export default async function HomePage() {
         name: user.user_metadata?.full_name ?? user.email!.split('@')[0] ?? 'ผู้ใช้',
         avatarUrl: user.user_metadata?.avatar_url ?? null,
       },
+      select: { id: true, name: true, email: true, avatarUrl: true },
     })
   }
 
@@ -35,10 +44,19 @@ export default async function HomePage() {
       userId: dbUser.id,
       tour: { status: { in: ['PUBLISHED', 'ACTIVE', 'COMPLETED'] } },
     },
-    include: {
-      tour: { include: { _count: { select: { members: true } }, days: { select: { id: true } } } },
+    select: {
+      tour: {
+        select: {
+          id: true, title: true, coverImageUrl: true, countries: true,
+          primaryCountry: true, cities: true, startDate: true, endDate: true,
+          isChina: true, status: true,
+          _count: { select: { members: true } },
+          days: { select: { id: true } },
+        },
+      },
     },
     orderBy: { tour: { startDate: 'asc' } },
+    take: 50,
   })
 
   const tours = tourMembers.map((tm) => tm.tour)
@@ -58,15 +76,15 @@ export default async function HomePage() {
               <p className="text-gray-400 text-xs font-medium">สวัสดี,</p>
               <h1 className="text-xl font-bold text-gray-900 mt-0.5">{dbUser.name}</h1>
             </div>
-            <a href="/profile">
+            <Link href="/profile">
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-50 flex items-center justify-center border border-indigo-100">
                 {dbUser.avatarUrl ? (
-                  <img src={dbUser.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  <Image src={dbUser.avatarUrl} alt="" width={40} height={40} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
                 ) : (
                   <span className="text-indigo-600 font-bold text-sm">{dbUser.name[0]}</span>
                 )}
               </div>
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -105,7 +123,7 @@ export default async function HomePage() {
               const countdown = getTripCountdown(tour.startDate, tour.endDate)
               const daysCount = tour.days.length
               return (
-                <a
+                <Link
                   key={tour.id}
                   href={`/tour/${tour.id}/today`}
                   className="flex group"
@@ -115,7 +133,7 @@ export default async function HomePage() {
                     {/* Cover */}
                     <div className="aspect-[16/9] bg-gradient-to-br from-indigo-100 to-violet-100 relative flex-shrink-0 overflow-hidden">
                       {tour.coverImageUrl && (
-                        <img src={tour.coverImageUrl} alt="" className="w-full h-full object-cover absolute inset-0 transition-transform duration-500 group-hover:scale-105" />
+                        <Image src={tour.coverImageUrl} alt="" fill className="object-cover absolute inset-0 transition-transform duration-500 group-hover:scale-105" unoptimized />
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                       <div className="absolute bottom-3 left-3 flex gap-1">
@@ -147,7 +165,7 @@ export default async function HomePage() {
                       </div>
                     </div>
                   </div>
-                </a>
+                </Link>
               )
             })}
 
@@ -155,12 +173,12 @@ export default async function HomePage() {
             {past.map((tour) => {
               const countdown = getTripCountdown(tour.startDate, tour.endDate)
               return (
-                <a key={tour.id} href={`/tour/${tour.id}/today`} className="flex group">
+                <Link key={tour.id} href={`/tour/${tour.id}/today`} className="flex group">
                   <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-gray-100/40 overflow-hidden flex flex-col w-full
                     transition-all duration-200 opacity-50 group-hover:opacity-80">
                     <div className="aspect-[16/9] bg-gray-100 relative flex-shrink-0 overflow-hidden">
                       {tour.coverImageUrl && (
-                        <img src={tour.coverImageUrl} alt="" className="w-full h-full object-cover absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-500" />
+                        <Image src={tour.coverImageUrl} alt="" fill className="object-cover absolute inset-0 grayscale group-hover:grayscale-0 transition-all duration-500" unoptimized />
                       )}
                     </div>
                     <div className="p-4">
@@ -168,7 +186,7 @@ export default async function HomePage() {
                       <p className="text-gray-400 text-xs mt-1">{countdown.label}</p>
                     </div>
                   </div>
-                </a>
+                </Link>
               )
             })}
           </div>

@@ -26,7 +26,9 @@ export async function GET(req: NextRequest) {
         orderBy: { name: 'asc' },
         take: 50,
       })
-      return NextResponse.json(users)
+      const res = NextResponse.json(users)
+      res.headers.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30')
+      return res
     }
 
     const users = await db.user.findMany({
@@ -42,8 +44,11 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: 100,
     })
-    return NextResponse.json(users)
+    const res = NextResponse.json(users)
+    res.headers.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30')
+    return res
   } catch (error) {
     console.error('GET travelers error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })

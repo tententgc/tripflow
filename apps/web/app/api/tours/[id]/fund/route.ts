@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db, logActivity } from '@tripflow/database'
-
-async function getCurrentUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return null
-  return db.user.findUnique({ where: { email: user.email } })
-}
+import { getCached, setCache, invalidateCache } from '@/lib/cache'
+import { getAuthUserLight } from '@/lib/auth'
 
 // GET /api/tours/[id]/fund — get fund info with transactions
 export async function GET(
@@ -16,11 +10,18 @@ export async function GET(
 ) {
   const { id } = await params
 
+  const cacheKey = `fund:${id}`
+  const cached = getCached(cacheKey)
+  if (cached) return NextResponse.json(cached)
+
   const fund = await db.groupFund.findUnique({
     where: { tourId: id },
-    include: {
+    select: {
+      id: true, name: true, balance: true,
       transactions: {
-        include: {
+        select: {
+          id: true, type: true, amount: true, description: true,
+          userId: true, receiptUrl: true, isPaid: true, createdAt: true,
           user: { select: { id: true, name: true, avatarUrl: true } },
           createdBy: { select: { id: true, name: true, avatarUrl: true } },
         },
@@ -29,6 +30,7 @@ export async function GET(
     },
   })
 
+  if (fund) setCache(cacheKey, fund, 15_000)
   return NextResponse.json(fund)
 }
 
@@ -38,7 +40,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const me = await getCurrentUser()
+  const me = await getAuthUserLight()
   if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json() as { name?: string }
@@ -64,5 +66,6 @@ export async function POST(
 
   logActivity({ action: 'fund.create', entity: 'GroupFund', description: 'สร้างกองกลาง', actorId: me.id, actorName: me.name, tourId: id }).catch(() => {})
 
+  invalidateCache(`fund:${id}`)
   return NextResponse.json(fund)
 }

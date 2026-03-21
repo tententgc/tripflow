@@ -10,8 +10,12 @@ export async function GET(
     const tour = await db.tour.findUnique({
       where: { id },
       include: {
-        operator: true,
-        members: { include: { user: true } },
+        operator: { select: { id: true, name: true, nameEn: true, logoUrl: true, primaryColor: true, phone: true, email: true } },
+        members: {
+          include: {
+            user: { select: { id: true, name: true, nameEn: true, email: true, phone: true, avatarUrl: true } },
+          },
+        },
         days: {
           include: {
             activities: true,
@@ -22,10 +26,10 @@ export async function GET(
         },
         flights: true,
         contacts: true,
-        checklists: { include: { items: true } },
+        checklists: { include: { items: { orderBy: { order: 'asc' } } } },
         emergencyInfo: true,
         documents: true,
-        usefulPhrases: true,
+        usefulPhrases: { orderBy: { order: 'asc' } },
       },
     })
 
@@ -33,7 +37,9 @@ export async function GET(
       return NextResponse.json({ error: 'Tour not found' }, { status: 404 })
     }
 
-    return NextResponse.json(tour)
+    const res = NextResponse.json(tour)
+    res.headers.set('Cache-Control', 'private, max-age=10, stale-while-revalidate=30')
+    return res
   } catch (error) {
     console.error('Tour GET error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })

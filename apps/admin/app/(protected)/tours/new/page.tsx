@@ -1,5 +1,6 @@
 import { db } from '@tripflow/database'
 import { Metadata } from 'next'
+import Link from 'next/link'
 import NewTourForm from './NewTourForm'
 
 export const metadata: Metadata = { title: 'สร้างทัวร์ใหม่ — TripFlow Admin' }
@@ -13,13 +14,13 @@ export default async function NewTourPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <a href="/tours" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors mb-3">
+        <Link href="/tours" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors mb-3">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           จัดการทัวร์
-        </a>
+        </Link>
         <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-6 text-white relative overflow-hidden">
           <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-center gap-3">
