@@ -505,6 +505,7 @@ export default function TodayPage() {
         {/* Before trip: Preparation checklist / During trip: Today's activities */}
         {isBeforeTrip && checklists.length > 0 ? (
           <div className="space-y-3 animate-slide-up delay-5">
+            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">✅ เตรียมตัวก่อนออกเดินทาง</p>
             {checklists.map(cl => {
               const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
               const totalCount = cl.items.length
@@ -525,7 +526,7 @@ export default function TodayPage() {
                     </span>
                   </div>
                   {totalCount > 0 && (
-                    <div className="mx-5 mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="mx-5 mt-3 mb-3 h-1 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all duration-500" style={{ width: `${progress}%` }} />
                     </div>
                   )}
