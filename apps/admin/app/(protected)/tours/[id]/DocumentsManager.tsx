@@ -200,6 +200,67 @@ export default function DocumentsManager({
 
   const inputCls = 'px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500'
 
+  function renderEditForm() {
+    if (!editingId) return null
+    return (
+      <div className="bg-blue-50 rounded-xl p-3 space-y-2">
+        <p className="text-xs font-semibold text-blue-700">แก้ไขเอกสาร</p>
+        <div>
+          <label className="text-xs text-gray-500 mb-0.5 block">เจ้าของตั๋ว</label>
+          <select value={form.userId} onChange={e => setForm(p => ({ ...p, userId: e.target.value }))} className={`w-full ${inputCls}`}>
+            <option value="">ทุกคน (เอกสารรวม)</option>
+            {members.map(m => (<option key={m.userId} value={m.userId}>{m.name}</option>))}
+          </select>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="col-span-2">
+            <label className="text-xs text-gray-500 mb-0.5 block">ชื่อเอกสาร</label>
+            <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className={`w-full ${inputCls}`} />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">ชื่อ EN</label>
+            <input type="text" value={form.titleEn} onChange={e => setForm(p => ({ ...p, titleEn: e.target.value }))} className={`w-full ${inputCls}`} />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">ประเภท</label>
+            <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className={`w-full ${inputCls}`}>
+              {docTypes.map(t => (<option key={t.value} value={t.value}>{t.emoji} {t.label}</option>))}
+            </select>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-0.5 block">รายละเอียด</label>
+          <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className={`w-full ${inputCls}`} />
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-0.5 block">ไฟล์แนบ</label>
+          <input ref={editFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleEditFileSelect} className="hidden" />
+          <div className="flex gap-2">
+            <button type="button" onClick={() => editFileRef.current?.click()} disabled={uploading}
+              className="px-3 py-2 border border-dashed border-gray-300 bg-white rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex-1">
+              {uploading ? 'กำลังอัพโหลด...' : form.fileUrl ? '📎 เปลี่ยนไฟล์' : '📎 เลือกไฟล์'}
+            </button>
+            {form.fileUrl && (
+              <a href={form.fileUrl} target="_blank" rel="noopener noreferrer" className="self-center text-xs text-blue-500 hover:underline">ดูไฟล์</a>
+            )}
+          </div>
+          {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
+        </div>
+        <div>
+          <label className="text-xs text-gray-500 mb-0.5 block">QR Code data (ถ้ามี)</label>
+          <input type="text" value={form.qrData} onChange={e => setForm(p => ({ ...p, qrData: e.target.value }))} className={`w-full ${inputCls}`} />
+        </div>
+        <div className="flex gap-2 pt-1">
+          <button onClick={saveEdit} disabled={saving || !form.title.trim()} className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
+            {saving ? 'กำลังบันทึก...' : 'บันทึก'}
+          </button>
+          <button onClick={() => { setEditingId(null); setForm(emptyForm) }} className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm">ยกเลิก</button>
+          <button onClick={() => { deleteDoc(editingId); setEditingId(null); setForm(emptyForm) }} className="px-3 py-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-sm">🗑️</button>
+        </div>
+      </div>
+    )
+  }
+
   function isPdf(url: string | null): boolean {
     return !!url && url.toLowerCase().endsWith('.pdf')
   }
@@ -231,91 +292,13 @@ export default function DocumentsManager({
         </div>
       )}
 
-      {/* Edit form (shown when editing a doc) */}
-      {editingId && (
-        <div className="bg-blue-50 rounded-xl p-3 space-y-2">
-          <p className="text-xs font-semibold text-blue-700">แก้ไขเอกสาร</p>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">เจ้าของตั๋ว</label>
-            <select
-              value={form.userId}
-              onChange={e => setForm(p => ({ ...p, userId: e.target.value }))}
-              className={`w-full ${inputCls}`}
-            >
-              <option value="">ทุกคน (เอกสารรวม)</option>
-              {members.map(m => (
-                <option key={m.userId} value={m.userId}>{m.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
-              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อเอกสาร</label>
-              <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className={`w-full ${inputCls}`} />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อ EN</label>
-              <input type="text" value={form.titleEn} onChange={e => setForm(p => ({ ...p, titleEn: e.target.value }))} className={`w-full ${inputCls}`} />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ประเภท</label>
-              <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className={`w-full ${inputCls}`}>
-                {docTypes.map(t => (<option key={t.value} value={t.value}>{t.emoji} {t.label}</option>))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">รายละเอียด</label>
-            <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className={`w-full ${inputCls}`} />
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">ไฟล์แนบ</label>
-            <input ref={editFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleEditFileSelect} className="hidden" />
-            <div className="flex gap-2">
-              <button type="button" onClick={() => editFileRef.current?.click()} disabled={uploading}
-                className="px-3 py-2 border border-dashed border-gray-300 bg-white rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex-1">
-                {uploading ? 'กำลังอัพโหลด...' : form.fileUrl ? '📎 เปลี่ยนไฟล์' : '📎 เลือกไฟล์'}
-              </button>
-              {form.fileUrl && (
-                <a href={form.fileUrl} target="_blank" rel="noopener noreferrer" className="self-center text-xs text-blue-500 hover:underline">
-                  ดูไฟล์ปัจจุบัน
-                </a>
-              )}
-            </div>
-            {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">QR Code data (ถ้ามี)</label>
-            <input type="text" value={form.qrData} onChange={e => setForm(p => ({ ...p, qrData: e.target.value }))} className={`w-full ${inputCls}`} />
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <button onClick={saveEdit} disabled={saving || !form.title.trim()} className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-              {saving ? 'กำลังบันทึก...' : 'บันทึก'}
-            </button>
-            <button onClick={() => { setEditingId(null); setForm(emptyForm) }} className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm">
-              ยกเลิก
-            </button>
-            <button onClick={() => { deleteDoc(editingId); setEditingId(null); setForm(emptyForm) }}
-              className="px-3 py-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg text-sm">
-              🗑️
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Group documents */}
       {groupDocs.length > 0 && (
         <div>
           <p className="text-xs text-gray-400 font-medium mb-1.5">เอกสารรวม ({groupDocs.length})</p>
           <div className="space-y-2">
             {groupDocs.map(doc => {
-              if (editingId === doc.id) return null
+              if (editingId === doc.id) return <div key={doc.id}>{renderEditForm()}</div>
               const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
               return (
                 <button
@@ -354,7 +337,7 @@ export default function DocumentsManager({
                 </div>
                 <div className="divide-y divide-gray-50">
                   {memberDocs.map(doc => {
-                    if (editingId === doc.id) return null
+                    if (editingId === doc.id) return <div key={doc.id} className="px-3 py-2">{renderEditForm()}</div>
                     const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
                     return (
                       <button
