@@ -44,16 +44,19 @@ export default async function ToursPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'ทั้งหมด', value: tours.length, color: 'from-gray-50 to-gray-100 text-gray-700', icon: '📊' },
-          { label: 'กำลังดำเนินการ', value: active.length, color: 'from-blue-50 to-indigo-50 text-blue-700', icon: '✈️' },
-          { label: 'ฉบับร่าง', value: draft.length, color: 'from-amber-50 to-orange-50 text-amber-700', icon: '📝' },
-          { label: 'เสร็จสิ้น', value: past.length, color: 'from-violet-50 to-purple-50 text-violet-700', icon: '✅' },
+          { label: 'ทั้งหมด', value: tours.length, gradient: 'from-indigo-500 to-violet-600', icon: '📊', sub: `${active.length} active` },
+          { label: 'กำลังดำเนินการ', value: active.length, gradient: 'from-emerald-500 to-teal-600', icon: '✈️', sub: 'published + active' },
+          { label: 'ฉบับร่าง', value: draft.length, gradient: 'from-amber-500 to-orange-500', icon: '📝', sub: 'รอเผยแพร่' },
+          { label: 'เสร็จสิ้น', value: past.length, gradient: 'from-pink-500 to-rose-600', icon: '✅', sub: 'completed' },
         ].map(s => (
-          <div key={s.label} className={`bg-gradient-to-br ${s.color} rounded-2xl p-4 border border-gray-100`}>
-            <p className="text-xs font-medium opacity-60">{s.icon} {s.label}</p>
-            <p className="text-2xl font-bold mt-1">{s.value}</p>
+          <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-2xl p-5 text-white relative overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300`}>
+            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10 blur-xl" />
+            <div className="absolute bottom-0 right-2 text-4xl opacity-10">{s.icon}</div>
+            <p className="text-xs text-white/70 font-medium relative">{s.icon} {s.label}</p>
+            <p className="text-3xl font-black mt-1 relative">{s.value}</p>
+            <p className="text-[10px] text-white/40 mt-0.5 relative">{s.sub}</p>
           </div>
         ))}
       </div>
