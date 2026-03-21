@@ -34,26 +34,24 @@ export default async function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Profile */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-sm">👤</div>
-            <h2 className="font-bold text-gray-900 text-sm">ข้อมูลผู้ดูแลระบบ</h2>
-          </div>
-          <div className="p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center overflow-hidden">
-                {dbUser.avatarUrl ? (
-                  <img src={dbUser.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                ) : (
-                  <span className="text-2xl font-bold text-indigo-600">{dbUser.name[0]}</span>
-                )}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">{dbUser.name}</p>
-                <p className="text-sm text-gray-400">{dbUser.email}</p>
-                <p className="text-xs text-indigo-600 font-medium mt-0.5">{dbUser.systemRole === 'SUPER_ADMIN' ? 'Super Admin' : 'Staff'}</p>
-              </div>
+        {/* Profile — gradient hero */}
+        <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 blur-xl" />
+          <div className="relative flex items-center gap-5">
+            <div className="w-20 h-20 rounded-2xl bg-white/20 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-lg">
+              {dbUser.avatarUrl ? (
+                <img src={dbUser.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="text-3xl font-bold">{dbUser.name[0]}</span>
+              )}
+            </div>
+            <div>
+              <p className="text-xl font-bold">{dbUser.name}</p>
+              <p className="text-white/60 text-sm mt-0.5">{dbUser.email}</p>
+              <span className="inline-block mt-2 text-[10px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full border border-white/20">
+                {dbUser.systemRole === 'SUPER_ADMIN' ? '⭐ Super Admin' : '👤 Staff'}
+              </span>
             </div>
           </div>
         </div>
@@ -96,19 +94,17 @@ export default async function SettingsPage() {
             <h2 className="font-bold text-gray-900 text-sm">ข้อมูลระบบ</h2>
           </div>
           <div className="p-6">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-4 gap-3">
               {[
-                { label: 'ทัวร์ทั้งหมด', value: tourCount, icon: '🗺️' },
-                { label: 'ผู้ใช้ทั้งหมด', value: userCount, icon: '👤' },
-                { label: 'แพลตฟอร์ม', value: 'TripFlow', icon: '✨' },
-                { label: 'เวอร์ชัน', value: 'v1.0.0', icon: '🏷️' },
+                { label: 'ทัวร์', value: tourCount, color: 'bg-indigo-50 text-indigo-700', icon: '🗺️' },
+                { label: 'ผู้ใช้', value: userCount, color: 'bg-emerald-50 text-emerald-700', icon: '👤' },
+                { label: 'แพลตฟอร์ม', value: 'TripFlow', color: 'bg-violet-50 text-violet-700', icon: '✨' },
+                { label: 'เวอร์ชัน', value: 'v1.0.0', color: 'bg-amber-50 text-amber-700', icon: '🏷️' },
               ].map(s => (
-                <div key={s.label} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <span className="text-lg">{s.icon}</span>
-                  <div>
-                    <p className="text-xs text-gray-400">{s.label}</p>
-                    <p className="text-sm font-bold text-gray-800">{s.value}</p>
-                  </div>
+                <div key={s.label} className={`${s.color} rounded-xl p-3 text-center`}>
+                  <span className="text-xl">{s.icon}</span>
+                  <p className="text-lg font-black mt-1">{s.value}</p>
+                  <p className="text-[10px] opacity-60 font-medium">{s.label}</p>
                 </div>
               ))}
             </div>
