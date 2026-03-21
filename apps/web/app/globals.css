@@ -62,7 +62,6 @@ button.no-btn-fx:hover,
 button.no-btn-fx:active {
   filter: none !important;
   transform: none !important;
-  box-shadow: none !important;
 }
 
 /* ── 2. Plain <a> links (nav items, back buttons, text links) */
