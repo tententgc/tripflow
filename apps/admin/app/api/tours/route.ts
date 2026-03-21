@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 import { getTourRegion } from '@tripflow/utils'
 
 export async function GET(_req: NextRequest) {
@@ -54,6 +54,14 @@ export async function POST(req: NextRequest) {
         status: 'DRAFT',
       },
     })
+
+    logActivity({
+      action: 'tour.create',
+      entity: 'Tour',
+      entityId: tour.id,
+      description: `สร้างทัวร์ "${tour.title}"`,
+      tourId: tour.id,
+    }).catch(() => {})
 
     return NextResponse.json(tour, { status: 201 })
   } catch (error) {

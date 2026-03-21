@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function PUT(
   req: NextRequest,
@@ -60,6 +60,13 @@ export async function PUT(
         notes: body.notes || null,
       },
     })
+
+    logActivity({
+      action: 'accommodation.set',
+      entity: 'Accommodation',
+      entityId: accommodation.id,
+      description: `ตั้งค่าที่พัก "${accommodation.name}"`,
+    }).catch(() => {})
 
     return NextResponse.json(accommodation)
   } catch (error) {

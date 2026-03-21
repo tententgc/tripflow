@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 async function getCurrentUser() {
   const supabase = await createClient()
@@ -73,6 +73,14 @@ export async function POST(
       },
     },
   })
+
+  logActivity({
+    action: 'expense.add',
+    entity: 'Expense',
+    entityId: expense.id,
+    description: `สร้างรายการหารค่าใช้จ่าย "${expense.title}"`,
+    tourId: id,
+  }).catch(() => {})
 
   return NextResponse.json(expense)
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -42,6 +42,14 @@ export async function POST(
       },
     })
 
+    logActivity({
+      action: 'member.add',
+      entity: 'TourMember',
+      entityId: member.id,
+      description: `เพิ่มสมาชิกเข้าทัวร์`,
+      tourId: id,
+    }).catch(() => {})
+
     return NextResponse.json(member, { status: 201 })
   } catch (error) {
     console.error('Member POST error:', error)
@@ -59,6 +67,14 @@ export async function DELETE(
     await db.tourMember.delete({
       where: { tourId_userId: { tourId: id, userId } },
     })
+
+    logActivity({
+      action: 'member.remove',
+      entity: 'TourMember',
+      description: `นำสมาชิกออกจากทัวร์`,
+      tourId: id,
+    }).catch(() => {})
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Member DELETE error:', error)

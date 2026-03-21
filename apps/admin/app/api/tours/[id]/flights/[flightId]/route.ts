@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function PATCH(
   req: NextRequest,
@@ -56,6 +56,14 @@ export async function DELETE(
   try {
     const { flightId } = await params
     await db.flightInfo.delete({ where: { id: flightId } })
+
+    logActivity({
+      action: 'flight.delete',
+      entity: 'Flight',
+      entityId: flightId,
+      description: `ลบเที่ยวบิน`,
+    }).catch(() => {})
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Flight DELETE error:', error)
