@@ -472,8 +472,17 @@ export default function FlightsManager({
               onClick={() => { setEditingId(flight.id); setAdding(false) }}
               className="w-full flex items-center gap-3 p-3 bg-white hover:bg-blue-50 rounded-xl border border-gray-100 shadow-sm transition-colors text-left group"
             >
-              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 text-lg">
-                ✈️
+              <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {flight.airlineIata ? (
+                  <img
+                    src={`https://pics.avs.io/80/80/${flight.airlineIata}.png`}
+                    alt={flight.airline}
+                    className="w-full h-full object-contain p-1"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-lg">✈️</span>' }}
+                  />
+                ) : (
+                  <span className="text-lg">✈️</span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
