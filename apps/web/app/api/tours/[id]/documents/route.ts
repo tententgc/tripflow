@@ -79,6 +79,8 @@ export async function POST(
       entity: 'Document',
       entityId: doc.id,
       description: `อัพโหลดเอกสาร "${doc.title}" (ส่วนตัว)`,
+      actorId: dbUser.id,
+      actorName: dbUser.name,
       tourId: id,
     }).catch(() => {})
 

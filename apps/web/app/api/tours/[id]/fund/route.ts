@@ -62,7 +62,7 @@ export async function POST(
     },
   })
 
-  logActivity({ action: 'fund.create', entity: 'GroupFund', description: 'สร้างกองกลาง', tourId: id }).catch(() => {})
+  logActivity({ action: 'fund.create', entity: 'GroupFund', description: 'สร้างกองกลาง', actorId: me.id, actorName: me.name, tourId: id }).catch(() => {})
 
   return NextResponse.json(fund)
 }
