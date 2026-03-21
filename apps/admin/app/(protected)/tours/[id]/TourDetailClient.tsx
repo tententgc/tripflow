@@ -62,7 +62,7 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute left-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
               {Object.entries(statusConfig).map(([value, cfg]) => (
                 <button
                   key={value}
