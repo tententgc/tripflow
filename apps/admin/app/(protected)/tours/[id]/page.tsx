@@ -106,38 +106,49 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
 
       {/* Right sidebar */}
       <div className="space-y-4">
-        {/* Members */}
+        {/* Cover Image — hero style */}
+        <CoverImageEditor tourId={tour.id} currentUrl={tour.coverImageUrl ?? null} />
+
+        {/* Members — compact with avatar stack */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 text-sm">👥 สมาชิก ({tour._count.members})</h3>
-            <a href={`/tours/${tour.id}/members`} className="text-blue-600 text-xs hover:underline">จัดการ →</a>
+            <h3 className="font-bold text-gray-900 text-sm">สมาชิก</h3>
+            <a href={`/tours/${tour.id}/members`} className="text-xs text-indigo-600 font-medium hover:underline">จัดการ →</a>
           </div>
-          {tour.members.length === 0 ? (
-            <p className="text-gray-400 text-xs text-center py-2">ยังไม่มีสมาชิก</p>
-          ) : (
-            <div className="space-y-1.5">
-              {tour.members.slice(0, 5).map((m) => (
-                <div key={m.id} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-xs font-bold text-indigo-600 overflow-hidden flex-shrink-0">
+
+          {/* Avatar stack */}
+          {tour.members.length > 0 && (
+            <div className="flex items-center mb-3">
+              <div className="flex -space-x-2">
+                {tour.members.slice(0, 6).map((m) => (
+                  <div key={m.id} className="w-9 h-9 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center flex-shrink-0">
                     {m.user.avatarUrl ? (
                       <img src={m.user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    ) : m.user.name[0]}
+                    ) : (
+                      <span className="text-xs font-bold text-indigo-600">{m.user.name[0]}</span>
+                    )}
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-gray-900 truncate">{m.user.name}</p>
-                    <p className="text-[10px] text-gray-400 truncate">{m.user.email}</p>
+                ))}
+                {tour.members.length > 6 && (
+                  <div className="w-9 h-9 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center flex-shrink-0">
+                    <span className="text-[10px] font-bold text-gray-500">+{tour.members.length - 6}</span>
                   </div>
-                </div>
-              ))}
-              {tour.members.length > 5 && (
-                <p className="text-xs text-gray-400 text-center pt-1">+{tour.members.length - 5} คน</p>
-              )}
+                )}
+              </div>
+              <span className="ml-3 text-xs text-gray-400">{tour._count.members} คน</span>
             </div>
           )}
-        </div>
 
-        {/* Cover Image */}
-        <CoverImageEditor tourId={tour.id} currentUrl={tour.coverImageUrl ?? null} />
+          {/* Name list */}
+          <div className="space-y-1">
+            {tour.members.slice(0, 5).map((m) => (
+              <div key={m.id} className="flex items-center gap-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
+                <span className="text-xs font-medium text-gray-800 truncate">{m.user.name}</span>
+                <span className="text-[10px] text-gray-300 truncate">{m.user.email}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Tour info */}
         <TourInfoEditor tour={{
