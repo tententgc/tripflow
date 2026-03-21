@@ -32,13 +32,15 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json() as { name?: string; phone?: string; nameEn?: string }
+  const body = await req.json() as { name?: string; phone?: string; nameEn?: string; passportNo?: string | null; passportExpiry?: string | null }
 
   const dbUser = await db.user.update({
     where: { email: user.email! },
     data: {
       ...(body.name != null && { name: body.name }),
       ...(body.nameEn != null && { nameEn: body.nameEn }),
+      ...(body.passportNo !== undefined && { passportNo: body.passportNo }),
+      ...(body.passportExpiry !== undefined && { passportExpiry: body.passportExpiry ? new Date(body.passportExpiry) : null }),
       ...(body.phone != null && { phone: body.phone }),
     },
   })
