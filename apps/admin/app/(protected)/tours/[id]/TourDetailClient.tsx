@@ -22,15 +22,12 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
   const [updating, setUpdating] = useState(false)
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = useState({ top: 0, left: 0 })
+  const [pos, setPos] = useState({ top: 0, right: 0 })
 
   useEffect(() => {
     if (open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
-      const dropdownWidth = 192
-      // Align right edge of dropdown to right edge of button
-      const left = rect.right - dropdownWidth
-      setPos({ top: rect.bottom + 8, left: Math.max(16, left) })
+      setPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
     }
   }, [open])
 
@@ -77,7 +74,7 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div
               className="fixed w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-              style={{ top: pos.top, left: pos.left }}
+              style={{ top: pos.top, right: pos.right }}
             >
               {Object.entries(statusConfig).map(([value, cfg]) => (
                 <button
