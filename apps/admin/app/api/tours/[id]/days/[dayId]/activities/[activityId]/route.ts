@@ -28,7 +28,7 @@ export async function PATCH(
       },
     })
 
-    logActivity({ action: 'activity.update', entity: 'Activity', entityId: activityId, description: 'แก้ไขกิจกรรม' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.update', entity: 'Activity', entityId: activityId, description: 'แก้ไขกิจกรรม' }).catch(() => {})
 
     return NextResponse.json(activity)
   } catch (error) {
@@ -45,7 +45,7 @@ export async function DELETE(
     const { activityId } = await params
     await db.activity.delete({ where: { id: activityId } })
 
-    logActivity({ action: 'activity.delete', entity: 'Activity', entityId: activityId, description: 'ลบกิจกรรม' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.delete', entity: 'Activity', entityId: activityId, description: 'ลบกิจกรรม' }).catch(() => {})
 
     return NextResponse.json({ ok: true })
   } catch (error) {

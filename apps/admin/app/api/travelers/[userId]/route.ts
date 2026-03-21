@@ -24,7 +24,7 @@ export async function PATCH(
       },
     })
 
-    logActivity({ action: 'user.update', entity: 'User', entityId: userId, description: `แก้ไขข้อมูลนักเดินทาง "${user.name}"`, actorName: user.name }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'user.update', entity: 'User', entityId: userId, description: `แก้ไขข้อมูลนักเดินทาง "${user.name}"`}).catch(() => {})
 
     return NextResponse.json(user)
   } catch (error) {
@@ -41,7 +41,7 @@ export async function DELETE(
   try {
     const { userId } = await params
 
-    logActivity({ action: 'user.delete', entity: 'User', entityId: userId, description: `ลบนักเดินทางออกจากระบบ` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'user.delete', entity: 'User', entityId: userId, description: `ลบนักเดินทางออกจากระบบ` }).catch(() => {})
 
     // Remove all related records first (FK constraints)
     await db.checklistCheck.deleteMany({ where: { userId } })

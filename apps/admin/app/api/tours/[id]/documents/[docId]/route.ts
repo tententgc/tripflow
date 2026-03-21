@@ -14,7 +14,7 @@ export async function PATCH(
       data: body,
     })
 
-    logActivity({ action: 'document.update', entity: 'Document', entityId: docId, description: 'แก้ไขเอกสาร' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'document.update', entity: 'Document', entityId: docId, description: 'แก้ไขเอกสาร' }).catch(() => {})
 
     return NextResponse.json(doc)
   } catch (error) {

@@ -19,7 +19,7 @@ export async function POST(
       },
     })
 
-    logActivity({ action: 'member.add', entity: 'TourMember', description: `เพิ่มสมาชิกเข้าทัวร์` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'member.add', entity: 'TourMember', description: `เพิ่มสมาชิกเข้าทัวร์` }).catch(() => {})
 
     return NextResponse.json(member, { status: 201 })
   } catch (error) {
@@ -39,7 +39,7 @@ export async function DELETE(
 
     await db.tourMember.delete({ where: { tourId_userId: { tourId, userId } } })
 
-    logActivity({ action: 'member.remove', entity: 'TourMember', description: `นำสมาชิกออกจากทัวร์` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'member.remove', entity: 'TourMember', description: `นำสมาชิกออกจากทัวร์` }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

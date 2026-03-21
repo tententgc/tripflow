@@ -12,7 +12,7 @@ export async function PATCH(
       where: { id: dayId },
       data: body,
     })
-    logActivity({ action: 'day.update', entity: 'TourDay', entityId: dayId, description: 'แก้ไขวันเดินทาง' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'day.update', entity: 'TourDay', entityId: dayId, description: 'แก้ไขวันเดินทาง' }).catch(() => {})
 
     return NextResponse.json(day)
   } catch (error) {
@@ -29,7 +29,7 @@ export async function DELETE(
     const { dayId } = await params
     await db.tourDay.delete({ where: { id: dayId } })
 
-    logActivity({ action: 'day.delete', entity: 'TourDay', entityId: dayId, description: 'ลบวันเดินทาง' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'day.delete', entity: 'TourDay', entityId: dayId, description: 'ลบวันเดินทาง' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

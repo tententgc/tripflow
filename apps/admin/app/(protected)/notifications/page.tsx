@@ -42,7 +42,7 @@ function getTimeAgo(date: Date): string {
 export default async function NotificationsPage() {
   let logs: Array<{
     id: string; action: string; entity: string; entityId: string | null
-    description: string; actorName: string | null; tourId: string | null
+    description: string; actorName: string | null; actorId: string | null; tourId: string | null
     createdAt: Date
   }> = []
 
@@ -54,6 +54,14 @@ export default async function NotificationsPage() {
   } catch {
     // Table might not exist yet — show empty
   }
+
+  // Fetch tour titles for display
+  const tourIds = [...new Set(logs.map(l => l.tourId).filter(Boolean))] as string[]
+  const tours = tourIds.length > 0 ? await db.tour.findMany({
+    where: { id: { in: tourIds } },
+    select: { id: true, title: true },
+  }) : []
+  const tourMap = Object.fromEntries(tours.map(t => [t.id, t.title]))
 
   // Group by date
   const grouped = new Map<string, typeof logs>()
@@ -99,13 +107,18 @@ export default async function NotificationsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-800">{log.description}</p>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
                           {log.actorName && (
-                            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">
-                              {log.actorName}
+                            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <span>👤</span> {log.actorName}
                             </span>
                           )}
-                          <span className="text-[10px] text-gray-400">{log.action}</span>
+                          {log.tourId && tourMap[log.tourId] && (
+                            <a href={`/tours/${log.tourId}`} className="text-[10px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full flex items-center gap-1 hover:bg-violet-100 transition-colors">
+                              <span>🗺️</span> {tourMap[log.tourId]}
+                            </a>
+                          )}
+                          <span className="text-[10px] text-gray-300">{log.action}</span>
                         </div>
                       </div>
                       <span className="text-[10px] text-gray-300 flex-shrink-0 mt-1 group-hover:text-gray-400 transition-colors">
