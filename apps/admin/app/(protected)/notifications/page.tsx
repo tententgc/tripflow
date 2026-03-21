@@ -111,33 +111,31 @@ export default async function NotificationsPage() {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {/* Actor */}
-                          <span className={`text-[11px] font-bold ${log.actorName === 'Admin' ? 'text-orange-600' : 'text-indigo-600'}`}>
+                        <p className="text-sm text-gray-900">
+                          <span className={`font-bold ${log.actorName === 'Admin' ? 'text-orange-600' : 'text-indigo-600'}`}>
                             {log.actorName ?? 'System'}
                           </span>
-                          {/* Action verb */}
-                          <span className="text-[11px] text-gray-500">{log.description.replace(/\[.*\]$/, '').trim()}</span>
+                          {' '}
+                          <span className="text-gray-700">{log.description.replace(/\[.*\]$/, '').trim()}</span>
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          {log.tourId && tourMap[log.tourId] && (
+                            <a href={`/tours/${log.tourId}`} className="inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors">
+                              🗺️ {tourMap[log.tourId]}
+                            </a>
+                          )}
+                          <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                            isDelete ? 'bg-red-100 text-red-600' : isAdd ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {log.action}
+                          </span>
                         </div>
-                        {/* Tour badge */}
-                        {log.tourId && tourMap[log.tourId] && (
-                          <a href={`/tours/${log.tourId}`} className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-600 hover:text-violet-800 mt-0.5 transition-colors">
-                            🗺️ {tourMap[log.tourId]}
-                          </a>
-                        )}
                       </div>
 
-                      {/* Time + action type */}
-                      <div className="flex-shrink-0 text-right">
-                        <p className="text-[10px] text-gray-400 group-hover:text-gray-500 transition-colors">
-                          {getTimeAgo(new Date(log.createdAt))}
-                        </p>
-                        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded mt-0.5 inline-block ${
-                          isDelete ? 'bg-red-50 text-red-400' : isAdd ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-300'
-                        }`}>
-                          {log.action}
-                        </span>
-                      </div>
+                      {/* Time */}
+                      <p className="text-xs text-gray-400 flex-shrink-0">
+                        {getTimeAgo(new Date(log.createdAt))}
+                      </p>
                     </div>
                   )
                 })}
