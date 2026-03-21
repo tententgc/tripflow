@@ -414,17 +414,17 @@ export default function TodayPage() {
               const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : '👤'
               const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'
               const gradientBg = c.type === 'THAI_GUIDE'
-                ? 'from-blue-500 to-indigo-600'
+                ? 'from-indigo-100 to-violet-100 text-indigo-600'
                 : c.type === 'LOCAL_GUIDE'
-                ? 'from-emerald-500 to-teal-600'
+                ? 'from-emerald-100 to-teal-100 text-emerald-600'
                 : c.type === 'HOTEL'
-                ? 'from-violet-500 to-purple-600'
-                : 'from-gray-500 to-gray-600'
+                ? 'from-violet-100 to-purple-100 text-violet-600'
+                : 'from-gray-100 to-gray-200 text-gray-600'
 
               return (
-                <div key={c.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 p-4 flex items-center gap-3 hover:shadow-md transition-all duration-300">
+                <div key={c.id} className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 flex items-center gap-3 border border-gray-100/60 hover:border-indigo-200/60 transition-all duration-200">
                   {/* Avatar */}
-                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0`}>
                     <span className="text-lg">{typeIcon}</span>
                   </div>
 
@@ -439,7 +439,7 @@ export default function TodayPage() {
                     {c.phone && (
                       <a
                         href={`tel:${c.phone}`}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-500 text-white rounded-xl text-xs font-semibold active:scale-95 transition-transform shadow-sm"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-indigo-100"
                       >
                         <span>📞</span>
                         <span>โทร</span>
@@ -448,7 +448,7 @@ export default function TodayPage() {
                     {tour.isChina && c.wechat && (
                       <button
                         onClick={() => navigator.clipboard.writeText(c.wechat!)}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-emerald-100"
                       >
                         <span className="font-black">微信</span>
                       </button>
@@ -456,7 +456,7 @@ export default function TodayPage() {
                     {!tour.isChina && c.line && (
                       <a
                         href={`line://ti/p/~${c.line}`}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-emerald-100"
                       >
                         <span className="font-black">LINE</span>
                       </a>
@@ -510,35 +510,25 @@ export default function TodayPage() {
               const totalCount = cl.items.length
               const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
               return (
-                <div key={cl.id} className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
-                  <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
-                    <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-green-200/30 blur-lg" />
-                    <div className="flex items-center justify-between relative">
-                      <h3 className="font-bold text-green-700 text-sm">
-                        {cl.emoji && <span className="mr-1.5 text-base">{cl.emoji}</span>}
-                        {cl.title}
-                      </h3>
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                        checkedCount === totalCount && totalCount > 0
-                          ? 'bg-green-500 text-white'
-                          : 'bg-green-100 text-green-700'
-                      }`}>
-                        {checkedCount === totalCount && totalCount > 0 ? '✓ ครบแล้ว' : `${checkedCount}/${totalCount}`}
-                      </span>
-                    </div>
-                    {totalCount > 0 && (
-                      <div className="mt-3 h-2 bg-white/60 rounded-full overflow-hidden shadow-inner">
-                        <div
-                          className={`h-full rounded-full transition-all duration-500 ease-out ${
-                            checkedCount === totalCount
-                              ? 'bg-gradient-to-r from-green-400 to-emerald-400'
-                              : 'bg-gradient-to-r from-green-400 to-teal-400'
-                          }`}
-                          style={{ width: `${progress}%` }}
-                        />
-                      </div>
-                    )}
+                <div key={cl.id} className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-gray-100/60 flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-900 text-sm">
+                      {cl.emoji && <span className="mr-1.5">{cl.emoji}</span>}
+                      {cl.title}
+                    </h3>
+                    <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                      checkedCount === totalCount && totalCount > 0
+                        ? 'bg-emerald-500 text-white'
+                        : 'text-gray-500 bg-gray-100'
+                    }`}>
+                      {checkedCount === totalCount && totalCount > 0 ? '✓' : `${checkedCount}/${totalCount}`}
+                    </span>
                   </div>
+                  {totalCount > 0 && (
+                    <div className="mx-5 mt-3 h-1 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 transition-all duration-500" style={{ width: `${progress}%` }} />
+                    </div>
+                  )}
                   <div className="divide-y divide-gray-50">
                     {cl.items.map(item => {
                       const isChecked = item.checks.some(c => c.userId === userId)
@@ -546,21 +536,19 @@ export default function TodayPage() {
                         <button
                           key={item.id}
                           onClick={() => toggleCheck(item.id, isChecked)}
-                          className={`w-full flex items-center gap-3 px-5 py-3.5 text-left transition-all duration-200 ${
-                            isChecked ? 'bg-green-50/50' : 'active:bg-gray-50'
-                          }`}
-                          style={{ minHeight: '48px' }}
+                          className="w-full flex items-center gap-3 px-5 py-3 text-left transition-colors duration-150 active:bg-gray-50"
+                          style={{ minHeight: '44px' }}
                         >
-                          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                          <div className={`w-5 h-5 rounded-md border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                             isChecked
-                              ? 'bg-green-500 border-green-500 scale-110 shadow-sm shadow-green-200'
-                              : 'border-gray-300 hover:border-green-400'
+                              ? 'bg-indigo-500 border-indigo-500'
+                              : 'border-gray-300'
                           }`}>
-                            {isChecked && <span className="text-white text-xs font-bold">✓</span>}
+                            {isChecked && <span className="text-white text-[10px]">✓</span>}
                           </div>
-                          <span className={`text-sm flex-1 transition-all duration-200 ${
-                            isChecked ? 'text-gray-400 line-through decoration-green-400' : 'text-gray-800'
-                          } ${item.isImportant ? 'font-semibold' : ''}`}>
+                          <span className={`text-sm flex-1 ${
+                            isChecked ? 'text-gray-400 line-through' : 'text-gray-700'
+                          } ${item.isImportant ? 'font-medium' : ''}`}>
                             {item.label}
                             {item.isImportant && <span className="text-red-500 ml-0.5">*</span>}
                           </span>
