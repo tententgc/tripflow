@@ -46,17 +46,21 @@ export default async function ToursPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'ทั้งหมด', value: tours.length, gradient: 'from-indigo-500 to-violet-600', icon: '📊', sub: `${active.length} active` },
-          { label: 'กำลังดำเนินการ', value: active.length, gradient: 'from-emerald-500 to-teal-600', icon: '✈️', sub: 'published + active' },
-          { label: 'ฉบับร่าง', value: draft.length, gradient: 'from-amber-500 to-orange-500', icon: '📝', sub: 'รอเผยแพร่' },
-          { label: 'เสร็จสิ้น', value: past.length, gradient: 'from-pink-500 to-rose-600', icon: '✅', sub: 'completed' },
+          { label: 'ทั้งหมด', value: tours.length, iconBg: 'bg-indigo-100', iconColor: 'text-indigo-600', numColor: 'text-indigo-700', icon: '📊' },
+          { label: 'กำลังดำเนินการ', value: active.length, iconBg: 'bg-emerald-100', iconColor: 'text-emerald-600', numColor: 'text-emerald-700', icon: '✈️' },
+          { label: 'ฉบับร่าง', value: draft.length, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', numColor: 'text-amber-700', icon: '📝' },
+          { label: 'เสร็จสิ้น', value: past.length, iconBg: 'bg-violet-100', iconColor: 'text-violet-600', numColor: 'text-violet-700', icon: '✅' },
         ].map(s => (
-          <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-2xl p-5 text-white relative overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300`}>
-            <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-            <div className="absolute bottom-0 right-2 text-4xl opacity-10">{s.icon}</div>
-            <p className="text-xs text-white/70 font-medium relative">{s.icon} {s.label}</p>
-            <p className="text-3xl font-black mt-1 relative">{s.value}</p>
-            <p className="text-[10px] text-white/40 mt-0.5 relative">{s.sub}</p>
+          <div key={s.label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-400 font-medium">{s.label}</p>
+                <p className={`text-3xl font-black mt-1 ${s.numColor}`}>{s.value}</p>
+              </div>
+              <div className={`w-12 h-12 rounded-2xl ${s.iconBg} flex items-center justify-center text-2xl`}>
+                {s.icon}
+              </div>
+            </div>
           </div>
         ))}
       </div>
