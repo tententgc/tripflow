@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
   try {
-    const { docId } = await params
+    const { id, docId } = await params
     const body = await req.json() as Record<string, unknown>
 
     const doc = await db.tourDocument.update({
@@ -14,7 +14,7 @@ export async function PATCH(
       data: body,
     })
 
-    logActivity({ actorName: 'Admin', action: 'document.update', entity: 'Document', entityId: docId, description: 'แก้ไขเอกสาร' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'document.update', entity: 'Document', entityId: docId, tourId: id, description: 'แก้ไขเอกสาร' }).catch(() => {})
 
     return NextResponse.json(doc)
   } catch (error) {
@@ -28,13 +28,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; docId: string }> }
 ) {
   try {
-    const { docId } = await params
+    const { id, docId } = await params
     await db.tourDocument.delete({ where: { id: docId } })
 
     logActivity({
       action: 'document.delete',
       entity: 'Document',
       entityId: docId,
+      tourId: id,
       description: `ลบเอกสาร`,
     }).catch(() => {})
 

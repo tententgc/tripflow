@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; flightId: string }> }
 ) {
   try {
-    const { flightId } = await params
+    const { id, flightId } = await params
     const body = await req.json() as {
       flightNo?: string
       airline?: string
@@ -42,7 +42,7 @@ export async function PATCH(
       },
     })
 
-    logActivity({ actorName: 'Admin', action: 'flight.update', entity: 'Flight', entityId: flightId, description: 'แก้ไขเที่ยวบิน' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'flight.update', entity: 'Flight', entityId: flightId, tourId: id, description: 'แก้ไขเที่ยวบิน' }).catch(() => {})
 
     return NextResponse.json(flight)
   } catch (error) {
@@ -56,13 +56,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; flightId: string }> }
 ) {
   try {
-    const { flightId } = await params
+    const { id, flightId } = await params
     await db.flightInfo.delete({ where: { id: flightId } })
 
     logActivity({
       action: 'flight.delete',
       entity: 'Flight',
       entityId: flightId,
+      tourId: id,
       description: `ลบเที่ยวบิน`,
     }).catch(() => {})
 

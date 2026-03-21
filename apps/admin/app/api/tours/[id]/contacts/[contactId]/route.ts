@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
   try {
-    const { contactId } = await params
+    const { id, contactId } = await params
     const body = await req.json() as {
       name?: string
       nameLocal?: string | null
@@ -34,7 +34,7 @@ export async function PATCH(
       },
     })
 
-    logActivity({ actorName: 'Admin', action: 'contact.update', entity: 'Contact', entityId: contactId, description: 'แก้ไขผู้ติดต่อ' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'contact.update', entity: 'Contact', entityId: contactId, tourId: id, description: 'แก้ไขผู้ติดต่อ' }).catch(() => {})
 
     return NextResponse.json(contact)
   } catch (error) {
@@ -48,10 +48,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; contactId: string }> }
 ) {
   try {
-    const { contactId } = await params
+    const { id, contactId } = await params
     await db.importantContact.delete({ where: { id: contactId } })
 
-    logActivity({ actorName: 'Admin', action: 'contact.delete', entity: 'Contact', entityId: contactId, description: 'ลบผู้ติดต่อ' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'contact.delete', entity: 'Contact', entityId: contactId, tourId: id, description: 'ลบผู้ติดต่อ' }).catch(() => {})
 
     return NextResponse.json({ ok: true })
   } catch (error) {

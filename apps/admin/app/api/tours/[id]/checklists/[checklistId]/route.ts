@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; checklistId: string }> }
 ) {
   try {
-    const { checklistId } = await params
+    const { id, checklistId } = await params
     const body = await req.json() as Record<string, unknown>
 
     const checklist = await db.checklist.update({
@@ -15,7 +15,7 @@ export async function PATCH(
       include: { items: { orderBy: { order: 'asc' } } },
     })
 
-    logActivity({ actorName: 'Admin', action: 'checklist.update', entity: 'Checklist', entityId: checklistId, description: 'แก้ไขเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.update', entity: 'Checklist', entityId: checklistId, tourId: id, description: 'แก้ไขเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json(checklist)
   } catch (error) {
@@ -29,13 +29,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; checklistId: string }> }
 ) {
   try {
-    const { checklistId } = await params
+    const { id, checklistId } = await params
 
     // Delete items first, then checklist
     await db.checklistItem.deleteMany({ where: { checklistId } })
     await db.checklist.delete({ where: { id: checklistId } })
 
-    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'Checklist', entityId: checklistId, description: 'ลบเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'Checklist', entityId: checklistId, tourId: id, description: 'ลบเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

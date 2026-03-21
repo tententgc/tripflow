@@ -14,7 +14,7 @@ export async function DELETE(
     const dbUser = await db.user.findUnique({ where: { email: user.email! } })
     if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-    const { docId } = await params
+    const { id, docId } = await params
 
     // Only allow deleting own personal documents
     const doc = await db.tourDocument.findUnique({ where: { id: docId } })
@@ -24,7 +24,7 @@ export async function DELETE(
 
     await db.tourDocument.delete({ where: { id: docId } })
 
-    logActivity({ action: 'document.delete', entity: 'Document', entityId: docId, description: 'ลบเอกสารส่วนตัว' }).catch(() => {})
+    logActivity({ action: 'document.delete', entity: 'Document', entityId: docId, tourId: id, actorName: dbUser.name, description: 'ลบเอกสารส่วนตัว' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

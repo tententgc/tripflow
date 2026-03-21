@@ -6,13 +6,13 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; dayId: string }> }
 ) {
   try {
-    const { dayId } = await params
+    const { id, dayId } = await params
     const body = await req.json() as Record<string, unknown>
     const day = await db.tourDay.update({
       where: { id: dayId },
       data: body,
     })
-    logActivity({ actorName: 'Admin', action: 'day.update', entity: 'TourDay', entityId: dayId, description: 'แก้ไขวันเดินทาง' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'day.update', entity: 'TourDay', entityId: dayId, tourId: id, description: 'แก้ไขวันเดินทาง' }).catch(() => {})
 
     return NextResponse.json(day)
   } catch (error) {
@@ -26,10 +26,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; dayId: string }> }
 ) {
   try {
-    const { dayId } = await params
+    const { id, dayId } = await params
     await db.tourDay.delete({ where: { id: dayId } })
 
-    logActivity({ actorName: 'Admin', action: 'day.delete', entity: 'TourDay', entityId: dayId, description: 'ลบวันเดินทาง' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'day.delete', entity: 'TourDay', entityId: dayId, tourId: id, description: 'ลบวันเดินทาง' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {
