@@ -64,8 +64,6 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
               return (
                 <a key={day.id} href={`/tours/${tour.id}/itinerary`}
                   className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
-                  {/* Color accent bar */}
-                  <div className={`h-1.5 bg-gradient-to-r ${bg}`} />
                   <div className="p-4">
                     <div className="flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${bg} flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-sm`}>
