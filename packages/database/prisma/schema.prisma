@@ -619,6 +619,24 @@ enum NotificationType {
   GENERAL
 }
 
+// ── ACTIVITY LOG ───────────────────────────────────────────
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String                             // e.g. "tour.create", "flight.add", "member.remove"
+  entity      String                             // e.g. "Tour", "Flight", "User"
+  entityId    String?                            // ID of affected entity
+  description String                             // Thai description of what happened
+  actorId     String?                            // Who did it (user ID)
+  actorName   String?                            // Cached name for display
+  tourId      String?                            // Related tour (optional)
+  metadata    Json?                              // Extra data
+  createdAt   DateTime @default(now())
+
+  @@index([tourId])
+  @@index([createdAt])
+}
+
 enum ChatRole {
   USER
   ASSISTANT
