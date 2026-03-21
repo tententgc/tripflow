@@ -74,7 +74,6 @@ export default function CalculatorPage() {
       <TopBar
         title="แปลงค่าเงิน"
         subtitle="อัตราแลกเปลี่ยนวันนี้"
-        gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
       />
 
       <div className="px-4 py-4 space-y-4">

@@ -341,7 +341,6 @@ export default function SplitPage() {
       <TopBar
         title="หารค่าใช้จ่าย"
         subtitle={iOwe.length > 0 ? `⚠️ ค้างจ่าย ${iOwe.length} รายการ` : 'ไม่มียอดค้างชำระ'}
-        gradient="bg-gradient-to-br from-orange-500 to-rose-500"
       />
 
       {/* Tabs */}

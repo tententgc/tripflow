@@ -180,7 +180,6 @@ export default function DayDetailPage() {
         title={day.title}
         subtitle={`${countryFlags[day.country ?? ''] ?? '🌍'} ${day.city ?? ''} · ${new Date(day.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
         backHref={`/tour/${tourId}/itinerary`}
-        gradient={tour.isChina ? 'bg-gradient-to-br from-red-600 to-red-800' : undefined}
       />
 
       <div className="px-4 -mt-2 space-y-3">

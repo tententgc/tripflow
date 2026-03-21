@@ -73,7 +73,6 @@ export default function EmergencyPage() {
       <TopBar
         title="ฉุกเฉิน"
         subtitle="แตะเบอร์เพื่อโทรได้ทันที"
-        gradient="bg-gradient-to-br from-red-600 to-rose-700"
       />
 
       <div className="px-4 py-4 space-y-4">
