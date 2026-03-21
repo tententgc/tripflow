@@ -323,27 +323,32 @@ export default function DocumentsManager({
         </div>
       )}
 
-      {/* Group documents */}
+      {/* ═══ Group documents ═══ */}
       {groupDocs.length > 0 && (
-        <div>
-          <p className="text-xs text-gray-400 font-medium mb-1.5">เอกสารรวม ({groupDocs.length})</p>
-          <div className="space-y-2">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex items-center gap-2">
+            <span className="text-base">📂</span>
+            <h3 className="text-sm font-bold text-blue-800">เอกสารรวม</h3>
+            <span className="text-[10px] bg-blue-200/60 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{groupDocs.length}</span>
+            <p className="text-[10px] text-blue-500 ml-auto">ทุกคนเห็น</p>
+          </div>
+          <div className="divide-y divide-gray-50">
             {groupDocs.map(doc => {
-              if (editingId === doc.id) return <div key={doc.id}>{renderEditForm()}</div>
+              if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
               const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
               return (
                 <button
                   key={doc.id}
                   onClick={() => startEdit(doc)}
-                  className="w-full bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 p-3 text-left hover:border-blue-200 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50/50 transition-colors"
                 >
                   <span className="text-xl">{cfg.emoji}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
                     <div className="flex gap-2 mt-0.5">
-                      <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{cfg.label}</span>
-                      {doc.fileUrl && <span className="text-[10px] text-blue-600">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
-                      {doc.qrData && <span className="text-[10px] text-gray-500">⬛ QR</span>}
+                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">{cfg.label}</span>
+                      {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
+                      {doc.qrData && <span className="text-[10px] text-gray-400">⬛ QR</span>}
                     </div>
                   </div>
                   <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
@@ -354,45 +359,50 @@ export default function DocumentsManager({
         </div>
       )}
 
-      {/* Personal documents grouped by member */}
+      {/* ═══ Personal documents by member ═══ */}
       {personalDocs.length > 0 && (
-        <div>
-          <p className="text-xs text-gray-400 font-medium mb-1.5">ตั๋วรายบุคคล ({personalDocs.length})</p>
-          <div className="space-y-3">
-            {Array.from(byMember.entries()).map(([uid, memberDocs]) => (
-              <div key={uid} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
-                  <p className="text-xs font-semibold text-gray-700">
-                    👤 {memberMap[uid] ?? 'ไม่ทราบชื่อ'}
-                  </p>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-base">👤</span>
+            <h3 className="text-sm font-bold text-gray-700">ตั๋วรายบุคคล</h3>
+            <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">{personalDocs.length}</span>
+            <p className="text-[10px] text-gray-400 ml-auto">เฉพาะเจ้าของเห็น</p>
+          </div>
+          {Array.from(byMember.entries()).map(([uid, memberDocs]) => (
+            <div key={uid} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">
+                  {(memberMap[uid] ?? '?')[0]}
                 </div>
-                <div className="divide-y divide-gray-50">
-                  {memberDocs.map(doc => {
-                    if (editingId === doc.id) return <div key={doc.id} className="px-3 py-2">{renderEditForm()}</div>
-                    const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
-                    return (
-                      <button
-                        key={doc.id}
-                        onClick={() => startEdit(doc)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-blue-50 transition-colors"
-                      >
-                        <span className="text-lg">{cfg.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-900 truncate">{doc.title}</p>
-                          <div className="flex gap-2 mt-0.5">
-                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">{cfg.label}</span>
-                            {doc.fileUrl && <span className="text-[10px] text-blue-600">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
-                          </div>
+                <p className="text-xs font-bold text-orange-800">{memberMap[uid] ?? 'ไม่ทราบชื่อ'}</p>
+                <span className="text-[10px] text-orange-500 ml-auto">{memberDocs.length} ตั๋ว</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {memberDocs.map(doc => {
+                  if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
+                  const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
+                  return (
+                    <button
+                      key={doc.id}
+                      onClick={() => startEdit(doc)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-orange-50/50 transition-colors"
+                    >
+                      <span className="text-lg">{cfg.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
+                        <div className="flex gap-2 mt-0.5">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full font-medium">{cfg.label}</span>
+                          {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
                         </div>
-                        <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
-                      </button>
-                    )
+                      </div>
+                      <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
+                    </button>
+                  )
                   })}
                 </div>
               </div>
             ))}
           </div>
-        </div>
       )}
 
       {/* Add document form */}
