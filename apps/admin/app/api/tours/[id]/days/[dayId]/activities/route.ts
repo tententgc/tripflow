@@ -6,7 +6,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string; dayId: string }> }
 ) {
   try {
-    const { dayId } = await params
+    const { id, dayId } = await params
     const body = await req.json() as {
       time?: string | null
       title: string
@@ -34,7 +34,7 @@ export async function POST(
       },
     })
 
-    logActivity({ actorName: 'Admin', action: 'activity.add', entity: 'Activity', entityId: activity.id, description: `เพิ่มกิจกรรม "${activity.title}"` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.add', entity: 'Activity', entityId: activity.id, tourId: id, description: `เพิ่มกิจกรรม "${activity.title}"` }).catch(() => {})
 
     return NextResponse.json(activity, { status: 201 })
   } catch (error) {

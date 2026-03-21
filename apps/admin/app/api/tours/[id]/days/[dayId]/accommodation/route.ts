@@ -6,7 +6,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string; dayId: string }> }
 ) {
   try {
-    const { dayId } = await params
+    const { id, dayId } = await params
     const body = await req.json() as {
       name: string
       nameLocal?: string
@@ -65,6 +65,7 @@ export async function PUT(
       action: 'accommodation.set',
       entity: 'Accommodation',
       entityId: accommodation.id,
+      tourId: id,
       description: `ตั้งค่าที่พัก "${accommodation.name}"`,
     }).catch(() => {})
 
@@ -80,10 +81,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; dayId: string }> }
 ) {
   try {
-    const { dayId } = await params
+    const { id, dayId } = await params
     await db.accommodation.delete({ where: { tourDayId: dayId } })
 
-    logActivity({ actorName: 'Admin', action: 'accommodation.delete', entity: 'Accommodation', description: 'ลบที่พัก' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'accommodation.delete', entity: 'Accommodation', tourId: id, description: 'ลบที่พัก' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

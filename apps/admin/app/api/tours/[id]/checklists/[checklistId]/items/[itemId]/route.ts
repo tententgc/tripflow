@@ -26,12 +26,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; checklistId: string; itemId: string }> }
 ) {
   try {
-    const { itemId } = await params
+    const { id, itemId } = await params
 
     await db.checklistCheck.deleteMany({ where: { itemId } })
     await db.checklistItem.delete({ where: { id: itemId } })
 
-    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'ChecklistItem', entityId: itemId, description: 'ลบรายการเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'ChecklistItem', entityId: itemId, tourId: id, description: 'ลบรายการเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

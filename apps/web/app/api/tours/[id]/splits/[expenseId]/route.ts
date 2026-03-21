@@ -15,7 +15,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
   try {
-    const { expenseId } = await params
+    const { id, expenseId } = await params
     const me = await getCurrentUser()
     if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -39,7 +39,7 @@ export async function PATCH(
       })
     }
 
-    logActivity({ action: 'expense.settle', entity: 'Expense', entityId: expenseId, description: 'ชำระค่าใช้จ่าย' }).catch(() => {})
+    logActivity({ action: 'expense.settle', entity: 'Expense', entityId: expenseId, tourId: id, actorName: me.name, description: 'ชำระค่าใช้จ่าย' }).catch(() => {})
 
     const expense = await db.expense.findUnique({
       where: { id: expenseId },
@@ -63,7 +63,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
-  const { expenseId } = await params
+  const { id, expenseId } = await params
   const me = await getCurrentUser()
   if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -75,7 +75,7 @@ export async function DELETE(
   await db.expenseParticipant.deleteMany({ where: { expenseId } })
   await db.expense.delete({ where: { id: expenseId } })
 
-  logActivity({ action: 'expense.delete', entity: 'Expense', entityId: expenseId, description: 'ลบรายการค่าใช้จ่าย' }).catch(() => {})
+  logActivity({ action: 'expense.delete', entity: 'Expense', entityId: expenseId, tourId: id, actorName: me.name, description: 'ลบรายการค่าใช้จ่าย' }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }

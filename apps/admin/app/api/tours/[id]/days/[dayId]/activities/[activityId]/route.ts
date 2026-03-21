@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; dayId: string; activityId: string }> }
 ) {
   try {
-    const { activityId } = await params
+    const { id, activityId } = await params
     const body = await req.json() as {
       time?: string | null
       title?: string
@@ -28,7 +28,7 @@ export async function PATCH(
       },
     })
 
-    logActivity({ actorName: 'Admin', action: 'activity.update', entity: 'Activity', entityId: activityId, description: 'แก้ไขกิจกรรม' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.update', entity: 'Activity', entityId: activityId, tourId: id, description: 'แก้ไขกิจกรรม' }).catch(() => {})
 
     return NextResponse.json(activity)
   } catch (error) {
@@ -42,10 +42,10 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; dayId: string; activityId: string }> }
 ) {
   try {
-    const { activityId } = await params
+    const { id, activityId } = await params
     await db.activity.delete({ where: { id: activityId } })
 
-    logActivity({ actorName: 'Admin', action: 'activity.delete', entity: 'Activity', entityId: activityId, description: 'ลบกิจกรรม' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.delete', entity: 'Activity', entityId: activityId, tourId: id, description: 'ลบกิจกรรม' }).catch(() => {})
 
     return NextResponse.json({ ok: true })
   } catch (error) {
