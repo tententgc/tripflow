@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAIAdapter, buildTravelSystemPrompt } from '@tripflow/adapters'
 import { getTourRegion } from '@tripflow/utils'
 import { db } from '@tripflow/database'
+import { getCached, setCache } from '@/lib/cache'
 
 export async function POST(
   req: NextRequest,
@@ -13,18 +14,13 @@ export async function POST(
       messages: Array<{ role: 'user' | 'assistant'; content: string }>
     }
 
-    // Fetch tour data to build context
-    const tour = await db.tour.findUnique({
-      where: { id },
-      include: {
-        days: {
-          include: { activities: { orderBy: { order: 'asc' } }, accommodation: true },
-          orderBy: { dayNumber: 'asc' },
-        },
-        members: true,
-        emergencyInfo: true,
-      },
-    })
+    // Fetch tour data to build context (cached 5 min — chat context rarely changes)
+    const cacheKey = 'chat-tour:' + id
+    let tour = getCached<Awaited<ReturnType<typeof fetchChatTour>>>(cacheKey)
+    if (!tour) {
+      tour = await fetchChatTour(id)
+      if (tour) setCache(cacheKey, tour, 300_000)
+    }
 
     if (!tour) {
       return NextResponse.json({ error: 'Tour not found' }, { status: 404 })
@@ -65,7 +61,7 @@ export async function POST(
       todayActivities,
       accommodationName: currentDay?.accommodation?.name,
       weatherSummary: 'ไม่มีข้อมูลสภาพอากาศ',
-      memberCount: tour.members.length,
+      memberCount: tour._count.members,
       destCurrency: tour.destCurrency ?? undefined,
       emergency: emergencyNumbers,
     })
@@ -104,4 +100,50 @@ export async function POST(
       { status: 500 }
     )
   }
+}
+
+/** Fetch only the fields the system prompt needs (select instead of include) */
+function fetchChatTour(id: string) {
+  return db.tour.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      title: true,
+      countries: true,
+      primaryCountry: true,
+      isChina: true,
+      timezone: true,
+      destCurrency: true,
+      currency: true,
+      cities: true,
+      days: {
+        orderBy: { dayNumber: 'asc' },
+        select: {
+          dayNumber: true,
+          date: true,
+          timezone: true,
+          city: true,
+          country: true,
+          title: true,
+          mealBreakfast: true,
+          mealLunch: true,
+          mealDinner: true,
+          activities: {
+            orderBy: { order: 'asc' },
+            select: { time: true, title: true, titleLocal: true, locationName: true, category: true, order: true },
+          },
+          accommodation: {
+            select: { name: true, nameLocal: true, wifiName: true, phone: true },
+          },
+        },
+      },
+      _count: { select: { members: true } },
+      emergencyInfo: {
+        select: { emergencyNumbers: true, embassyContacts: true, thaiEmbassyPhone: true },
+      },
+      contacts: {
+        select: { name: true, phone: true, type: true },
+      },
+    },
+  })
 }

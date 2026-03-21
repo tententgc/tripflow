@@ -4,14 +4,22 @@ import { getTourRegion } from '@tripflow/utils'
 
 export async function GET(_req: NextRequest) {
   try {
+    const { searchParams } = new URL(_req.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10) || 1)
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10) || 50))
+
     const tours = await db.tour.findMany({
       include: {
         operator: { select: { name: true } },
         _count: { select: { members: true } },
       },
       orderBy: { startDate: 'asc' },
+      take: limit,
+      skip: (page - 1) * limit,
     })
-    return NextResponse.json(tours)
+    const res = NextResponse.json(tours)
+    res.headers.set('Cache-Control', 'private, max-age=15, stale-while-revalidate=30')
+    return res
   } catch (error) {
     console.error('Tours GET error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })

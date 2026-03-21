@@ -1,8 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { useApi } from '@/lib/swr'
 
 interface UserInfo {
   name: string
@@ -24,25 +26,20 @@ export function TopBar({
   children,
 }: TopBarProps) {
   const router = useRouter()
-  const [user, setUser] = useState<UserInfo | null>(null)
+  const { data: me } = useApi<{ name: string; avatarUrl: string | null }>('/api/auth/me')
+  const user: UserInfo | null = me ? { name: me.name, avatarUrl: me.avatarUrl ?? null } : null
   const [open, setOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((d) => setUser({ name: d.name, avatarUrl: d.avatarUrl ?? null }))
-      .catch(() => {})
+  const handleClickOutside = useCallback((e: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false)
   }, [])
 
   useEffect(() => {
     if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [open])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open, handleClickOutside])
 
   async function logout() {
     const supabase = createClient()
@@ -81,12 +78,15 @@ export function TopBar({
             aria-label="เมนูผู้ใช้"
           >
             {user?.avatarUrl ? (
-              <img
+              <Image
                 src={user.avatarUrl}
                 alt=""
+                width={36}
+                height={36}
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+                unoptimized
               />
             ) : null}
             <span className={`text-indigo-600 font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
@@ -99,7 +99,7 @@ export function TopBar({
                 <a href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-indigo-50/50 transition-colors border-b border-gray-100/60">
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden flex-shrink-0 border border-indigo-100/50">
                     {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <Image src={user.avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
                     ) : (
                       <span className="text-indigo-600 font-bold text-xs">{user?.name?.[0]}</span>
                     )}

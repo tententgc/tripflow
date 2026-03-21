@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 export async function proxy(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  // Skip for API routes, auth callback, static assets
+  if (pathname.startsWith('/api/') || pathname.startsWith('/auth')) {
+    return NextResponse.next()
+  }
+
+  const isLoginPage = pathname.startsWith('/login')
+
   const res = NextResponse.next()
 
   const supabase = createServerClient(
@@ -20,16 +29,16 @@ export async function proxy(req: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // getSession() decodes JWT locally (~1ms) vs getUser() (~150ms network call)
+  const w = console.warn; console.warn = () => {}
+  const { data: { session } } = await supabase.auth.getSession()
+  console.warn = w
 
-  const isLoginPage = req.nextUrl.pathname.startsWith('/login')
-  const isAuthCallback = req.nextUrl.pathname.startsWith('/auth')
-
-  if (!user && !isLoginPage && !isAuthCallback) {
+  if (!session && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (user && isLoginPage) {
+  if (session && isLoginPage) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
@@ -37,5 +46,5 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icons|logo).*)'],
 }

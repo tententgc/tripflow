@@ -4,13 +4,17 @@ import { db } from '@tripflow/database'
 
 export async function GET() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
+  const { data: { session } } = await supabase.auth.getSession()
 
-  if (!user) {
+  if (!session?.user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let dbUser = await db.user.findUnique({ where: { email: user.email! } })
+  const user = session.user
+  const userSelect = { id: true, email: true, name: true, nameEn: true, phone: true, avatarUrl: true, systemRole: true, locale: true, timezone: true } as const
+
+  let dbUser = await db.user.findUnique({ where: { email: user.email! }, select: userSelect })
   if (!dbUser) {
     dbUser = await db.user.create({
       data: {
@@ -18,21 +22,29 @@ export async function GET() {
         name: user.user_metadata?.full_name ?? user.email!.split('@')[0] ?? 'Admin',
         avatarUrl: user.user_metadata?.avatar_url ?? null,
       },
+      select: userSelect,
     })
   }
 
   // Allow SUPER_ADMIN always
   if (dbUser.systemRole === 'SUPER_ADMIN') {
-    return NextResponse.json(dbUser)
+    const res = NextResponse.json(dbUser)
+    res.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+    return res
   }
 
-  // Check OperatorStaff
-  const staffRecord = await db.operatorStaff.findFirst({ where: { userId: dbUser.id } })
+  // Check OperatorStaff — can run in parallel with nothing, but needed sequentially after dbUser
+  const staffRecord = await db.operatorStaff.findFirst({
+    where: { userId: dbUser.id },
+    select: { role: true, operatorId: true },
+  })
   if (!staffRecord) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  return NextResponse.json({ ...dbUser, staffRole: staffRecord.role, operatorId: staffRecord.operatorId })
+  const res = NextResponse.json({ ...dbUser, staffRole: staffRecord.role, operatorId: staffRecord.operatorId })
+  res.headers.set('Cache-Control', 'private, max-age=30, stale-while-revalidate=60')
+  return res
 }
 
 export async function DELETE() {

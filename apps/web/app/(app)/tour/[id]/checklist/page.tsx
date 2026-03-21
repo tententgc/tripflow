@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
+import { useApi } from '@/lib/swr'
 
 interface ChecklistItem {
   id: string
@@ -22,40 +22,31 @@ interface Checklist {
 export default function ChecklistPage() {
   const params = useParams()
   const tourId = params.id as string
-  const [checklists, setChecklists] = useState<Checklist[]>([])
-  const [isChina, setIsChina] = useState(false)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    Promise.all([
-      fetch(`/api/tours/${tourId}/checklist`).then((r) => r.json()),
-      fetch(`/api/tours/${tourId}`).then((r) => r.json()),
-      fetch('/api/auth/me').then((r) => r.json()),
-    ]).then(([cl, tour, me]) => {
-      setChecklists(cl)
-      setIsChina(tour.isChina)
-      setUserId(me.id)
-      setLoading(false)
-    })
-  }, [tourId])
+  const { data: checklists, isLoading: loadingChecklists, mutate: mutateChecklists } = useApi<Checklist[]>(`/api/tours/${tourId}/checklist`)
+  const { data: tour } = useApi<{ isChina: boolean }>(`/api/tours/${tourId}`)
+  const { data: me } = useApi<{ id: string }>('/api/auth/me')
+  const isChina = tour?.isChina ?? false
+  const userId = me?.id ?? null
+  const loading = loadingChecklists
 
   async function toggleItem(itemId: string, currentlyChecked: boolean) {
     if (!userId) return
-    setChecklists((prev) =>
-      prev.map((cl) => ({
-        ...cl,
-        items: cl.items.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                checks: currentlyChecked
-                  ? item.checks.filter((c) => c.userId !== userId)
-                  : [...item.checks, { userId }],
-              }
-            : item
-        ),
-      }))
+    mutateChecklists(
+      (prev) =>
+        prev?.map((cl) => ({
+          ...cl,
+          items: cl.items.map((item) =>
+            item.id === itemId
+              ? {
+                  ...item,
+                  checks: currentlyChecked
+                    ? item.checks.filter((c) => c.userId !== userId)
+                    : [...item.checks, { userId }],
+                }
+              : item
+          ),
+        })),
+      false,
     )
     await fetch(`/api/tours/${tourId}/checklist`, {
       method: 'POST',
@@ -71,13 +62,13 @@ export default function ChecklistPage() {
       <TopBar title="เช็คลิสต์" />
 
       <div className="px-4 py-4 space-y-4">
-        {checklists.length === 0 ? (
+        {(!checklists || checklists.length === 0) ? (
           <div className="text-center py-12 text-gray-400">
             <p className="text-4xl mb-2">✅</p>
             <p>ยังไม่มีเช็คลิสต์</p>
           </div>
         ) : (
-          checklists.map((cl) => {
+          (checklists ?? []).map((cl) => {
             const checkedCount = cl.items.filter((i) => i.checks.some((c) => c.userId === userId)).length
             const progress = cl.items.length > 0 ? (checkedCount / cl.items.length) * 100 : 0
             return (

@@ -1,36 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser, getAuthUserLight } from '@/lib/auth'
+
+const DOC_SELECT = {
+  id: true, title: true, titleEn: true, type: true,
+  fileUrl: true, qrData: true, description: true,
+  isPersonal: true, userId: true,
+} as const
 
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // Parallel: get tour id + auth user + group docs
+    const [{ id }, authUser] = await Promise.all([params, getAuthUser()])
 
-    const { id } = await params
+    const [groupDocs, personalDocs] = await Promise.all([
+      db.tourDocument.findMany({
+        where: { tourId: id, isPersonal: false },
+        select: DOC_SELECT,
+        orderBy: { id: 'asc' },
+      }),
+      authUser?.id
+        ? db.tourDocument.findMany({
+            where: { tourId: id, isPersonal: true, userId: authUser.id },
+            select: DOC_SELECT,
+            orderBy: { id: 'asc' },
+          })
+        : Promise.resolve([]),
+    ])
 
-    // Get dbUser to filter personal docs
-    let dbUserId: string | null = null
-    if (user?.email) {
-      const dbUser = await db.user.findUnique({ where: { email: user.email } })
-      dbUserId = dbUser?.id ?? null
-    }
-
-    // Return: group docs + only this user's personal docs
-    const documents = await db.tourDocument.findMany({
-      where: {
-        tourId: id,
-        OR: [
-          { isPersonal: false },
-          ...(dbUserId ? [{ isPersonal: true, userId: dbUserId }] : []),
-        ],
-      },
-      orderBy: { id: 'asc' },
-    })
-    return NextResponse.json(documents, {
+    return NextResponse.json([...groupDocs, ...personalDocs], {
       headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600' },
     })
   } catch (error) {
@@ -44,23 +45,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    // Lookup DB user by email
-    const dbUser = await db.user.findUnique({ where: { email: user.email! } })
-    if (!dbUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-
-    const { id } = await params
-    const body = await req.json() as {
-      title: string
-      titleEn?: string
-      type: string
-      fileUrl?: string
-      qrData?: string
-      description?: string
-    }
+    const [{ id }, dbUser, body] = await Promise.all([
+      params,
+      getAuthUserLight(),
+      req.json() as Promise<{
+        title: string; titleEn?: string; type: string
+        fileUrl?: string; qrData?: string; description?: string
+      }>,
+    ])
+    if (!dbUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const doc = await db.tourDocument.create({
       data: {

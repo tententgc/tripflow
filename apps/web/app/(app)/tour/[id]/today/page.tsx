@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import Image from 'next/image'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
+import { useApi } from '@/lib/swr'
 
 interface Activity {
   id: string
@@ -141,47 +143,39 @@ const transportIcons: Record<string, string> = {
 export default function TodayPage() {
   const params = useParams()
   const tourId = params.id as string
-  const [tour, setTour] = useState<TourData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [checklists, setChecklists] = useState<ChecklistData[]>([])
-  const [userId, setUserId] = useState<string | null>(null)
-
-  useEffect(() => {
-    Promise.all([
-      fetch(`/api/tours/${tourId}`).then(r => r.json()),
-      fetch(`/api/tours/${tourId}/checklist`).then(r => r.json()).catch(() => []),
-      fetch('/api/auth/me').then(r => r.json()).catch(() => null),
-    ]).then(([tourData, checklistData, userData]) => {
-      setTour(tourData)
-      setChecklists(Array.isArray(checklistData) ? checklistData : [])
-      setUserId(userData?.id ?? null)
-      setLoading(false)
-    }).catch(() => setLoading(false))
-  }, [tourId])
+  const { data: tour, isLoading: loadingTour } = useApi<TourData>(`/api/tours/${tourId}`)
+  const { data: checklistsRaw, mutate: mutateChecklists } = useApi<ChecklistData[]>(`/api/tours/${tourId}/checklist`)
+  const { data: me } = useApi<{ id: string }>('/api/auth/me')
+  const loading = loadingTour
+  const checklists = Array.isArray(checklistsRaw) ? checklistsRaw : []
+  const userId = me?.id ?? null
 
   const toggleCheck = useCallback(async (itemId: string, currentlyChecked: boolean) => {
     if (!userId) return
     // Optimistic update
-    setChecklists(prev => prev.map(cl => ({
-      ...cl,
-      items: cl.items.map(item =>
-        item.id === itemId
-          ? {
-              ...item,
-              checks: currentlyChecked
-                ? item.checks.filter(c => c.userId !== userId)
-                : [...item.checks, { id: 'temp', userId }],
-            }
-          : item
-      ),
-    })))
+    mutateChecklists(
+      (prev) => prev?.map(cl => ({
+        ...cl,
+        items: cl.items.map(item =>
+          item.id === itemId
+            ? {
+                ...item,
+                checks: currentlyChecked
+                  ? item.checks.filter(c => c.userId !== userId)
+                  : [...item.checks, { id: 'temp', userId }],
+              }
+            : item
+        ),
+      })),
+      false,
+    )
 
     await fetch(`/api/tours/${tourId}/checklist`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ itemId, userId, checked: !currentlyChecked }),
     })
-  }, [userId, tourId])
+  }, [userId, tourId, mutateChecklists])
 
   if (loading) {
     return (
@@ -349,8 +343,8 @@ export default function TodayPage() {
                         <div className="flex items-center gap-3 mb-4">
                           {f.airlineIata ? (
                             <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 p-1">
-                              <img src={`https://pics.avs.io/80/80/${f.airlineIata}.png`} alt={f.airline} className="w-full h-full object-contain"
-                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-xl">✈️</span>' }} />
+                              <Image src={`https://pics.avs.io/80/80/${f.airlineIata}.png`} alt={f.airline} width={40} height={40} className="w-full h-full object-contain"
+                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-xl">✈️</span>' }} unoptimized />
                             </div>
                           ) : (
                             <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -583,8 +577,8 @@ export default function TodayPage() {
                       {(activity.imageUrls ?? []).length > 0 && (
                         <div className="mb-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                           {(activity.imageUrls ?? []).map((src, j) => (
-                            <div key={j} className="flex-shrink-0 rounded-xl overflow-hidden w-44 h-28">
-                              <img src={src} alt="" className="w-full h-full object-cover" />
+                            <div key={j} className="flex-shrink-0 rounded-xl overflow-hidden w-44 h-28 relative">
+                              <Image src={src} alt="" fill className="object-cover" unoptimized />
                             </div>
                           ))}
                         </div>
@@ -628,7 +622,7 @@ export default function TodayPage() {
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-6">
             {currentDay.accommodation.imageUrl ? (
               <div className="w-full h-40 relative">
-                <img src={currentDay.accommodation.imageUrl} alt={currentDay.accommodation.name} className="w-full h-full object-cover" />
+                <Image src={currentDay.accommodation.imageUrl} alt={currentDay.accommodation.name} fill className="object-cover" unoptimized />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4">
                   <h3 className="text-white font-bold drop-shadow-md">{currentDay.accommodation.name}</h3>

@@ -65,15 +65,15 @@ const CURRENCIES: Record<string, { symbol: string; flag: string; name: string }>
 }
 
 const CATEGORIES = [
-  { id: 'FOOD',          label: 'อาหาร',        icon: '🍜' },
-  { id: 'TRANSPORT',     label: 'เดินทาง',       icon: '🚌' },
-  { id: 'ACCOMMODATION', label: 'ที่พัก',         icon: '🏨' },
-  { id: 'ACTIVITY',      label: 'กิจกรรม',       icon: '🎡' },
-  { id: 'ENTRANCE_FEE',  label: 'ค่าเข้า',       icon: '🎫' },
-  { id: 'SHOPPING',      label: 'ช้อปปิ้ง',       icon: '🛍️' },
-  { id: 'TIPS',          label: 'ทิป',            icon: '💝' },
-  { id: 'EMERGENCY',     label: 'ฉุกเฉิน',        icon: '🚨' },
-  { id: 'OTHER',         label: 'อื่นๆ',          icon: '📌' },
+  { id: 'FOOD',          label: 'อาหาร' },
+  { id: 'TRANSPORT',     label: 'เดินทาง' },
+  { id: 'ACCOMMODATION', label: 'ที่พัก' },
+  { id: 'ACTIVITY',      label: 'กิจกรรม' },
+  { id: 'ENTRANCE_FEE',  label: 'ค่าเข้า' },
+  { id: 'SHOPPING',      label: 'ช้อปปิ้ง' },
+  { id: 'TIPS',          label: 'ทิป' },
+  { id: 'EMERGENCY',     label: 'ฉุกเฉิน' },
+  { id: 'OTHER',         label: 'อื่นๆ' },
 ] as const
 
 type CategoryId = typeof CATEGORIES[number]['id']
@@ -330,30 +330,30 @@ export default function SplitPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-indigo-50/20">
+        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
       <TopBar
         title="หารค่าใช้จ่าย"
-        subtitle={iOwe.length > 0 ? `⚠️ ค้างจ่าย ${iOwe.length} รายการ` : 'ไม่มียอดค้างชำระ'}
+        subtitle={iOwe.length > 0 ? `ค้างจ่าย ${iOwe.length} รายการ` : 'ไม่มียอดค้างชำระ'}
       />
 
-      {/* Tabs */}
-      <div className="flex bg-white border-b border-gray-100 sticky top-0 z-10">
+      {/* Tabs — glass */}
+      <div className="flex bg-white/70 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10">
         {([
-          ['summary', '📊 สรุป'],
-          ['owe',     `💸 ต้องจ่าย${iOwe.length > 0 ? ` (${iOwe.length})` : ''}`],
-          ['owed',    `📥 รอรับ${owedToMe.length > 0 ? ` (${owedToMe.length})` : ''}`],
-          ['create',  '➕ สร้างรายการ'],
+          ['summary', 'สรุป'],
+          ['owe',     `ต้องจ่าย${iOwe.length > 0 ? ` (${iOwe.length})` : ''}`],
+          ['owed',    `รอรับ${owedToMe.length > 0 ? ` (${owedToMe.length})` : ''}`],
+          ['create',  'สร้างรายการ'],
         ] as const).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-3 text-xs font-semibold transition-all duration-200 ${
-              tab === t ? 'text-orange-600 border-b-2 border-orange-500 bg-orange-50/50' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+              tab === t ? 'text-indigo-600 border-b-2 border-indigo-500' : 'text-gray-400 hover:text-gray-600'
             }`}>
             {label}
           </button>
@@ -365,24 +365,22 @@ export default function SplitPage() {
         {/* ── SUMMARY TAB ── */}
         {tab === 'summary' && (
           <>
-            {/* Net cards */}
-            <div className="grid grid-cols-2 gap-3 animate-slide-up delay-1">
-              <div className="bg-gradient-to-br from-red-500 via-rose-500 to-pink-500 rounded-3xl p-4 text-white shadow-xl shadow-red-200/50 relative overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
-                <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-                <div className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-white/5 blur-lg" />
+            {/* Net cards — glass */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-rose-200/50 relative overflow-hidden">
+                <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-rose-100/40 blur-xl" />
                 <div className="relative">
-                  <p className="text-xs text-white/70 font-medium mb-1">ฉันต้องจ่าย</p>
-                  <p className="text-2xl font-black">฿{fmt(totalOweOut)}</p>
-                  <p className="text-[10px] text-white/50 mt-1.5">{iOwe.length} รายการ</p>
+                  <p className="text-[11px] text-rose-400 font-semibold mb-1">ฉันต้องจ่าย</p>
+                  <p className="text-2xl font-black text-rose-600">฿{fmt(totalOweOut)}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{iOwe.length} รายการ</p>
                 </div>
               </div>
-              <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl p-4 text-white shadow-xl shadow-emerald-200/50 relative overflow-hidden hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300">
-                <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-                <div className="absolute bottom-0 right-0 w-12 h-12 rounded-full bg-white/5 blur-lg" />
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-emerald-200/50 relative overflow-hidden">
+                <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-emerald-100/40 blur-xl" />
                 <div className="relative">
-                  <p className="text-xs text-white/70 font-medium mb-1">รอรับเงิน</p>
-                  <p className="text-2xl font-black">฿{fmt(totalOwedIn)}</p>
-                  <p className="text-[10px] text-white/50 mt-1.5">{owedToMe.length} รายการ</p>
+                  <p className="text-[11px] text-emerald-500 font-semibold mb-1">รอรับเงิน</p>
+                  <p className="text-2xl font-black text-emerald-600">฿{fmt(totalOwedIn)}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">{owedToMe.length} รายการ</p>
                 </div>
               </div>
             </div>
@@ -416,10 +414,10 @@ export default function SplitPage() {
               const myCatSorted = Object.entries(myCatMap).sort((a, b) => b[1] - a[1])
 
               return (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-2 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
                   <div className="px-5 pt-5 pb-3 relative">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-orange-50 to-transparent rounded-bl-full" />
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายของฉัน</p>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-50/50 to-transparent rounded-bl-full" />
+                    <p className="text-[11px] text-indigo-400 font-semibold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายของฉัน</p>
                     <p className="text-3xl font-black text-gray-900 relative">฿{fmt(myTotal)}</p>
                     <p className="text-xs text-gray-400 mt-1">{myRecords.length} รายการที่เกี่ยวกับฉัน</p>
                   </div>
@@ -429,16 +427,16 @@ export default function SplitPage() {
                         style={{ width: `${(amt / myTotal) * 100}%` }} />
                     ))}
                   </div>
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-indigo-50/40">
                     {myCatSorted.map(([cat, amt]) => {
                       const info = CATEGORIES.find(c => c.id === cat)
                       const pct = Math.round((amt / myTotal) * 100)
                       return (
                         <div key={cat} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
                           <div className={`w-3 h-3 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'} shadow-sm`} />
-                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.icon} {info?.label ?? cat}</span>
+                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.label ?? cat}</span>
                           <span className="text-xs text-gray-400 w-10 text-right font-medium">{pct}%</span>
-                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-24 h-2 bg-indigo-50/60 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'} transition-all duration-500`} style={{ width: `${pct}%` }} />
                           </div>
                           <span className="text-sm font-bold text-gray-900 w-20 text-right">฿{fmt(amt)}</span>
@@ -471,10 +469,10 @@ export default function SplitPage() {
               const catSorted = Object.entries(catMap).sort((a, b) => b[1] - a[1])
 
               return (
-                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-3 hover:shadow-md transition-shadow duration-300">
+                <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
                   <div className="px-5 pt-5 pb-3 relative">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-blue-50 to-transparent rounded-bl-full" />
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายรวมทั้งกลุ่ม</p>
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-violet-50/50 to-transparent rounded-bl-full" />
+                    <p className="text-[11px] text-violet-400 font-semibold uppercase tracking-wider mb-1 relative">ค่าใช้จ่ายรวมทั้งกลุ่ม</p>
                     <p className="text-3xl font-black text-gray-900 relative">฿{fmt(tripTotal)}</p>
                     <p className="text-xs text-gray-400 mt-1">{groupRecords.length} รายการหารกัน</p>
                   </div>
@@ -484,16 +482,16 @@ export default function SplitPage() {
                         style={{ width: `${(amt / tripTotal) * 100}%` }} />
                     ))}
                   </div>
-                  <div className="divide-y divide-gray-50">
+                  <div className="divide-y divide-indigo-50/40">
                     {catSorted.map(([cat, amt]) => {
                       const info = CATEGORIES.find(c => c.id === cat)
                       const pct = Math.round((amt / tripTotal) * 100)
                       return (
                         <div key={cat} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50/50 transition-colors">
                           <div className={`w-3 h-3 rounded-full flex-shrink-0 ${catColors[cat] ?? 'bg-gray-400'} shadow-sm`} />
-                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.icon} {info?.label ?? cat}</span>
+                          <span className="text-sm text-gray-700 flex-1 font-medium">{info?.label ?? cat}</span>
                           <span className="text-xs text-gray-400 w-10 text-right font-medium">{pct}%</span>
-                          <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-24 h-2 bg-indigo-50/60 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full ${catColors[cat] ?? 'bg-gray-400'} transition-all duration-500`} style={{ width: `${pct}%` }} />
                           </div>
                           <span className="text-sm font-bold text-gray-900 w-20 text-right">฿{fmt(amt)}</span>
@@ -507,10 +505,9 @@ export default function SplitPage() {
 
             {/* Balance per person */}
             {Object.keys(balances).length > 0 ? (
-              <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-slide-up delay-4 hover:shadow-md transition-shadow duration-300">
-                <div className="px-5 py-3.5 border-b border-gray-50 relative overflow-hidden">
-                  <div className="absolute -right-3 -top-3 w-14 h-14 rounded-full bg-indigo-50 blur-lg" />
-                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider relative">ยอดคงค้างระหว่างกัน</p>
+              <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
+                <div className="px-5 py-3.5 border-b border-indigo-100/30 bg-gradient-to-r from-indigo-50/50 to-violet-50/30">
+                  <p className="text-[11px] text-indigo-500 font-semibold uppercase tracking-wider">ยอดคงค้างระหว่างกัน</p>
                 </div>
                 {Object.values(balances).map(({ person, net }) => (
                   <div key={person.id} className="flex items-center justify-between px-4 py-3 border-b border-gray-50 last:border-0">
@@ -535,9 +532,13 @@ export default function SplitPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-400">
-                <p className="text-3xl mb-2">🎉</p>
-                <p className="text-sm font-medium">ไม่มียอดค้างชำระ</p>
+              <div className="text-center py-10 bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/40">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-emerald-600">ไม่มียอดค้างชำระ</p>
               </div>
             )}
           </>
@@ -547,9 +548,13 @@ export default function SplitPage() {
         {tab === 'owe' && (
           <>
             {iOwe.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <p className="text-3xl mb-2">✅</p>
-                <p className="text-sm font-medium">ไม่มียอดที่ต้องจ่าย</p>
+              <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-2xl border border-emerald-100/40">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-emerald-600">ไม่มียอดที่ต้องจ่าย</p>
               </div>
             ) : iOwe.map(record => (
               <SplitCard key={record.id} record={record} me={me} myRole="owe"
@@ -563,9 +568,13 @@ export default function SplitPage() {
         {tab === 'owed' && (
           <>
             {owedToMe.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <p className="text-3xl mb-2">💤</p>
-                <p className="text-sm font-medium">ไม่มียอดรอรับ</p>
+              <div className="text-center py-16 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60">
+                <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-2">
+                  <svg className="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                  </svg>
+                </div>
+                <p className="text-sm font-medium text-gray-400">ไม่มียอดรอรับ</p>
               </div>
             ) : owedToMe.map(record => (
               <SplitCard key={record.id} record={record} me={me} myRole="owed"
@@ -578,7 +587,7 @@ export default function SplitPage() {
         {/* ── CREATE TAB ── */}
         {tab === 'create' && (
           <>
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40 space-y-3">
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -593,13 +602,13 @@ export default function SplitPage() {
                   <select
                     value={currency}
                     onChange={e => setCurrency(e.target.value)}
-                    className="appearance-none pl-2 pr-6 py-1.5 bg-orange-50 text-orange-700 text-sm font-semibold rounded-xl focus:outline-none cursor-pointer"
+                    className="appearance-none pl-2 pr-6 py-1.5 bg-indigo-50 text-indigo-700 text-sm font-semibold rounded-xl focus:outline-none cursor-pointer"
                   >
                     {Object.entries(CURRENCIES).map(([code, c]) => (
                       <option key={code} value={code}>{c.flag} {code}</option>
                     ))}
                   </select>
-                  <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-orange-400 text-xs pointer-events-none">▾</span>
+                  <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-indigo-400 text-xs pointer-events-none">▾</span>
                 </div>
                 <input
                   type="number" inputMode="decimal"
@@ -622,7 +631,7 @@ export default function SplitPage() {
               <div className="flex gap-2 flex-wrap">
                 {[100, 200, 500, 1000, 2000].map(v => (
                   <button key={v} onClick={() => setAmount(String(v))}
-                    className="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-xs font-medium">
+                    className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full text-xs font-medium border border-indigo-100/60">
                     {CURRENCIES[currency]?.symbol}{v}
                   </button>
                 ))}
@@ -630,7 +639,7 @@ export default function SplitPage() {
             </div>
 
             {/* Category picker */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40">
               <p className="text-xs text-gray-400 font-medium mb-3 uppercase tracking-wide">ประเภทค่าใช้จ่าย</p>
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(c => (
@@ -639,11 +648,10 @@ export default function SplitPage() {
                     onClick={() => setCategory(c.id)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       category === c.id
-                        ? 'bg-orange-500 text-white shadow-sm shadow-orange-200'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-sm shadow-indigo-200/50'
+                        : 'bg-white/60 text-gray-500 border border-gray-100/60 hover:bg-indigo-50/50'
                     }`}
                   >
-                    <span>{c.icon}</span>
                     <span>{c.label}</span>
                   </button>
                 ))}
@@ -651,8 +659,8 @@ export default function SplitPage() {
             </div>
 
             {/* Receipt upload */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <p className="text-xs text-gray-400 font-medium mb-2">📎 หลักฐานการจ่ายเงิน <span className="text-gray-300">(ไม่บังคับ)</span></p>
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40">
+              <p className="text-xs text-gray-400 font-medium mb-2">หลักฐานการจ่ายเงิน <span className="text-gray-300">(ไม่บังคับ)</span></p>
               <input ref={fileRef} type="file" accept="image/*" className="hidden"
                 onChange={e => { const f = e.target.files?.[0]; if (f) pickReceipt(f) }} />
               {receiptPreview ? (
@@ -665,8 +673,11 @@ export default function SplitPage() {
                 </div>
               ) : (
                 <button onClick={() => fileRef.current?.click()}
-                  className="w-full h-24 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-orange-300 hover:text-orange-400 transition-colors">
-                  <span className="text-2xl">📷</span>
+                  className="w-full h-24 border-2 border-dashed border-indigo-200/50 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 transition-colors">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
                   <span className="text-xs">แนบสลิป / ใบเสร็จ</span>
                 </button>
               )}
@@ -674,12 +685,12 @@ export default function SplitPage() {
 
             {/* Member selector — hidden when paying from fund */}
             {!payFromFund && (
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-indigo-100/40">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">หารกับ</p>
                 <button onClick={() => setSelectedIds(
                   selectedIds.length === members.length ? [] : members.map(m => m.id)
-                )} className="text-xs text-orange-500 font-medium">
+                )} className="text-xs text-indigo-500 font-medium">
                   {selectedIds.length === members.length ? 'ยกเลิกทั้งหมด' : 'เลือกทั้งหมด'}
                 </button>
               </div>
@@ -692,7 +703,7 @@ export default function SplitPage() {
                         sel ? prev.filter(id => id !== m.id) : [...prev, m.id]
                       )}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                        sel ? 'bg-orange-500 text-white shadow-sm' : 'bg-gray-100 text-gray-500'
+                        sel ? 'bg-indigo-500 text-white shadow-sm shadow-indigo-200/50' : 'bg-white/60 text-gray-500 border border-gray-100/60'
                       }`}>
                       <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${sel ? 'bg-white/30' : 'bg-gray-200'}`}>
                         {m.name[0]}
@@ -704,7 +715,7 @@ export default function SplitPage() {
               </div>
               {selectedIds.length > 0 && parseFloat(amount) > 0 && (
                 <p className="mt-3 text-sm text-gray-500">
-                  คนละ <span className="font-bold text-orange-600">฿{Math.ceil(
+                  คนละ <span className="font-bold text-indigo-600">฿{Math.ceil(
                     (currency === 'THB' ? parseFloat(amount) : parseFloat(amount) / (rates[currency] ?? 1))
                     / selectedIds.length
                   ).toLocaleString('th-TH')}</span>
@@ -716,10 +727,14 @@ export default function SplitPage() {
 
             {/* Pay from group fund toggle */}
             {fundBalance !== null && (
-              <div className={`bg-white rounded-2xl p-4 shadow-sm border transition-all ${payFromFund ? 'border-emerald-300 bg-emerald-50/30' : 'border-gray-100'}`}>
+              <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 border transition-all ${payFromFund ? 'border-emerald-300/60 bg-emerald-50/30' : 'border-indigo-100/40'}`}>
                 <label className="flex items-center justify-between cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">💰</span>
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                      <svg className="w-4.5 h-4.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                      </svg>
+                    </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-800">จ่ายจากกองกลาง</p>
                       <p className="text-xs text-gray-400">
@@ -760,35 +775,35 @@ export default function SplitPage() {
 
             {/* Payment channel selector */}
             {!payFromFund && (
-            <div className={`bg-white rounded-2xl p-4 shadow-sm border ${selectedChannelId ? 'border-green-200' : 'border-orange-200'}`}>
+            <div className={`bg-white/80 backdrop-blur-xl rounded-2xl p-4 border ${selectedChannelId ? 'border-emerald-200/60' : 'border-amber-200/60'}`}>
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-medium flex items-center gap-1">
-                  <span>💳 ช่องทางรับเงิน</span>
+                <p className="text-xs font-medium flex items-center gap-1 text-gray-500">
+                  <span>ช่องทางรับเงิน</span>
                   <span className="text-rose-500 font-bold">*</span>
                 </p>
                 <button onClick={() => setShowChannelManager(v => !v)}
-                  className="text-xs text-orange-500 font-medium">
+                  className="text-xs text-indigo-500 font-medium">
                   {showChannelManager ? 'ยกเลิก' : '+ เพิ่มช่องทาง'}
                 </button>
               </div>
 
               {/* Add channel form */}
               {showChannelManager && (
-                <div className="mb-3 p-3 bg-orange-50 rounded-xl space-y-2 border border-orange-100">
+                <div className="mb-3 p-3 bg-indigo-50/50 rounded-xl space-y-2 border border-indigo-100/60">
                   <select value={newChType} onChange={e => setNewChType(e.target.value)}
-                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-orange-200 focus:outline-none text-gray-700">
+                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-indigo-200/60 focus:outline-none text-gray-700">
                     {PAYMENT_TYPES.map(t => (
                       <option key={t.id} value={t.id}>{t.icon} {t.label}</option>
                     ))}
                   </select>
                   <input value={newChName} onChange={e => setNewChName(e.target.value)}
                     placeholder="ชื่อ (เช่น กสิกรไทย สาขาสยาม)"
-                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-orange-200 focus:outline-none placeholder-gray-300" />
+                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-indigo-200/60 focus:outline-none placeholder-gray-300" />
                   <input value={newChDetail} onChange={e => setNewChDetail(e.target.value)}
                     placeholder="เลขบัญชี / เบอร์โทรศัพท์"
-                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-orange-200 focus:outline-none placeholder-gray-300" />
+                    className="w-full text-sm px-3 py-2 rounded-xl bg-white border border-indigo-200/60 focus:outline-none placeholder-gray-300" />
                   <button onClick={addChannel} disabled={!newChDetail.trim()}
-                    className="w-full py-2 bg-orange-500 text-white rounded-xl text-sm font-semibold disabled:opacity-40">
+                    className="w-full py-2 bg-gradient-to-r from-indigo-500 to-violet-500 text-white rounded-xl text-sm font-semibold disabled:opacity-40">
                     บันทึกช่องทาง
                   </button>
                 </div>
@@ -796,7 +811,9 @@ export default function SplitPage() {
 
               {paymentChannels.length === 0 ? (
                 <div className="text-center py-4 text-gray-400">
-                  <p className="text-2xl mb-1">💳</p>
+                  <svg className="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                  </svg>
                   <p className="text-xs">ยังไม่มีช่องทางรับเงิน</p>
                   <p className="text-xs">กด &quot;+ เพิ่มช่องทาง&quot; เพื่อเพิ่ม</p>
                 </div>
@@ -807,7 +824,7 @@ export default function SplitPage() {
                     const sel = selectedChannelId === ch.id
                     return (
                       <label key={ch.id} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                        sel ? 'border-orange-400 bg-orange-50' : 'border-gray-100 hover:border-gray-200'
+                        sel ? 'border-indigo-400/60 bg-indigo-50/50' : 'border-gray-100/60 hover:border-indigo-200/50'
                       }`}>
                         <input type="radio" name="channel" value={ch.id} checked={sel}
                           onChange={() => setSelectedChannelId(ch.id)} className="hidden" />
@@ -816,7 +833,7 @@ export default function SplitPage() {
                           <p className="text-sm font-semibold text-gray-900">{ch.name}</p>
                           <p className="text-xs text-gray-500 font-mono">{ch.detail}</p>
                         </div>
-                        {sel && <span className="text-orange-500 font-bold flex-shrink-0">✓</span>}
+                        {sel && <span className="text-indigo-500 font-bold flex-shrink-0">✓</span>}
                         <button onClick={e => { e.preventDefault(); deleteChannel(ch.id) }}
                           className="text-gray-300 hover:text-red-400 text-sm flex-shrink-0 p-1">
                           ✕
@@ -827,7 +844,7 @@ export default function SplitPage() {
                 </div>
               )}
               {paymentChannels.length > 0 && !selectedChannelId && (
-                <p className="text-xs text-rose-500 mt-2">⚠️ กรุณาเลือกช่องทางรับเงิน</p>
+                <p className="text-xs text-rose-500 mt-2">กรุณาเลือกช่องทางรับเงิน</p>
               )}
             </div>
             )}
@@ -844,12 +861,12 @@ export default function SplitPage() {
                   return Math.ceil(rawAmount * rate) > (fundBalance ?? 0)
                 })())
               }
-              className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-2xl shadow-lg shadow-orange-200 disabled:opacity-40">
+              className="w-full py-3.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-200/50 disabled:opacity-40 active:scale-[0.98] transition-all">
               {saving
                 ? 'กำลังบันทึก...'
                 : payFromFund
-                  ? '💰 ตัดจากกองกลาง'
-                  : '💾 บันทึกรายการ'
+                  ? 'ตัดจากกองกลาง'
+                  : 'บันทึกรายการ'
               }
             </button>
           </>
@@ -904,16 +921,16 @@ function SplitCard({ record, me, myRole, onSettle, onSettleAll, onDelete, fmt }:
   }
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm overflow-hidden border ${
-      myRole === 'owe' ? 'border-red-100' : 'border-emerald-100'
+    <div className={`bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden border ${
+      myRole === 'owe' ? 'border-rose-200/50' : 'border-emerald-200/50'
     }`}>
       <div className="p-4 pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <div className="flex items-center gap-1.5 mb-1">
               {cat && (
-                <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full font-medium">
-                  {cat.icon} {cat.label}
+                <span className="text-[10px] px-2 py-0.5 bg-indigo-50/80 text-indigo-600 border border-indigo-100/60 rounded-md font-medium">
+                  {cat.label}
                 </span>
               )}
             </div>
@@ -929,8 +946,8 @@ function SplitCard({ record, me, myRole, onSettle, onSettleAll, onDelete, fmt }:
           <div className="text-right flex items-start gap-2">
             {record.receiptUrl && (
               <button onClick={() => setShowReceipt(v => !v)}
-                className="text-[10px] px-2 py-1 bg-blue-50 text-blue-500 rounded-lg font-medium">
-                🧾 สลิป
+                className="text-[10px] px-2 py-1 bg-indigo-50/80 text-indigo-500 border border-indigo-100/60 rounded-lg font-medium">
+                สลิป
               </button>
             )}
             <div>
@@ -1004,7 +1021,7 @@ function SplitCard({ record, me, myRole, onSettle, onSettleAll, onDelete, fmt }:
       {/* Settle slip upload area */}
       {myRole === 'owe' && myParticipant && !myParticipant.isPaid && showSettleUpload && (
         <div className="border-t border-blue-50 px-4 py-3 bg-blue-50/60 space-y-2">
-          <p className="text-xs font-semibold text-blue-700">📎 แนบสลิปการโอนเงิน</p>
+          <p className="text-xs font-semibold text-blue-700">แนบสลิปการโอนเงิน</p>
           <input ref={settleFileRef} type="file" accept="image/*" className="hidden"
             onChange={e => {
               const f = e.target.files?.[0]
@@ -1023,7 +1040,10 @@ function SplitCard({ record, me, myRole, onSettle, onSettleAll, onDelete, fmt }:
           ) : (
             <button onClick={() => settleFileRef.current?.click()}
               className="w-full h-20 border-2 border-dashed border-blue-200 rounded-xl flex flex-col items-center justify-center gap-1 text-blue-400 hover:border-blue-400 transition-colors">
-              <span className="text-xl">📷</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+              </svg>
               <span className="text-xs">เลือกรูปสลิป</span>
             </button>
           )}
@@ -1072,7 +1092,6 @@ function SettleSlipToggle({ url, name }: { url: string; name: string }) {
     <div className="mt-1.5 ml-7">
       <button onClick={() => setOpen(v => !v)}
         className="flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
-        <span>🧾</span>
         <span>{open ? 'ซ่อนสลิป' : `ดูสลิปจาก ${name}`}</span>
       </button>
       {open && (

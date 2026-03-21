@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
+import { useApi } from '@/lib/swr'
 
 interface UserProfile {
   id: string
@@ -17,8 +19,7 @@ interface UserProfile {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { data: profile, isLoading: loading, mutate } = useApi<UserProfile>('/api/auth/me')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [name, setName] = useState('')
@@ -26,20 +27,18 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState('')
   const [passportNo, setPassportNo] = useState('')
   const [passportExpiry, setPassportExpiry] = useState('')
+  const [initialized, setInitialized] = useState(false)
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then((r) => r.json())
-      .then((data: UserProfile) => {
-        setProfile(data)
-        setName(data.name)
-        setNameEn(data.nameEn ?? '')
-        setPhone(data.phone ?? '')
-        setPassportNo(data.passportNo ?? '')
-        setPassportExpiry(data.passportExpiry ? new Date(data.passportExpiry).toISOString().slice(0, 10) : '')
-        setLoading(false)
-      })
-  }, [])
+    if (profile && !initialized) {
+      setName(profile.name)
+      setNameEn(profile.nameEn ?? '')
+      setPhone(profile.phone ?? '')
+      setPassportNo(profile.passportNo ?? '')
+      setPassportExpiry(profile.passportExpiry ? new Date(profile.passportExpiry).toISOString().slice(0, 10) : '')
+      setInitialized(true)
+    }
+  }, [profile, initialized])
 
   async function save() {
     setSaving(true)
@@ -52,7 +51,11 @@ export default function ProfilePage() {
         passportExpiry: passportExpiry || null,
       }),
     })
-    if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2500) }
+    if (res.ok) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+      mutate()
+    }
     setSaving(false)
   }
 
@@ -99,7 +102,7 @@ export default function ProfilePage() {
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 p-6 flex flex-col items-center">
           <div className="w-20 h-20 rounded-2xl overflow-hidden bg-indigo-50 flex items-center justify-center border border-indigo-100">
             {profile.avatarUrl ? (
-              <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              <Image src={profile.avatarUrl} alt="" width={80} height={80} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
             ) : (
               <span className="text-3xl font-bold text-indigo-600">{profile.name[0]}</span>
             )}

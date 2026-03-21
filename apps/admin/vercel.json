@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "regions": ["sin1"],
+  "buildCommand": "cd ../.. && npx turbo run build --filter=@tripflow/admin",
+  "installCommand": "cd ../.. && npm ci",
+  "outputDirectory": ".next"
+}

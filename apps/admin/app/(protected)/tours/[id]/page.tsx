@@ -1,6 +1,7 @@
 import { db } from '@tripflow/database'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getCached, setCache } from '@/lib/cache'
 import TourDetailClient from './TourDetailClient'
 import CoverImageEditor from './CoverImageEditor'
 import FlightsManager from './FlightsManager'
@@ -9,42 +10,73 @@ import TourInfoEditor from './TourInfoEditor'
 import ChecklistsManager from './ChecklistsManager'
 import DocumentsManager from './DocumentsManager'
 import TourTabs from './TourTabs'
+import Image from 'next/image'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
-export default async function TourDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const tour = await db.tour.findUnique({
+async function getTourData(id: string) {
+  const cacheKey = `admin:tour:${id}`
+  const cached = getCached(cacheKey)
+  if (cached) return cached as NonNullable<Awaited<ReturnType<typeof fetchTourData>>>
+
+  const data = await fetchTourData(id)
+  if (data) setCache(cacheKey, data, 60_000)
+  return data
+}
+
+async function fetchTourData(id: string) {
+  const tourCore = await db.tour.findUnique({
     where: { id },
-    include: {
-      days: {
-        include: {
-          activities: { orderBy: { order: 'asc' } },
-          accommodation: true,
-        },
-        orderBy: { dayNumber: 'asc' },
-      },
-      members: { include: { user: { select: { id: true, name: true, email: true, phone: true, avatarUrl: true } } } },
-      flights: { orderBy: { departAt: 'asc' } },
-      contacts: true,
-      checklists: { include: { items: { orderBy: { order: 'asc' } } } },
-      documents: true,
-      _count: { select: { members: true } },
+    select: {
+      id: true, title: true, titleEn: true, description: true,
+      isChina: true, status: true, primaryCountry: true, countries: true,
+      cities: true, startDate: true, endDate: true, timezone: true,
+      currency: true, destCurrency: true, coverImageUrl: true,
+      tourCode: true, maxMembers: true,
     },
   })
+  if (!tourCore) return null
 
+  const [days, members, flights, contacts, checklists, documents, memberCount] = await Promise.all([
+    db.tourDay.findMany({
+      where: { tourId: id },
+      include: { activities: { orderBy: { order: 'asc' } }, accommodation: true },
+      orderBy: { dayNumber: 'asc' },
+    }),
+    db.tourMember.findMany({
+      where: { tourId: id },
+      include: { user: { select: { id: true, name: true, email: true, phone: true, avatarUrl: true } } },
+    }),
+    db.flightInfo.findMany({ where: { tourId: id }, orderBy: { departAt: 'asc' } }),
+    db.importantContact.findMany({ where: { tourId: id } }),
+    db.checklist.findMany({
+      where: { tourId: id },
+      include: { items: { orderBy: { order: 'asc' } } },
+    }),
+    db.tourDocument.findMany({ where: { tourId: id } }),
+    db.tourMember.count({ where: { tourId: id } }),
+  ])
+
+  return { ...tourCore, days, members, flights, contacts, checklists, documents, _count: { members: memberCount } }
+}
+
+export default async function TourDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const tour = await getTourData(id)
   if (!tour) notFound()
 
   /* ── Overview tab content ─────────────────────────────── */
   const overviewContent = (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
       {/* Left: Days summary */}
-      <div className="lg:col-span-2 space-y-4">
+      <div className="lg:col-span-2 space-y-4 min-w-0">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-900">กำหนดการ ({tour.days.length} วัน)</h2>
-          <a href={`/tours/${tour.id}/itinerary`} className="text-blue-600 text-sm hover:underline">
+          <Link href={`/tours/${tour.id}/itinerary`} className="text-blue-600 text-sm hover:underline">
             แก้ไขกำหนดการ →
-          </a>
+          </Link>
         </div>
 
         {tour.days.length === 0 ? (
@@ -52,27 +84,26 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
             <p className="text-3xl mb-2">📅</p>
             <p className="text-gray-600 font-medium">ยังไม่มีกำหนดการ</p>
             <p className="text-gray-400 text-sm mt-1">เพิ่มวันเดินทางเพื่อเริ่มสร้างกำหนดการ</p>
-            <a href={`/tours/${tour.id}/itinerary`} className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium">
+            <Link href={`/tours/${tour.id}/itinerary`} className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium">
               + เพิ่มกำหนดการ
-            </a>
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             {tour.days.map((day) => {
-              // Thai day-of-week colors: Sun=red, Mon=yellow, Tue=pink, Wed=green, Thu=orange, Fri=blue, Sat=purple
               const dayOfWeek = new Date(day.date).getDay()
               const dayColors = [
-                'from-red-500 to-rose-500',      // 0 = อาทิตย์ (แดง)
-                'from-yellow-400 to-amber-500',   // 1 = จันทร์ (เหลือง)
-                'from-pink-400 to-pink-500',      // 2 = อังคาร (ชมพู)
-                'from-green-500 to-emerald-500',  // 3 = พุธ (เขียว)
-                'from-orange-400 to-orange-500',  // 4 = พฤหัสบดี (ส้ม)
-                'from-blue-500 to-indigo-500',    // 5 = ศุกร์ (ฟ้า)
-                'from-violet-500 to-purple-500',  // 6 = เสาร์ (ม่วง)
+                'from-red-500 to-rose-500',
+                'from-yellow-400 to-amber-500',
+                'from-pink-400 to-pink-500',
+                'from-green-500 to-emerald-500',
+                'from-orange-400 to-orange-500',
+                'from-blue-500 to-indigo-500',
+                'from-violet-500 to-purple-500',
               ]
               const bg = dayColors[dayOfWeek] ?? dayColors[0]
               return (
-                <a key={day.id} href={`/tours/${tour.id}/itinerary`}
+                <Link key={day.id} href={`/tours/${tour.id}/itinerary`}
                   className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                   <div className={`h-1 bg-gradient-to-r ${bg}`} />
                   <div className="p-4">
@@ -90,14 +121,14 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                       <div className="flex gap-1">
-                        {day.mealBreakfast && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full">🍳</span>}
-                        {day.mealLunch && <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full">🍱</span>}
-                        {day.mealDinner && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full">🍽️</span>}
+                        {day.mealBreakfast && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full">เช้า</span>}
+                        {day.mealLunch && <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full">กลางวัน</span>}
+                        {day.mealDinner && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full">เย็น</span>}
                       </div>
-                      <p className="text-[10px] text-gray-400 font-medium">{day.activities.length} กิจกรรม{day.accommodation ? ' · 🏨' : ''}</p>
+                      <p className="text-[10px] text-gray-400 font-medium">{day.activities.length} กิจกรรม{day.accommodation ? ' · ที่พัก' : ''}</p>
                     </div>
                   </div>
-                </a>
+                </Link>
               )
             })}
           </div>
@@ -106,24 +137,21 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
 
       {/* Right sidebar */}
       <div className="space-y-4">
-        {/* Cover Image — hero style */}
         <CoverImageEditor tourId={tour.id} currentUrl={tour.coverImageUrl ?? null} />
 
-        {/* Members — compact with avatar stack */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-gray-900 text-sm">สมาชิก</h3>
-            <a href={`/tours/${tour.id}/members`} className="text-xs text-indigo-600 font-medium hover:underline">จัดการ →</a>
+            <Link href={`/tours/${tour.id}/members`} className="text-xs text-indigo-600 font-medium hover:underline">จัดการ →</Link>
           </div>
 
-          {/* Avatar stack */}
           {tour.members.length > 0 && (
             <div className="flex items-center mb-3">
               <div className="flex -space-x-2">
                 {tour.members.slice(0, 6).map((m) => (
                   <div key={m.id} className="w-9 h-9 rounded-full border-2 border-white overflow-hidden bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center flex-shrink-0">
                     {m.user.avatarUrl ? (
-                      <img src={m.user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <Image src={m.user.avatarUrl} alt="" width={36} height={36} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
                     ) : (
                       <span className="text-xs font-bold text-indigo-600">{m.user.name[0]}</span>
                     )}
@@ -139,7 +167,6 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
             </div>
           )}
 
-          {/* Name list */}
           <div className="space-y-1">
             {tour.members.slice(0, 5).map((m) => (
               <div key={m.id} className="flex items-center gap-2 py-1 px-1 rounded-md hover:bg-gray-50 transition-colors">
@@ -150,7 +177,6 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        {/* Tour info */}
         <TourInfoEditor tour={{
           id: tour.id,
           title: tour.title,
@@ -159,8 +185,8 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           countries: tour.countries,
           primaryCountry: tour.primaryCountry,
           cities: tour.cities,
-          startDate: tour.startDate.toISOString(),
-          endDate: tour.endDate.toISOString(),
+          startDate: typeof tour.startDate === 'string' ? tour.startDate : new Date(tour.startDate).toISOString(),
+          endDate: typeof tour.endDate === 'string' ? tour.endDate : new Date(tour.endDate).toISOString(),
           timezone: tour.timezone,
           maxMembers: tour.maxMembers,
           tourCode: tour.tourCode,
@@ -179,8 +205,8 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
         tourId={tour.id}
         initialFlights={tour.flights.map((f) => ({
           ...f,
-          departAt: f.departAt.toISOString(),
-          arriveAt: f.arriveAt.toISOString(),
+          departAt: typeof f.departAt === 'string' ? f.departAt : new Date(f.departAt).toISOString(),
+          arriveAt: typeof f.arriveAt === 'string' ? f.arriveAt : new Date(f.arriveAt).toISOString(),
         }))}
       />
     </div>
@@ -223,26 +249,25 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
   const totalActivities = tour.days.reduce((s, d) => s + d.activities.length, 0)
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8">
       {/* Header */}
       <div className="mb-8">
-        <a href="/tours" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors mb-3">
+        <Link href="/tours" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors mb-3">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           ทัวร์ทั้งหมด
-        </a>
+        </Link>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible relative">
-          {/* Top accent */}
           <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 rounded-t-2xl" />
 
-          <div className="p-6">
-            <div className="flex items-start justify-between">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   {tour.countries.map(c => (
                     <span key={c} className="text-xl">{({'CN':'🇨🇳','JP':'🇯🇵','KR':'🇰🇷','TH':'🇹🇭','FR':'🇫🇷','IT':'🇮🇹','SG':'🇸🇬'} as Record<string,string>)[c] ?? '🌍'}</span>
                   ))}
-                  {tour.isChina && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">🇨🇳 China Mode</span>}
+                  {tour.isChina && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">China Mode</span>}
                 </div>
                 <h1 className="text-xl font-bold text-gray-900">{tour.title}</h1>
                 <p className="text-gray-400 text-sm mt-1">
@@ -252,18 +277,17 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
               <TourDetailClient tour={tour} />
             </div>
 
-            {/* Stats row */}
-            <div className="flex gap-3 mt-5">
+            <div className="flex gap-2 sm:gap-3 mt-5 flex-wrap">
               {[
-                { label: 'วัน', value: tour.days.length, icon: '📅', color: 'bg-blue-50 text-blue-600' },
-                { label: 'สมาชิก', value: tour._count.members, icon: '👥', color: 'bg-violet-50 text-violet-600' },
-                { label: 'เที่ยวบิน', value: tour.flights.length, icon: '✈️', color: 'bg-sky-50 text-sky-600' },
-                { label: 'กิจกรรม', value: totalActivities, icon: '📍', color: 'bg-amber-50 text-amber-600' },
-                { label: 'เอกสาร', value: tour.documents.length, icon: '🎫', color: 'bg-emerald-50 text-emerald-600' },
+                { label: 'วัน', value: tour.days.length, color: 'bg-blue-50 text-blue-600' },
+                { label: 'สมาชิก', value: tour._count.members, color: 'bg-violet-50 text-violet-600' },
+                { label: 'เที่ยวบิน', value: tour.flights.length, color: 'bg-sky-50 text-sky-600' },
+                { label: 'กิจกรรม', value: totalActivities, color: 'bg-amber-50 text-amber-600' },
+                { label: 'เอกสาร', value: tour.documents.length, color: 'bg-emerald-50 text-emerald-600' },
               ].map(stat => (
-                <div key={stat.label} className={`${stat.color} rounded-xl px-4 py-2.5`}>
-                  <p className="text-[10px] font-medium opacity-70">{stat.icon} {stat.label}</p>
-                  <p className="text-lg font-bold">{stat.value}</p>
+                <div key={stat.label} className={`${stat.color} rounded-xl px-3 sm:px-4 py-2 sm:py-2.5`}>
+                  <p className="text-[10px] font-medium opacity-70">{stat.label}</p>
+                  <p className="text-base sm:text-lg font-bold">{stat.value}</p>
                 </div>
               ))}
             </div>
@@ -271,7 +295,6 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      {/* Tabbed content */}
       <TourTabs
         overviewContent={overviewContent}
         flightsContent={flightsContent}

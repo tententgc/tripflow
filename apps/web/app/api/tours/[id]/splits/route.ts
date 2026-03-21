@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db, logActivity } from '@tripflow/database'
-
-async function getCurrentUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return null
-  return db.user.findUnique({ where: { email: user.email } })
-}
+import { getCached, setCache, invalidateCache } from '@/lib/cache'
+import { getAuthUserLight } from '@/lib/auth'
 
 // GET /api/tours/[id]/splits — list all splits for this tour
 export async function GET(
@@ -15,16 +9,28 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
+
+  const cacheKey = `splits:${id}`
+  const cached = getCached(cacheKey)
+  if (cached) return NextResponse.json(cached)
+
   const expenses = await db.expense.findMany({
     where: { tourId: id },
-    include: {
+    select: {
+      id: true, tourId: true, title: true, amount: true, currency: true,
+      amountTHB: true, category: true, receiptUrl: true, notes: true, date: true, paidById: true,
       paidBy: { select: { id: true, name: true, avatarUrl: true } },
       participants: {
-        include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+        select: {
+          id: true, expenseId: true, userId: true, share: true, isPaid: true, settleReceiptUrl: true,
+          user: { select: { id: true, name: true, avatarUrl: true } },
+        },
       },
     },
     orderBy: { date: 'desc' },
+    take: 200,
   })
+  setCache(cacheKey, expenses, 15_000)
   return NextResponse.json(expenses)
 }
 
@@ -34,7 +40,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const me = await getCurrentUser()
+  const me = await getAuthUserLight()
   if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json() as {
@@ -84,5 +90,6 @@ export async function POST(
     tourId: id,
   }).catch(() => {})
 
+  invalidateCache(`splits:${id}`)
   return NextResponse.json(expense)
 }

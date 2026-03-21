@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db, logActivity } from '@tripflow/database'
-
-async function getCurrentUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return null
-  return db.user.findUnique({ where: { email: user.email } })
-}
+import { invalidateCache } from '@/lib/cache'
+import { getAuthUserLight } from '@/lib/auth'
 
 // PATCH — settle (mark all participants as paid) or settle for one user
 export async function PATCH(
@@ -15,14 +9,14 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
   try {
-    const { id, expenseId } = await params
-    const me = await getCurrentUser()
+    const [{ id, expenseId }, me, body] = await Promise.all([
+      params,
+      getAuthUserLight(),
+      req.json() as Promise<{ settleAll?: boolean; settleReceiptUrl?: string }>,
+    ])
     if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const body = await req.json() as { settleAll?: boolean; settleReceiptUrl?: string }
     const { settleAll, settleReceiptUrl } = body
-
-    console.log('[PATCH splits] expenseId:', expenseId, 'userId:', me.id, 'settleAll:', settleAll, 'hasReceipt:', !!settleReceiptUrl)
 
     if (settleAll) {
       await db.expenseParticipant.updateMany({
@@ -43,13 +37,16 @@ export async function PATCH(
 
     const expense = await db.expense.findUnique({
       where: { id: expenseId },
-      include: {
+      select: {
+        id: true, title: true, amount: true, category: true, date: true, receiptUrl: true, notes: true, paidById: true,
         paidBy: { select: { id: true, name: true, avatarUrl: true } },
         participants: {
-          include: { user: { select: { id: true, name: true, avatarUrl: true } } },
+          select: { id: true, userId: true, share: true, isPaid: true, settleReceiptUrl: true, user: { select: { id: true, name: true, avatarUrl: true } } },
         },
       },
     })
+
+    invalidateCache(`splits:${id}`)
     return NextResponse.json(expense)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
@@ -63,11 +60,10 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; expenseId: string }> }
 ) {
-  const { id, expenseId } = await params
-  const me = await getCurrentUser()
+  const [{ id, expenseId }, me] = await Promise.all([params, getAuthUserLight()])
   if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const expense = await db.expense.findUnique({ where: { id: expenseId } })
+  const expense = await db.expense.findUnique({ where: { id: expenseId }, select: { paidById: true } })
   if (!expense || expense.paidById !== me.id) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
@@ -77,5 +73,6 @@ export async function DELETE(
 
   logActivity({ action: 'expense.delete', entity: 'Expense', entityId: expenseId, tourId: id, actorName: me.name, description: 'ลบรายการค่าใช้จ่าย' }).catch(() => {})
 
+  invalidateCache(`splits:${id}`)
   return NextResponse.json({ ok: true })
 }

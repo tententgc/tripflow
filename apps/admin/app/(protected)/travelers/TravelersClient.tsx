@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface Tour {
   id: string
@@ -188,11 +189,11 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
     : allTours
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
       {/* Left — list */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 order-2 lg:order-1">
         {/* Toolbar */}
-        <div className="flex gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
           <div className="flex-1 relative">
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-sm">🔍</span>
             <input
@@ -279,7 +280,7 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
             <p className="text-gray-500 font-medium">ไม่พบนักเดินทาง</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {filtered.map((user) => {
               const expiring = passportExpiringSoon(user.passportExpiry)
               const isSelected = selectedUser?.id === user.id
@@ -295,7 +296,7 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {user.avatarUrl
-                        ? <img src={user.avatarUrl} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+                        ? <Image src={user.avatarUrl} width={44} height={44} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" unoptimized />
                         : <span className="text-sm font-bold text-indigo-600">{user.name[0]}</span>}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -352,8 +353,8 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
 
       {/* Right — detail panel */}
       {selectedUser && (
-        <div className="w-80 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-lg sticky top-8 overflow-hidden">
+        <div className="w-full lg:w-80 flex-shrink-0 order-1 lg:order-2">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-lg lg:sticky lg:top-8 overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white relative overflow-hidden">
               <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10 blur-xl" />
@@ -364,7 +365,7 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
               <div className="relative flex items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-lg font-bold overflow-hidden border border-white/20">
                   {selectedUser.avatarUrl
-                    ? <img src={selectedUser.avatarUrl} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+                    ? <Image src={selectedUser.avatarUrl} width={56} height={56} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" unoptimized />
                     : <span className="text-xl">{selectedUser.name[0]}</span>}
                 </div>
                 <div>

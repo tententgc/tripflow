@@ -186,9 +186,10 @@ export default function LandingPage() {
         }
 
         .anim-1 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 0ms; }
-        .anim-2 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 110ms; }
-        .anim-3 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 220ms; }
-        .anim-4 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 330ms; }
+        .anim-2 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 100ms; }
+        .anim-3 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 200ms; }
+        .anim-4 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 300ms; }
+        .anim-5 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 400ms; }
         /* aura glow on CTA button — slow color cycle */
         .cta-glow { animation: auraShift 5s ease infinite; }
 
@@ -229,17 +230,19 @@ export default function LandingPage() {
         }
         .btn-primary:active { transform:translateY(0); filter:brightness(.95); }
 
-        /* ── Ghost button ── */
+        /* ── Ghost button — glass ── */
         .btn-ghost-dark {
-          border: 1px solid rgba(255,255,255,.12);
+          border: 1px solid rgba(255,255,255,.1);
           color: rgba(255,255,255,.6);
+          backdrop-filter: blur(8px);
+          background: rgba(255,255,255,.03);
           transition: border-color 150ms, color 150ms, background 150ms, box-shadow 150ms;
         }
         .btn-ghost-dark:hover {
-          border-color: rgba(168,85,247,.5);
+          border-color: rgba(168,85,247,.35);
           color: #fff;
           background: rgba(139,92,246,.08);
-          box-shadow: 0 0 0 1px rgba(168,85,247,.2);
+          box-shadow: 0 0 0 1px rgba(168,85,247,.12);
         }
 
         /* ── Language toggle ── */
@@ -255,24 +258,25 @@ export default function LandingPage() {
         .lang-btn:not(.active) { color:rgba(255,255,255,.35); }
         .lang-btn:not(.active):hover { color:rgba(255,255,255,.8); background:rgba(255,255,255,.07); }
 
-        /* ── Feature cards ── */
+        /* ── Feature cards — glass ── */
         .card-dark {
-          background: rgba(255,255,255,.025);
-          border: 1px solid rgba(255,255,255,.07);
+          background: rgba(255,255,255,.03);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(255,255,255,.06);
           transition: background 200ms, border-color 200ms, transform 200ms, box-shadow 200ms;
           position: relative; overflow: hidden;
           cursor: pointer;
         }
         .card-dark::before {
           content:''; position:absolute; inset:0; opacity:0;
-          background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(168,85,247,.05));
+          background: linear-gradient(135deg, rgba(99,102,241,.06), rgba(168,85,247,.04));
           transition: opacity 200ms;
         }
         .card-dark:hover {
-          transform: translateY(-3px);
-          border-color: rgba(139,92,246,.4);
-          box-shadow: 0 8px 40px rgba(99,102,241,.18), 0 0 0 1px rgba(139,92,246,.25),
-                      0 0 60px rgba(147,51,234,.08);
+          transform: translateY(-2px);
+          background: rgba(255,255,255,.05);
+          border-color: rgba(139,92,246,.3);
+          box-shadow: 0 8px 32px rgba(99,102,241,.12), 0 0 0 1px rgba(139,92,246,.15);
         }
         .card-dark:hover::before { opacity:1; }
 
@@ -284,12 +288,13 @@ export default function LandingPage() {
           font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
         }
 
-        /* ── Section badge pill — slow border aura ── */
+        /* ── Section badge pill — glass ── */
         .section-badge {
           display:inline-flex; align-items:center; gap:6px;
           padding:5px 14px; border-radius:999px;
-          background: linear-gradient(135deg, rgba(79,70,229,.14), rgba(147,51,234,.14));
-          border:1px solid rgba(139,92,246,.25);
+          background: rgba(139,92,246,.08);
+          backdrop-filter: blur(8px);
+          border:1px solid rgba(139,92,246,.18);
           animation: borderCycle 4s ease infinite;
           color:#c4b5fd; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
         }
@@ -309,45 +314,49 @@ export default function LandingPage() {
         .service-row { transition: background 150ms; cursor: pointer; }
         .service-row:hover { background: rgba(139,92,246,.04); }
 
-        /* ── Pills ── */
+        /* ── Pills — glass ── */
         .pill-dark {
           background: rgba(255,255,255,.03);
-          border: 1px solid rgba(255,255,255,.08);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255,255,255,.06);
           transition: background 150ms, border-color 150ms, box-shadow 150ms;
           cursor: pointer;
         }
         .pill-dark:hover {
-          background: rgba(139,92,246,.08);
-          border-color: rgba(139,92,246,.3);
-          box-shadow: 0 0 12px rgba(139,92,246,.15);
+          background: rgba(139,92,246,.06);
+          border-color: rgba(139,92,246,.2);
+          box-shadow: 0 0 16px rgba(139,92,246,.1);
         }
 
-        /* ── Dest pills ── */
+        /* ── Dest pills — glass ── */
         .dest-pill {
-          background: rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07);
+          background: rgba(255,255,255,.04); backdrop-filter: blur(6px);
+          border:1px solid rgba(255,255,255,.06);
           color: rgba(255,255,255,.4);
           transition: background 150ms, border-color 150ms, color 150ms;
           cursor: pointer;
         }
         .dest-pill:hover {
-          background: rgba(139,92,246,.1);
-          border-color: rgba(168,85,247,.35);
+          background: rgba(139,92,246,.08);
+          border-color: rgba(168,85,247,.25);
           color: #e9d5ff;
         }
 
-        /* ── Step box ── */
+        /* ── Step box — glass ── */
         .step-box {
-          width:40px; height:40px; border-radius:10px;
-          border:1px solid rgba(255,255,255,.1);
+          width:40px; height:40px; border-radius:12px;
+          background: rgba(255,255,255,.03);
+          backdrop-filter: blur(8px);
+          border:1px solid rgba(255,255,255,.08);
           display:flex; align-items:center; justify-content:center;
           font-size:12px; font-weight:700; color:rgba(255,255,255,.3);
           transition: border-color 200ms, color 200ms, box-shadow 200ms, background 200ms;
         }
         .step-wrap:hover .step-box {
-          background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(168,85,247,.15));
-          border-color: rgba(168,85,247,.5);
+          background: rgba(139,92,246,.1);
+          border-color: rgba(168,85,247,.35);
           color: #c4b5fd;
-          box-shadow: 0 0 0 4px rgba(139,92,246,.12), 0 0 20px rgba(139,92,246,.2);
+          box-shadow: 0 0 0 4px rgba(139,92,246,.08), 0 0 20px rgba(139,92,246,.12);
         }
 
         /* ── CTA section bg ── */
@@ -362,15 +371,21 @@ export default function LandingPage() {
 
         {/* ── NAV ───────────────────────────────────────────── */}
         <header className="fixed top-0 left-0 right-0 z-50"
-                style={{ background:'rgba(8,12,20,.85)', backdropFilter:'blur(20px)',
-                         borderBottom:'1px solid rgba(255,255,255,.07)' }}>
+                style={{ background:'rgba(8,12,20,.6)', backdropFilter:'blur(24px) saturate(1.4)',
+                         borderBottom:'1px solid rgba(255,255,255,.06)' }}>
           <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
 
             {/* Logo */}
             <div className="flex items-center gap-2.5">
-              <div className="logo-icon w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0">
-                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7L7 2L12 7L7 12L2 7Z" fill="white"/>
+              <div className="w-7 h-7 rounded-lg overflow-hidden flex-shrink-0">
+                <svg width="28" height="28" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="navBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop stopColor="#6366F1"/><stop offset="1" stopColor="#7C3AED"/></linearGradient></defs>
+                  <rect width="512" height="512" rx="112" fill="url(#navBg)"/>
+                  <circle cx="256" cy="256" r="160" stroke="white" strokeWidth="12" opacity="0.25"/>
+                  <ellipse cx="256" cy="256" rx="70" ry="160" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <line x1="96" y1="256" x2="416" y2="256" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <path d="M120 370L220 256L120 210L380 120L300 400L256 300L120 370Z" fill="white" fillOpacity="0.95"/>
+                  <path d="M380 120L256 300" stroke="white" strokeWidth="6" opacity="0.3" strokeDasharray="12 8"/>
                 </svg>
               </div>
               <span className="font-semibold tracking-tight text-white">TripFlow</span>
@@ -416,17 +431,32 @@ export default function LandingPage() {
                         filter:'blur(30px)', animation:'orb2 15s ease-in-out infinite reverse' }} />
 
           <div className="relative z-10 text-center max-w-3xl mx-auto">
-            <div className="anim-1 section-badge mb-8">
+            {/* Hero logo */}
+            <div className="anim-1 mb-6 flex justify-center">
+              <div className="w-20 h-20 rounded-[22px] overflow-hidden" style={{ boxShadow:'0 0 40px rgba(99,102,241,.3), 0 0 80px rgba(139,92,246,.15)' }}>
+                <svg width="80" height="80" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="heroBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop stopColor="#6366F1"/><stop offset="1" stopColor="#7C3AED"/></linearGradient></defs>
+                  <rect width="512" height="512" rx="112" fill="url(#heroBg)"/>
+                  <circle cx="256" cy="256" r="160" stroke="white" strokeWidth="12" opacity="0.25"/>
+                  <ellipse cx="256" cy="256" rx="70" ry="160" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <line x1="96" y1="256" x2="416" y2="256" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <path d="M120 370L220 256L120 210L380 120L300 400L256 300L120 370Z" fill="white" fillOpacity="0.95"/>
+                  <path d="M380 120L256 300" stroke="white" strokeWidth="6" opacity="0.3" strokeDasharray="12 8"/>
+                </svg>
+              </div>
+            </div>
+
+            <div className="anim-2 section-badge mb-8">
               <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full" />
               {t.hero.badge}
             </div>
 
-            <h1 className="anim-2 gradient-text text-5xl sm:text-6xl lg:text-[68px] font-bold tracking-tight leading-[1.07] mb-6"
+            <h1 className="anim-3 gradient-text text-5xl sm:text-6xl lg:text-[68px] font-bold tracking-tight leading-[1.07] mb-6"
                 style={{ whiteSpace:'pre-line' }}>
               {t.hero.h1}
             </h1>
 
-            <p className="anim-3 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10"
+            <p className="anim-4 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10"
                style={{ color:'rgba(255,255,255,.5)' }}>
               {t.hero.sub.split('—').map((part, i) => i === 0
                 ? <span key={i}>{part}—</span>
@@ -434,7 +464,7 @@ export default function LandingPage() {
               )}
             </p>
 
-            <div className="anim-4 flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
+            <div className="anim-5 flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
               <a href="/login"
                  className="btn-primary cta-glow opacity-100 hover:opacity-100 px-7 py-3.5 text-white font-semibold rounded-xl text-base">
                 {t.hero.cta1}
@@ -446,7 +476,7 @@ export default function LandingPage() {
             </div>
 
             {/* Destination pills */}
-            <div className="anim-4 flex flex-wrap justify-center gap-2">
+            <div className="anim-5 flex flex-wrap justify-center gap-2">
               {t.destinations.map((d) => (
                 <span key={d} className="dest-pill px-3 py-1.5 text-xs rounded-full font-medium">{d}</span>
               ))}
@@ -517,7 +547,7 @@ export default function LandingPage() {
             </FadeIn>
 
             <FadeIn>
-              <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(255,255,255,.08)' }}>
+              <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(255,255,255,.06)', background:'rgba(255,255,255,.02)', backdropFilter:'blur(12px)' }}>
                 <div className="grid grid-cols-3 px-6 py-3"
                      style={{ borderBottom:'1px solid rgba(255,255,255,.07)', background:'rgba(255,255,255,.02)' }}>
                   {t.china.tableHead.map((h, i) => (
@@ -615,12 +645,18 @@ export default function LandingPage() {
 
         {/* ── FOOTER ────────────────────────────────────────── */}
         <hr className="divider" />
-        <footer className="px-6 py-7">
+        <footer className="px-6 py-7" style={{ background:'rgba(255,255,255,.01)' }}>
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <div className="logo-icon w-6 h-6 rounded flex items-center justify-center">
-                <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 7L7 2L12 7L7 12L2 7Z" fill="white"/>
+              <div className="w-6 h-6 rounded-md overflow-hidden">
+                <svg width="24" height="24" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs><linearGradient id="ftBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop stopColor="#6366F1"/><stop offset="1" stopColor="#7C3AED"/></linearGradient></defs>
+                  <rect width="512" height="512" rx="112" fill="url(#ftBg)"/>
+                  <circle cx="256" cy="256" r="160" stroke="white" strokeWidth="12" opacity="0.25"/>
+                  <ellipse cx="256" cy="256" rx="70" ry="160" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <line x1="96" y1="256" x2="416" y2="256" stroke="white" strokeWidth="8" opacity="0.15"/>
+                  <path d="M120 370L220 256L120 210L380 120L300 400L256 300L120 370Z" fill="white" fillOpacity="0.95"/>
+                  <path d="M380 120L256 300" stroke="white" strokeWidth="6" opacity="0.3" strokeDasharray="12 8"/>
                 </svg>
               </div>
               <span className="text-sm font-semibold text-white">TripFlow</span>

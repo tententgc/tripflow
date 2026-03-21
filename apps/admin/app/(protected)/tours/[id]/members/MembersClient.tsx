@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Image from 'next/image'
 
 interface Member {
   id: string
@@ -149,7 +150,7 @@ export default function MembersClient({ tourId, initialMembers }: { tourId: stri
                   >
                     <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       {u.avatarUrl ? (
-                        <img src={u.avatarUrl} alt="" className="w-full h-full object-cover" />
+                        <Image src={u.avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" unoptimized />
                       ) : (
                         <span className="text-gray-600 font-semibold text-xs">{u.name[0]}</span>
                       )}
@@ -188,7 +189,7 @@ export default function MembersClient({ tourId, initialMembers }: { tourId: stri
                 <div key={m.id} className="flex items-center gap-4 px-6 py-4">
                   <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                     {m.user.avatarUrl ? (
-                      <img src={m.user.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                      <Image src={m.user.avatarUrl} alt="" width={40} height={40} className="w-full h-full rounded-full object-cover" unoptimized />
                     ) : (
                       <span className="text-gray-600 font-semibold">{m.user.name[0]}</span>
                     )}

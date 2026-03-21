@@ -1,46 +1,41 @@
+import { invalidateCache } from '@/lib/cache'
+import { getAuthUserLight } from '@/lib/auth'
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { db, logActivity } from '@tripflow/database'
 
-async function getCurrentUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return null
-  return db.user.findUnique({ where: { email: user.email } })
-}
-
-// POST /api/tours/[id]/fund/collect
-// Creates DEPOSIT transactions for every tour member (isPaid: false)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params
-    const me = await getCurrentUser()
+    // Parallel: params + auth + body
+    const [{ id }, me, body] = await Promise.all([
+      params,
+      getAuthUserLight(),
+      req.json() as Promise<{ amountPerPerson: number; description: string }>,
+    ])
     if (!me) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const body = await req.json() as { amountPerPerson: number; description: string }
     const { amountPerPerson, description } = body
-
     if (!amountPerPerson || amountPerPerson <= 0) {
       return NextResponse.json({ error: 'จำนวนเงินไม่ถูกต้อง' }, { status: 400 })
     }
 
-    // Ensure fund exists
-    const fund = await db.groupFund.upsert({
-      where: { tourId: id },
-      update: {},
-      create: { tourId: id, name: 'กองกลาง', balance: 0 },
-    })
+    // Parallel: ensure fund + get members
+    const [fund, tourMembers] = await Promise.all([
+      db.groupFund.upsert({
+        where: { tourId: id },
+        update: {},
+        create: { tourId: id, name: 'กองกลาง', balance: 0 },
+        select: { id: true },
+      }),
+      db.tourMember.findMany({
+        where: { tourId: id },
+        select: { userId: true },
+      }),
+    ])
 
-    // Get all tour members
-    const tourMembers = await db.tourMember.findMany({
-      where: { tourId: id },
-      include: { user: { select: { id: true, name: true } } },
-    })
-
-    // Create a DEPOSIT transaction for each member (isPaid: false = pending)
+    // Batch create deposit transactions
     await db.groupFundTransaction.createMany({
       data: tourMembers.map(tm => ({
         fundId: fund.id,
@@ -53,11 +48,15 @@ export async function POST(
       })),
     })
 
+    // Return minimal — frontend refetches via GET /fund
     const updated = await db.groupFund.findUnique({
       where: { id: fund.id },
-      include: {
+      select: {
+        id: true, name: true, balance: true,
         transactions: {
-          include: {
+          select: {
+            id: true, type: true, amount: true, description: true,
+            userId: true, receiptUrl: true, isPaid: true, createdAt: true,
             user: { select: { id: true, name: true, avatarUrl: true } },
             createdBy: { select: { id: true, name: true, avatarUrl: true } },
           },
@@ -68,6 +67,7 @@ export async function POST(
 
     logActivity({ action: 'fund.collect', entity: 'FundTransaction', description: 'เก็บเงินเข้ากองกลาง', actorId: me.id, actorName: me.name, tourId: id }).catch(() => {})
 
+    invalidateCache(`fund:${id}`)
     return NextResponse.json(updated)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
