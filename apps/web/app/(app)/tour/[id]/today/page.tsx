@@ -258,7 +258,7 @@ export default function TodayPage() {
             <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
               <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
               <span className="text-white/80 text-[11px] font-medium bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 border border-white/10">
-                วันที่ {currentDay.dayNumber}/{tour.days.length}
+                🧳 เตรียมตัวเดินทาง
               </span>
             </div>
 
