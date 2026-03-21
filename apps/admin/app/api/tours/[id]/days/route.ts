@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -31,6 +31,8 @@ export async function POST(
         mealDinner: body.mealDinner ?? false,
       },
     })
+
+    logActivity({ action: 'day.add', entity: 'TourDay', entityId: day.id, description: `เพิ่มวันที่ ${day.dayNumber}`, tourId: id }).catch(() => {})
 
     return NextResponse.json(day, { status: 201 })
   } catch (error) {

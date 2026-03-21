@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 import { createClient } from '@/lib/supabase/server'
 
 export async function DELETE(
@@ -23,6 +23,9 @@ export async function DELETE(
     }
 
     await db.tourDocument.delete({ where: { id: docId } })
+
+    logActivity({ action: 'document.delete', entity: 'Document', entityId: docId, description: 'ลบเอกสารส่วนตัว' }).catch(() => {})
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Document DELETE error:', error)

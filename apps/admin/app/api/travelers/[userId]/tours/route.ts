@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 // POST assign traveler to a tour
 export async function POST(
@@ -19,6 +19,8 @@ export async function POST(
       },
     })
 
+    logActivity({ action: 'member.add', entity: 'TourMember', description: `เพิ่มสมาชิกเข้าทัวร์` }).catch(() => {})
+
     return NextResponse.json(member, { status: 201 })
   } catch (error) {
     console.error('POST assign tour error:', error)
@@ -36,6 +38,8 @@ export async function DELETE(
     const { tourId } = await req.json() as { tourId: string }
 
     await db.tourMember.delete({ where: { tourId_userId: { tourId, userId } } })
+
+    logActivity({ action: 'member.remove', entity: 'TourMember', description: `นำสมาชิกออกจากทัวร์` }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

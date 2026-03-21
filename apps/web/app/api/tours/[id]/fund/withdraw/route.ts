@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 async function getCurrentUser() {
   const supabase = await createClient()
@@ -63,6 +63,8 @@ export async function POST(
         },
       },
     })
+
+    logActivity({ action: 'fund.withdraw', entity: 'FundTransaction', description: 'ถอนเงินจากกองกลาง', tourId: id }).catch(() => {})
 
     return NextResponse.json({ transaction: tx, fund: updated })
   } catch (err) {
