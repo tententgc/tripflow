@@ -243,7 +243,7 @@ export default function TodayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
       <TopBar
         title={currentDay.title}
         subtitle={`${countryFlags[currentDay.country ?? ''] ?? '🌍'} ${currentDay.city ?? ''} · ${new Date(currentDay.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
@@ -251,19 +251,17 @@ export default function TodayPage() {
         gradient={tour.isChina ? 'bg-gradient-to-br from-red-600 to-red-800' : undefined}
       />
 
-      <div className="px-4 -mt-2 space-y-5">
+      <div className="px-4 pt-4 space-y-4">
         {/* Tour info card */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 relative overflow-hidden animate-slide-up delay-1 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full" />
-          <p className="font-bold text-gray-900 text-sm relative">{tour.title}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5 text-xs text-gray-500 relative">
-            <span className="flex items-center gap-1">
-              <span className="text-sm">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
-              {tour.days[0]?.city ?? ''} — {tour.days[tour.days.length - 1]?.city ?? ''}
-            </span>
-            <span className="flex items-center gap-1"><span className="text-sm">📅</span> {tour.days.length} วัน</span>
-            <span className="flex items-center gap-1"><span className="text-sm">👥</span> {tour.members.length} คน</span>
-            <span className="bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 shadow-sm border border-gray-100/80 animate-slide-up delay-1">
+          <p className="font-semibold text-gray-900 text-[15px]">{tour.title}</p>
+          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+            <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''}</span>
+            <span>·</span>
+            <span>{tour.days.length} วัน</span>
+            <span>·</span>
+            <span>{tour.members.length} คน</span>
+            <span className="ml-auto text-indigo-600 font-semibold text-[11px]">
               วันที่ {currentDay.dayNumber}/{tour.days.length}
             </span>
           </div>
@@ -272,7 +270,7 @@ export default function TodayPage() {
         {/* Pre-trip: countdown + flights */}
         {isBeforeTrip && (
           <>
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 animate-slide-up delay-2">
+            <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-gray-100/80 animate-slide-up delay-2">
               {/* Label */}
               <p className="text-xs font-medium text-gray-400 tracking-wide">ออกเดินทางอีก</p>
 
@@ -331,7 +329,7 @@ export default function TodayPage() {
                     const departUtc = getUtcOffset(f.departTz)
                     const arriveUtc = getUtcOffset(f.arriveTz)
                     return (
-                      <div key={f.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden relative hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+                      <div key={f.id} className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden relative hover:shadow-md transition-all duration-300">
                         {/* Background decoration */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-sky-50 to-transparent rounded-bl-full opacity-80" />
 
@@ -461,7 +459,7 @@ export default function TodayPage() {
                 : 'from-gray-500 to-gray-600'
 
               return (
-                <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex items-center gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                <div key={c.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 p-4 flex items-center gap-3 hover:shadow-md transition-all duration-300">
                   {/* Avatar */}
                   <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                     <span className="text-lg">{typeIcon}</span>
@@ -549,7 +547,7 @@ export default function TodayPage() {
               const totalCount = cl.items.length
               const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
               return (
-                <div key={cl.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                <div key={cl.id} className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden hover:shadow-md transition-shadow duration-300">
                   <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-green-200/30 blur-lg" />
                     <div className="flex items-center justify-between relative">
