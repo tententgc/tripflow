@@ -2,6 +2,75 @@
 
 import { useState } from 'react'
 
+const commonCurrencies = [
+  { code: 'THB', label: '🇹🇭 THB — บาท' },
+  { code: 'CNY', label: '🇨🇳 CNY — หยวน' },
+  { code: 'JPY', label: '🇯🇵 JPY — เยน' },
+  { code: 'KRW', label: '🇰🇷 KRW — วอน' },
+  { code: 'USD', label: '🇺🇸 USD — ดอลลาร์' },
+  { code: 'EUR', label: '🇪🇺 EUR — ยูโร' },
+  { code: 'GBP', label: '🇬🇧 GBP — ปอนด์' },
+  { code: 'SGD', label: '🇸🇬 SGD — ดอลลาร์สิงคโปร์' },
+  { code: 'MYR', label: '🇲🇾 MYR — ริงกิต' },
+  { code: 'TWD', label: '🇹🇼 TWD — ดอลลาร์ไต้หวัน' },
+  { code: 'VND', label: '🇻🇳 VND — ดอง' },
+  { code: 'HKD', label: '🇭🇰 HKD — ดอลลาร์ฮ่องกง' },
+  { code: 'AUD', label: '🇦🇺 AUD — ดอลลาร์ออสเตรเลีย' },
+  { code: 'INR', label: '🇮🇳 INR — รูปี' },
+  { code: 'CHF', label: '🇨🇭 CHF — ฟรังก์' },
+]
+
+function CurrencySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const isCustom = value !== '' && !commonCurrencies.some(c => c.code === value)
+  const [custom, setCustom] = useState(isCustom)
+
+  if (custom) {
+    return (
+      <div className="flex gap-1">
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value.toUpperCase())}
+          className="flex-1 w-full px-2.5 py-1.5 border border-gray-200 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="เช่น LAK, MMK"
+          maxLength={3}
+        />
+        <button
+          type="button"
+          onClick={() => setCustom(false)}
+          className="px-2 text-xs text-gray-400 hover:text-blue-600"
+          title="เลือกจากรายการ"
+        >
+          ▼
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex gap-1">
+      <select
+        value={commonCurrencies.some(c => c.code === value) ? value : ''}
+        onChange={e => {
+          if (e.target.value === '__custom__') {
+            setCustom(true)
+            onChange('')
+          } else {
+            onChange(e.target.value)
+          }
+        }}
+        className="flex-1 w-full px-2.5 py-1.5 border border-gray-200 bg-white rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+      >
+        <option value="">— เลือกสกุลเงิน —</option>
+        {commonCurrencies.map(c => (
+          <option key={c.code} value={c.code}>{c.label}</option>
+        ))}
+        <option value="__custom__">✏️ พิมพ์เอง...</option>
+      </select>
+    </div>
+  )
+}
+
 interface TourInfo {
   id: string
   title: string
@@ -231,23 +300,11 @@ export default function TourInfoEditor({ tour }: { tour: TourInfo }) {
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-xs text-gray-500 mb-0.5 block">สกุลเงินหลัก</label>
-              <input
-                type="text"
-                value={form.currency}
-                onChange={e => setForm(p => ({ ...p, currency: e.target.value }))}
-                className={inputCls}
-                placeholder="THB"
-              />
+              <CurrencySelect value={form.currency} onChange={v => setForm(p => ({ ...p, currency: v }))} />
             </div>
             <div>
               <label className="text-xs text-gray-500 mb-0.5 block">สกุลเงินปลายทาง</label>
-              <input
-                type="text"
-                value={form.destCurrency}
-                onChange={e => setForm(p => ({ ...p, destCurrency: e.target.value }))}
-                className={inputCls}
-                placeholder="JPY"
-              />
+              <CurrencySelect value={form.destCurrency} onChange={v => setForm(p => ({ ...p, destCurrency: v }))} />
             </div>
           </div>
 
