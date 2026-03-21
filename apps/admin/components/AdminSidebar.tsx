@@ -34,14 +34,21 @@ export default function AdminSidebar({ user }: Props) {
   return (
     <aside className="w-64 min-h-screen bg-white border-r border-gray-200 fixed left-0 top-0 flex flex-col">
       {/* Logo */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-            <span className="text-white font-bold text-sm">TF</span>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Globe */}
+              <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" opacity="0.4"/>
+              <ellipse cx="12" cy="12" rx="4" ry="9" stroke="white" strokeWidth="1.2" opacity="0.3"/>
+              <line x1="3" y1="12" x2="21" y2="12" stroke="white" strokeWidth="1" opacity="0.3"/>
+              {/* Plane */}
+              <path d="M5 17L10 12L5 10L18 6L14 19L12 14L5 17Z" fill="white" fillOpacity="0.95"/>
+            </svg>
           </div>
           <div>
-            <p className="font-bold text-gray-900 text-sm">TripFlow</p>
-            <p className="text-xs text-gray-500">Admin Portal</p>
+            <p className="font-bold text-gray-900 text-sm tracking-tight">TripFlow</p>
+            <p className="text-[10px] text-gray-400 font-medium">Admin Portal</p>
           </div>
         </div>
       </div>

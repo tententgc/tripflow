@@ -19,6 +19,7 @@ const notoSans = Noto_Sans({
 export const metadata: Metadata = {
   title: 'TripFlow Admin — ระบบจัดการทัวร์',
   description: 'พอร์ทัลสำหรับผู้ประกอบการทัวร์ไทย',
+  icons: { icon: '/favicon.svg' },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
