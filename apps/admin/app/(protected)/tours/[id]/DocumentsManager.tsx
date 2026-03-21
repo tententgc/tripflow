@@ -33,6 +33,20 @@ const docTypes = [
   { value: 'OTHER',            label: 'อื่นๆ',             emoji: '📄' },
 ]
 
+const typeBadgeColors: Record<string, string> = {
+  FLIGHT_TICKET:    'bg-sky-100 text-sky-700',
+  HOTEL_VOUCHER:    'bg-violet-100 text-violet-700',
+  TOUR_VOUCHER:     'bg-green-100 text-green-700',
+  VISA:             'bg-red-100 text-red-700',
+  QR_CODE:          'bg-gray-200 text-gray-700',
+  INSURANCE:        'bg-teal-100 text-teal-700',
+  PASSPORT:         'bg-indigo-100 text-indigo-700',
+  MAP:              'bg-amber-100 text-amber-700',
+  VISIT_JAPAN_WEB:  'bg-rose-100 text-rose-700',
+  CHINA_HEALTH_KIT: 'bg-red-100 text-red-700',
+  OTHER:            'bg-gray-100 text-gray-600',
+}
+
 const typeLabels: Record<string, { label: string; emoji: string }> = Object.fromEntries(
   docTypes.map(t => [t.value, { label: t.label, emoji: t.emoji }])
 )
@@ -459,7 +473,7 @@ export default function DocumentsManager({
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
                   <div className="flex gap-2 mt-0.5">
-                    <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">{cfg.label}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${typeBadgeColors[doc.type] ?? 'bg-gray-100 text-gray-600'}`}>{cfg.label}</span>
                     {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
                     {doc.qrData && <span className="text-[10px] text-gray-400">⬛ QR</span>}
                   </div>
@@ -520,7 +534,7 @@ export default function DocumentsManager({
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
                           <div className="flex gap-2 mt-0.5">
-                            <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full font-medium">{cfg.label}</span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${typeBadgeColors[doc.type] ?? 'bg-gray-100 text-gray-600'}`}>{cfg.label}</span>
                             {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
                           </div>
                         </div>
