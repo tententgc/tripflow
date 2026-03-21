@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function PATCH(
   req: NextRequest,
@@ -14,6 +14,8 @@ export async function PATCH(
       data: body,
       include: { items: { orderBy: { order: 'asc' } } },
     })
+
+    logActivity({ action: 'checklist.update', entity: 'Checklist', entityId: checklistId, description: 'แก้ไขเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json(checklist)
   } catch (error) {
@@ -32,6 +34,8 @@ export async function DELETE(
     // Delete items first, then checklist
     await db.checklistItem.deleteMany({ where: { checklistId } })
     await db.checklist.delete({ where: { id: checklistId } })
+
+    logActivity({ action: 'checklist.delete', entity: 'Checklist', entityId: checklistId, description: 'ลบเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

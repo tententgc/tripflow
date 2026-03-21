@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -33,6 +33,8 @@ export async function POST(
         imageUrls: body.imageUrls ?? [],
       },
     })
+
+    logActivity({ action: 'activity.add', entity: 'Activity', entityId: activity.id, description: `เพิ่มกิจกรรม "${activity.title}"` }).catch(() => {})
 
     return NextResponse.json(activity, { status: 201 })
   } catch (error) {

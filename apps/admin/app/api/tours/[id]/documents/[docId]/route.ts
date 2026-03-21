@@ -14,6 +14,8 @@ export async function PATCH(
       data: body,
     })
 
+    logActivity({ action: 'document.update', entity: 'Document', entityId: docId, description: 'แก้ไขเอกสาร' }).catch(() => {})
+
     return NextResponse.json(doc)
   } catch (error) {
     console.error('Document PATCH error:', error)

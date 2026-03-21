@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 // GET all travelers (users) with their tour memberships
 // Supports ?q=search to filter by name/email, and ?simple=1 to return minimal fields
@@ -75,6 +75,8 @@ export async function POST(req: NextRequest) {
         tourMembers: { include: { tour: { select: { id: true, title: true, startDate: true, endDate: true, primaryCountry: true, isChina: true, status: true } } } },
       },
     })
+
+    logActivity({ action: 'user.register', entity: 'User', entityId: user.id, description: `เพิ่มนักเดินทาง "${user.name}" (${user.email})` }).catch(() => {})
 
     return NextResponse.json(user, { status: 201 })
   } catch (error) {

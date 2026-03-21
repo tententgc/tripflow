@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function GET(
   _req: NextRequest,
@@ -26,9 +26,10 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  _ctx: { params: Promise<{ id: string }> }
+  ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await ctx.params
     const { itemId, userId, checked } = await req.json() as {
       itemId: string
       userId: string
@@ -46,6 +47,8 @@ export async function POST(
         where: { itemId, userId },
       })
     }
+
+    logActivity({ action: 'checklist.check', entity: 'ChecklistCheck', description: checked ? 'ติ๊กเช็คลิสต์' : 'ยกเลิกติ๊กเช็คลิสต์', actorId: userId, tourId: id }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

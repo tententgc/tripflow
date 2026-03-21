@@ -82,6 +82,9 @@ export async function DELETE(
   try {
     const { dayId } = await params
     await db.accommodation.delete({ where: { tourDayId: dayId } })
+
+    logActivity({ action: 'accommodation.delete', entity: 'Accommodation', description: 'ลบที่พัก' }).catch(() => {})
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Accommodation DELETE error:', error)

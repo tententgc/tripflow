@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -24,6 +24,8 @@ export async function POST(
         order: count,
       },
     })
+
+    logActivity({ action: 'checklist.add', entity: 'ChecklistItem', entityId: item.id, description: `เพิ่มรายการเช็คลิสต์ "${item.label}"` }).catch(() => {})
 
     return NextResponse.json(item, { status: 201 })
   } catch (error) {

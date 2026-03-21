@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function PATCH(
   req: NextRequest,
@@ -34,6 +34,8 @@ export async function PATCH(
       },
     })
 
+    logActivity({ action: 'contact.update', entity: 'Contact', entityId: contactId, description: 'แก้ไขผู้ติดต่อ' }).catch(() => {})
+
     return NextResponse.json(contact)
   } catch (error) {
     console.error('Contact PATCH error:', error)
@@ -48,6 +50,9 @@ export async function DELETE(
   try {
     const { contactId } = await params
     await db.importantContact.delete({ where: { id: contactId } })
+
+    logActivity({ action: 'contact.delete', entity: 'Contact', entityId: contactId, description: 'ลบผู้ติดต่อ' }).catch(() => {})
+
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Contact DELETE error:', error)

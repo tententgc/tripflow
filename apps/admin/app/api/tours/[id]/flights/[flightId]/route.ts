@@ -42,6 +42,8 @@ export async function PATCH(
       },
     })
 
+    logActivity({ action: 'flight.update', entity: 'Flight', entityId: flightId, description: 'แก้ไขเที่ยวบิน' }).catch(() => {})
+
     return NextResponse.json(flight)
   } catch (error) {
     console.error('Flight PATCH error:', error)

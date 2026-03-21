@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 // PATCH update traveler info
 export async function PATCH(
@@ -24,6 +24,8 @@ export async function PATCH(
       },
     })
 
+    logActivity({ action: 'user.update', entity: 'User', entityId: userId, description: `แก้ไขข้อมูลนักเดินทาง "${user.name}"`, actorName: user.name }).catch(() => {})
+
     return NextResponse.json(user)
   } catch (error) {
     console.error('PATCH traveler error:', error)
@@ -38,6 +40,8 @@ export async function DELETE(
 ) {
   try {
     const { userId } = await params
+
+    logActivity({ action: 'user.delete', entity: 'User', entityId: userId, description: `ลบนักเดินทางออกจากระบบ` }).catch(() => {})
 
     // Remove all related records first (FK constraints)
     await db.checklistCheck.deleteMany({ where: { userId } })
