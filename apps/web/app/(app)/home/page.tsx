@@ -31,7 +31,10 @@ export default async function HomePage() {
   }
 
   const tourMembers = await db.tourMember.findMany({
-    where: { userId: dbUser.id },
+    where: {
+      userId: dbUser.id,
+      tour: { status: { in: ['PUBLISHED', 'ACTIVE', 'COMPLETED'] } },
+    },
     include: {
       tour: { include: { _count: { select: { members: true } }, days: { select: { id: true } } } },
     },

@@ -46,6 +46,11 @@ export async function GET(
       return NextResponse.json({ error: 'Tour not found' }, { status: 404 })
     }
 
+    // Block access to DRAFT or CANCELLED tours for travelers
+    if (tour.status === 'DRAFT' || tour.status === 'CANCELLED') {
+      return NextResponse.json({ error: 'Tour not available' }, { status: 403 })
+    }
+
     return NextResponse.json(tour, {
       headers: {
         // Cache for 5 minutes, serve stale for 1 hour
