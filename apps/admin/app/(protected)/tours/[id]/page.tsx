@@ -58,27 +58,39 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {tour.days.map((day) => (
-              <div key={day.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">วันที่ {day.dayNumber} — {day.title}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(day.date).toLocaleDateString('th-TH')}
-                      {day.city && ` · ${day.city}`}
-                    </p>
+            {tour.days.map((day, i) => {
+              const colors = ['from-blue-500 to-indigo-500', 'from-violet-500 to-purple-500', 'from-pink-500 to-rose-500', 'from-emerald-500 to-teal-500', 'from-amber-500 to-orange-500', 'from-cyan-500 to-sky-500', 'from-red-500 to-rose-500']
+              const bg = colors[i % colors.length]
+              return (
+                <a key={day.id} href={`/tours/${tour.id}/itinerary`}
+                  className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+                  {/* Color accent bar */}
+                  <div className={`h-1.5 bg-gradient-to-r ${bg}`} />
+                  <div className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${bg} flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-sm`}>
+                        {day.dayNumber}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 text-sm truncate group-hover:text-indigo-700 transition-colors">{day.title}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {new Date(day.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                          {day.city && ` · ${day.city}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
+                      <div className="flex gap-1">
+                        {day.mealBreakfast && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full">🍳</span>}
+                        {day.mealLunch && <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full">🍱</span>}
+                        {day.mealDinner && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full">🍽️</span>}
+                      </div>
+                      <p className="text-[10px] text-gray-400 font-medium">{day.activities.length} กิจกรรม{day.accommodation ? ' · 🏨' : ''}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-1">
-                    {day.mealBreakfast && <span className="text-xs px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full">🍳</span>}
-                    {day.mealLunch && <span className="text-xs px-2 py-0.5 bg-green-50 text-green-600 rounded-full">🍱</span>}
-                    {day.mealDinner && <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full">🍽️</span>}
-                  </div>
-                  <p className="text-xs text-gray-400">{day.activities.length} กิจกรรม</p>
-                </div>
-              </div>
-            ))}
+                </a>
+              )
+            })}
           </div>
         )}
       </div>
@@ -88,28 +100,28 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
         {/* Members */}
         <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-gray-900 text-sm">สมาชิก ({tour._count.members})</h3>
+            <h3 className="font-semibold text-gray-900 text-sm">👥 สมาชิก ({tour._count.members})</h3>
             <a href={`/tours/${tour.id}/members`} className="text-blue-600 text-xs hover:underline">จัดการ →</a>
           </div>
           {tour.members.length === 0 ? (
             <p className="text-gray-400 text-xs text-center py-2">ยังไม่มีสมาชิก</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {tour.members.slice(0, 5).map((m) => (
-                <div key={m.id} className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center text-xs font-medium text-gray-600 overflow-hidden">
+                <div key={m.id} className="flex items-center gap-2.5 p-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-xs font-bold text-indigo-600 overflow-hidden flex-shrink-0">
                     {m.user.avatarUrl ? (
                       <img src={m.user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     ) : m.user.name[0]}
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-900">{m.user.name}</p>
-                    <p className="text-xs text-gray-400">{m.user.email}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-900 truncate">{m.user.name}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{m.user.email}</p>
                   </div>
                 </div>
               ))}
               {tour.members.length > 5 && (
-                <p className="text-xs text-gray-400 text-center">+{tour.members.length - 5} คน</p>
+                <p className="text-xs text-gray-400 text-center pt-1">+{tour.members.length - 5} คน</p>
               )}
             </div>
           )}
@@ -188,22 +200,55 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
     </div>
   )
 
+  const totalActivities = tour.days.reduce((s, d) => s + d.activities.length, 0)
+
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <a href="/tours" className="text-gray-500 hover:text-gray-700 text-sm">← ทัวร์ทั้งหมด</a>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{tour.title}</h1>
-            <p className="text-gray-500 text-sm mt-0.5">
-              {tour.isChina && <span className="text-red-500 mr-1">🇨🇳 China Mode</span>}
-              {new Date(tour.startDate).toLocaleDateString('th-TH')} — {new Date(tour.endDate).toLocaleDateString('th-TH')}
-              {' · '}{tour._count.members} สมาชิก
-            </p>
+      <div className="mb-8">
+        <a href="/tours" className="text-gray-400 hover:text-gray-600 text-xs font-medium mb-3 inline-block transition-colors">← ทัวร์ทั้งหมด</a>
+
+        <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
+          {/* Decorations */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+          <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5 blur-xl" />
+          <svg className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+            <defs><pattern id="admindots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white"/></pattern></defs>
+            <rect width="100%" height="100%" fill="url(#admindots)"/>
+          </svg>
+
+          <div className="relative flex items-start justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                {tour.countries.map(c => (
+                  <span key={c} className="text-xl">{({'CN':'🇨🇳','JP':'🇯🇵','KR':'🇰🇷','TH':'🇹🇭','FR':'🇫🇷','IT':'🇮🇹','SG':'🇸🇬'} as Record<string,string>)[c] ?? '🌍'}</span>
+                ))}
+                {tour.isChina && <span className="text-[10px] bg-red-500/80 px-2 py-0.5 rounded-full font-bold">China Mode</span>}
+              </div>
+              <h1 className="text-xl font-bold mt-2">{tour.title}</h1>
+              <p className="text-white/60 text-sm mt-1">
+                {new Date(tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} — {new Date(tour.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </p>
+            </div>
+            <TourDetailClient tour={tour} />
+          </div>
+
+          {/* Stats row */}
+          <div className="relative flex gap-4 mt-5">
+            {[
+              { label: 'วัน', value: tour.days.length, icon: '📅' },
+              { label: 'สมาชิก', value: tour._count.members, icon: '👥' },
+              { label: 'เที่ยวบิน', value: tour.flights.length, icon: '✈️' },
+              { label: 'กิจกรรม', value: totalActivities, icon: '📍' },
+              { label: 'เอกสาร', value: tour.documents.length, icon: '🎫' },
+            ].map(stat => (
+              <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/10">
+                <p className="text-xs text-white/60">{stat.icon} {stat.label}</p>
+                <p className="text-lg font-bold">{stat.value}</p>
+              </div>
+            ))}
           </div>
         </div>
-        <TourDetailClient tour={tour} />
       </div>
 
       {/* Tabbed content */}
