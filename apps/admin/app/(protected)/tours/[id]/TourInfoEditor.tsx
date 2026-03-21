@@ -345,54 +345,41 @@ export default function TourInfoEditor({ tour }: { tour: TourInfo }) {
     )
   }
 
+  const infoItems = [
+    { label: 'ประเทศ', value: current.countries.join(', '), icon: '🌍' },
+    { label: 'เมือง', value: current.cities.join(', ') || '-', icon: '🏙️' },
+    { label: 'วันเดินทาง', value: `${new Date(current.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} — ${new Date(current.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`, icon: '📅' },
+    { label: 'จำนวนสูงสุด', value: current.maxMembers?.toString() ?? 'ไม่จำกัด', icon: '👥' },
+    ...(current.tourCode ? [{ label: 'Tour Code', value: current.tourCode, icon: '🏷️' }] : []),
+    ...(current.destCurrency ? [{ label: 'สกุลเงิน', value: `${current.currency} → ${current.destCurrency}`, icon: '💱' }] : []),
+  ]
+
   return (
-    <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-gray-900 text-sm">ข้อมูลทัวร์</h3>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+        <h3 className="font-bold text-gray-900 text-sm">รายละเอียด</h3>
         <button
           onClick={() => setEditing(true)}
-          className="text-blue-600 text-xs hover:underline"
+          className="text-xs text-indigo-600 font-medium hover:underline"
         >
           แก้ไข
         </button>
       </div>
-      <div className="space-y-2 text-xs">
-        <div className="flex justify-between">
-          <span className="text-gray-500">ประเทศ</span>
-          <span className="text-gray-900">{current.countries.join(', ')}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-500">เมือง</span>
-          <span className="text-gray-900">{current.cities.join(', ') || '-'}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-500">วันเดินทาง</span>
-          <span className="text-gray-900">
-            {new Date(current.startDate).toLocaleDateString('th-TH')} — {new Date(current.endDate).toLocaleDateString('th-TH')}
-          </span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-gray-500">จำนวนสูงสุด</span>
-          <span className="text-gray-900">{current.maxMembers ?? 'ไม่จำกัด'}</span>
-        </div>
-        {current.tourCode && (
-          <div className="flex justify-between">
-            <span className="text-gray-500">Tour Code</span>
-            <span className="text-gray-900 font-mono">{current.tourCode}</span>
+      <div className="divide-y divide-gray-50">
+        {infoItems.map((item) => (
+          <div key={item.label} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50/50 transition-colors">
+            <span className="text-sm w-5 text-center flex-shrink-0">{item.icon}</span>
+            <span className="text-xs text-gray-400 w-20 flex-shrink-0">{item.label}</span>
+            <span className="text-xs text-gray-900 font-medium flex-1 text-right truncate">{item.value}</span>
+          </div>
+        ))}
+        {current.isChina && (
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <span className="text-sm w-5 text-center flex-shrink-0">🇨🇳</span>
+            <span className="text-xs text-gray-400 w-20 flex-shrink-0">China Mode</span>
+            <span className="text-xs text-red-600 font-bold flex-1 text-right">เปิด</span>
           </div>
         )}
-        {current.destCurrency && (
-          <div className="flex justify-between">
-            <span className="text-gray-500">สกุลเงินปลายทาง</span>
-            <span className="text-gray-900">{current.destCurrency}</span>
-          </div>
-        )}
-        <div className="flex justify-between">
-          <span className="text-gray-500">China Mode</span>
-          <span className={current.isChina ? 'text-red-600 font-medium' : 'text-gray-400'}>
-            {current.isChina ? 'เปิด' : 'ปิด'}
-          </span>
-        </div>
       </div>
     </div>
   )
