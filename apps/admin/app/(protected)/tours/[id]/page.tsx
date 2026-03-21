@@ -226,7 +226,10 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <a href="/tours" className="text-gray-400 hover:text-gray-600 text-xs font-medium mb-3 inline-block transition-colors">← ทัวร์ทั้งหมด</a>
+        <a href="/tours" className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors mb-3">
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          ทัวร์ทั้งหมด
+        </a>
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Top accent */}
