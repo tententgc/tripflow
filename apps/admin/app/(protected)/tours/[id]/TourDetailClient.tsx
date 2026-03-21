@@ -22,14 +22,6 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
   const [updating, setUpdating] = useState(false)
   const [open, setOpen] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
-  const [pos, setPos] = useState({ top: 0, right: 0 })
-
-  useEffect(() => {
-    if (open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect()
-      setPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right })
-    }
-  }, [open])
 
   const current = statusConfig[status] ?? statusConfig['DRAFT']!
 
@@ -72,10 +64,7 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div
-              className="fixed w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
-              style={{ top: pos.top, right: pos.right }}
-            >
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
               {Object.entries(statusConfig).map(([value, cfg]) => (
                 <button
                   key={value}
