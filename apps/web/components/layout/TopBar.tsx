@@ -95,10 +95,15 @@ export function TopBar({
             aria-label="เมนูผู้ใช้"
           >
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-white font-semibold text-sm">{user?.name?.[0] ?? '?'}</span>
-            )}
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+              />
+            ) : null}
+            <span className={`text-white font-semibold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
           </button>
 
           {/* Dropdown — fixed to escape overflow-hidden on TopBar */}
