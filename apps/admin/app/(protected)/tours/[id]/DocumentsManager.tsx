@@ -67,7 +67,7 @@ export default function DocumentsManager({
   members: MemberInfo[]
 }) {
   const [docs, setDocs] = useState<DocItem[]>(initialDocuments)
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState<string | null>(null) // null=not adding, ''=group, 'userId'=personal
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -89,7 +89,7 @@ export default function DocumentsManager({
       fileUrl: doc.fileUrl ?? '',
       userId: doc.userId ?? '',
     })
-    setAdding(false)
+    setAdding(null)
   }
 
   async function saveEdit() {
@@ -163,10 +163,11 @@ export default function DocumentsManager({
   }
 
   async function addDocument() {
-    if (!form.title.trim()) return
+    if (!form.title.trim() || adding === null) return
     setSaving(true)
     try {
-      const isPersonal = form.userId !== ''
+      const targetUserId = adding === '' ? (form.userId || null) : adding
+      const isPersonal = !!targetUserId
       const res = await fetch(`/api/tours/${tourId}/documents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -178,14 +179,14 @@ export default function DocumentsManager({
           qrData: form.qrData.trim() || null,
           fileUrl: form.fileUrl.trim() || null,
           isPersonal,
-          userId: isPersonal ? form.userId : null,
+          userId: targetUserId,
         }),
       })
       if (res.ok) {
         const doc = await res.json() as DocItem
         setDocs(prev => [...prev, doc])
         setForm(emptyForm)
-        setAdding(false)
+        setAdding(null)
       }
     } finally {
       setSaving(false)
@@ -292,6 +293,37 @@ export default function DocumentsManager({
     )
   }
 
+  function renderAddForm(forLabel: string, color: string) {
+    return (
+      <div className={`rounded-xl border-2 border-dashed ${color === 'blue' ? 'border-blue-200 bg-blue-50/50' : 'border-orange-200 bg-orange-50/50'} p-3 space-y-2`}>
+        <p className="text-xs font-semibold ${color === 'blue' ? 'text-blue-700' : 'text-orange-700'}">{forLabel}</p>
+        <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} className={`w-full ${inputCls}`} placeholder="ชื่อเอกสาร" autoFocus />
+        <div className="grid grid-cols-2 gap-2">
+          <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className={`w-full ${inputCls}`}>
+            {docTypes.map(t => (<option key={t.value} value={t.value}>{t.emoji} {t.label}</option>))}
+          </select>
+          <input type="text" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className={`w-full ${inputCls}`} placeholder="รายละเอียด" />
+        </div>
+        <div className="flex gap-2">
+          <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleFileSelect} className="hidden" />
+          <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
+            className="flex-1 py-2 border border-dashed border-gray-300 bg-white rounded-lg text-xs text-gray-500 hover:border-blue-400 transition-colors">
+            {uploading ? '⏳...' : form.fileUrl ? '📎 เปลี่ยนไฟล์' : '📎 เลือกไฟล์'}
+          </button>
+          {form.fileUrl && <span className="self-center text-[10px] text-green-600">✓</span>}
+        </div>
+        {uploadErr && <p className="text-[10px] text-red-500">{uploadErr}</p>}
+        <div className="flex gap-2">
+          <button onClick={addDocument} disabled={saving || !form.title.trim()}
+            className={`flex-1 py-2 text-white rounded-lg text-sm font-medium disabled:opacity-50 ${color === 'blue' ? 'bg-blue-600' : 'bg-orange-600'}`}>
+            {saving ? 'กำลังบันทึก...' : 'เพิ่ม'}
+          </button>
+          <button onClick={() => { setAdding(null); setForm(emptyForm) }} className="px-3 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-xs">ยกเลิก</button>
+        </div>
+      </div>
+    )
+  }
+
   function isPdf(url: string | null): boolean {
     return !!url && url.toLowerCase().endsWith('.pdf')
   }
@@ -356,6 +388,39 @@ export default function DocumentsManager({
               )
             })}
           </div>
+
+          {/* Add group doc button */}
+          {adding === '' ? (
+            <div className="p-3">{renderAddForm('เพิ่มเอกสารรวม (ทุกคนเห็น)', 'blue')}</div>
+          ) : (
+            <button
+              onClick={() => { setAdding(''); setForm({ ...emptyForm, userId: '' }); setEditingId(null) }}
+              className="w-full py-2.5 text-blue-500 text-xs font-medium hover:bg-blue-50 transition-colors border-t border-blue-100"
+            >
+              + เพิ่มเอกสารรวม
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* No group docs yet — still show add button */}
+      {groupDocs.length === 0 && (
+        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex items-center gap-2">
+            <span className="text-base">📂</span>
+            <h3 className="text-sm font-bold text-blue-800">เอกสารรวม</h3>
+            <p className="text-[10px] text-blue-500 ml-auto">ทุกคนเห็น</p>
+          </div>
+          {adding === '' ? (
+            <div className="p-3">{renderAddForm('เพิ่มเอกสารรวม (ทุกคนเห็น)', 'blue')}</div>
+          ) : (
+            <button
+              onClick={() => { setAdding(''); setForm({ ...emptyForm, userId: '' }); setEditingId(null) }}
+              className="w-full py-3 text-blue-500 text-xs font-medium hover:bg-blue-50 transition-colors"
+            >
+              + เพิ่มเอกสารรวม
+            </button>
+          )}
         </div>
       )}
 
@@ -400,137 +465,71 @@ export default function DocumentsManager({
                   )
                   })}
                 </div>
+
+                {/* Add personal doc for this member */}
+                {adding === uid ? (
+                  <div className="p-3 border-t border-orange-100">{renderAddForm(`เพิ่มตั๋วให้ ${memberMap[uid] ?? 'สมาชิก'}`, 'orange')}</div>
+                ) : (
+                  <button
+                    onClick={() => { setAdding(uid); setForm({ ...emptyForm, userId: uid }); setEditingId(null) }}
+                    className="w-full py-2 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors border-t border-orange-100"
+                  >
+                    + เพิ่มตั๋วให้ {memberMap[uid] ?? 'สมาชิก'}
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {/* Members who have no docs yet */}
+            {members.filter(m => !byMember.has(m.userId)).map(m => (
+              <div key={m.userId} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+                <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">{m.name[0]}</div>
+                  <p className="text-xs font-bold text-orange-800">{m.name}</p>
+                  <span className="text-[10px] text-orange-400 ml-auto">0 ตั๋ว</span>
+                </div>
+                {adding === m.userId ? (
+                  <div className="p-3">{renderAddForm(`เพิ่มตั๋วให้ ${m.name}`, 'orange')}</div>
+                ) : (
+                  <button
+                    onClick={() => { setAdding(m.userId); setForm({ ...emptyForm, userId: m.userId }); setEditingId(null) }}
+                    className="w-full py-2.5 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors"
+                  >
+                    + เพิ่มตั๋วให้ {m.name}
+                  </button>
+                )}
               </div>
             ))}
           </div>
       )}
 
-      {/* Add document form */}
-      {adding ? (
-        <div className="bg-amber-50 rounded-xl p-3 space-y-2">
-          {/* Member assignment */}
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">เจ้าของตั๋ว</label>
-            <select
-              value={form.userId}
-              onChange={e => setForm(p => ({ ...p, userId: e.target.value }))}
-              className={`w-full ${inputCls}`}
-            >
-              <option value="">ทุกคน (เอกสารรวม)</option>
-              {members.map(m => (
-                <option key={m.userId} value={m.userId}>{m.name}</option>
-              ))}
-            </select>
+      {/* Show personal section even if no personal docs yet */}
+      {personalDocs.length === 0 && members.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-base">👤</span>
+            <h3 className="text-sm font-bold text-gray-700">ตั๋วรายบุคคล</h3>
+            <p className="text-[10px] text-gray-400 ml-auto">เฉพาะเจ้าของเห็น</p>
           </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div className="col-span-2">
-              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อเอกสาร</label>
-              <input
-                type="text"
-                value={form.title}
-                onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                className={`w-full ${inputCls}`}
-                placeholder="เช่น ตั๋วเครื่องบิน TG676"
-                autoFocus
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ชื่อ EN</label>
-              <input
-                type="text"
-                value={form.titleEn}
-                onChange={e => setForm(p => ({ ...p, titleEn: e.target.value }))}
-                className={`w-full ${inputCls}`}
-                placeholder="Flight Ticket TG676"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ประเภท</label>
-              <select
-                value={form.type}
-                onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                className={`w-full ${inputCls}`}
-              >
-                {docTypes.map(t => (
-                  <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">รายละเอียด</label>
-            <input
-              type="text"
-              value={form.description}
-              onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-              className={`w-full ${inputCls}`}
-              placeholder="Thai Airways BKK → NRT 18 เม.ย. 2569"
-            />
-          </div>
-
-          {/* File upload */}
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">อัพโหลดไฟล์ (PDF / รูปภาพ)</label>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                className="px-3 py-2 border border-dashed border-gray-300 bg-white rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex-1"
-              >
-                {uploading ? 'กำลังอัพโหลด...' : form.fileUrl ? '📎 เปลี่ยนไฟล์' : '📎 เลือกไฟล์'}
-              </button>
-              {form.fileUrl && (
-                <span className="self-center text-xs text-green-600">อัพโหลดแล้ว</span>
+          {members.map(m => (
+            <div key={m.userId} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">{m.name[0]}</div>
+                <p className="text-xs font-bold text-orange-800">{m.name}</p>
+              </div>
+              {adding === m.userId ? (
+                <div className="p-3">{renderAddForm(`เพิ่มตั๋วให้ ${m.name}`, 'orange')}</div>
+              ) : (
+                <button
+                  onClick={() => { setAdding(m.userId); setForm({ ...emptyForm, userId: m.userId }); setEditingId(null) }}
+                  className="w-full py-2.5 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors"
+                >
+                  + เพิ่มตั๋วให้ {m.name}
+                </button>
               )}
             </div>
-            {uploadErr && <p className="text-xs text-red-500 mt-1">{uploadErr}</p>}
-          </div>
-
-          {/* QR data (optional) */}
-          <div>
-            <label className="text-xs text-gray-500 mb-0.5 block">QR Code data (ถ้ามี)</label>
-            <input
-              type="text"
-              value={form.qrData}
-              onChange={e => setForm(p => ({ ...p, qrData: e.target.value }))}
-              className={`w-full ${inputCls}`}
-              placeholder="ข้อมูล QR Code"
-            />
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={addDocument}
-              disabled={saving || !form.title.trim()}
-              className="flex-1 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium disabled:opacity-50"
-            >
-              {saving ? 'กำลังบันทึก...' : 'เพิ่มเอกสาร'}
-            </button>
-            <button
-              onClick={() => { setAdding(false); setForm(emptyForm) }}
-              className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm"
-            >
-              ยกเลิก
-            </button>
-          </div>
+          ))}
         </div>
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="w-full py-2 border border-dashed border-gray-300 text-gray-500 rounded-xl text-sm hover:border-amber-400 hover:text-amber-600 transition-colors"
-        >
-          + เพิ่มเอกสาร / ตั๋ว
-        </button>
       )}
     </div>
   )
