@@ -59,10 +59,10 @@ export async function POST(
       timezone: currentDay?.timezone ?? tour.timezone,
       localTime,
       todayActivities,
-      accommodationName: currentDay?.accommodation?.name,
+      ...(currentDay?.accommodation?.name ? { accommodationName: currentDay.accommodation.name } : {}),
       weatherSummary: 'ไม่มีข้อมูลสภาพอากาศ',
       memberCount: tour._count.members,
-      destCurrency: tour.destCurrency ?? undefined,
+      ...(tour.destCurrency ? { destCurrency: tour.destCurrency } : {}),
       emergency: emergencyNumbers,
     })
 

@@ -1011,7 +1011,7 @@ function SplitCard({ record, me, myRole, onSettle, onSettleAll, onDelete, fmt }:
             {/* Settle slip — visible to expense creator */}
             {myRole === 'owed' && p.isPaid && p.userId !== me?.id && (
               p.settleReceiptUrl
-                ? <SettleSlipToggle url={p.settleReceiptUrl} name={p.user.name.split(' ')[0]} />
+                ? <SettleSlipToggle url={p.settleReceiptUrl as string} name={p.user.name?.split(' ')[0] ?? ''} />
                 : <p className="mt-1 ml-7 text-[10px] text-gray-300">ไม่มีสลิปแนบมา</p>
             )}
           </div>
