@@ -272,34 +272,34 @@ export default function TodayPage() {
         {/* Pre-trip: countdown + flights */}
         {isBeforeTrip && (
           <>
-            <div className="relative rounded-3xl overflow-hidden animate-slide-up delay-2" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)' }}>
+            <div className="relative rounded-3xl overflow-hidden animate-slide-up delay-2 bg-white border border-gray-200 shadow-lg">
               {/* Soft ambient glow */}
-              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-violet-500/30 blur-[80px] animate-float" />
-              <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-500/20 blur-[60px] animate-float-reverse" />
+              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-indigo-200/40 blur-[80px] animate-float" />
+              <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-violet-200/30 blur-[60px] animate-float-reverse" />
 
               {/* Glass card content */}
               <div className="relative z-10 p-6">
                 {/* Top row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-sm">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-sm">
                       {countryFlags[tour.countries[0] ?? ''] ?? '🌍'}
                     </div>
-                    <p className="text-white/60 text-xs font-semibold tracking-wide">ออกเดินทางอีก</p>
+                    <p className="text-gray-400 text-xs font-semibold tracking-wide">ออกเดินทางอีก</p>
                   </div>
-                  <div className="text-3xl opacity-10 animate-float" style={{ animationDuration: '8s' }}>✈️</div>
+                  <div className="text-3xl opacity-[0.07] animate-float" style={{ animationDuration: '8s' }}>✈️</div>
                 </div>
 
                 {/* Number */}
                 <div className="mt-5 flex items-baseline gap-3">
-                  <span className="text-[5rem] font-black leading-none tracking-tighter text-white" style={{ fontFeatureSettings: '"tnum"' }}>
+                  <span className="text-[5rem] font-black leading-none tracking-tighter text-indigo-600" style={{ fontFeatureSettings: '"tnum"' }}>
                     {daysUntilTrip}
                   </span>
-                  <span className="text-xl font-medium text-white/40">วัน</span>
+                  <span className="text-xl font-medium text-gray-300">วัน</span>
                 </div>
 
                 {/* Date */}
-                <p className="text-white/50 text-sm mt-2">
+                <p className="text-gray-400 text-sm mt-2">
                   {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </p>
 
@@ -309,18 +309,18 @@ export default function TodayPage() {
                   const elapsed = totalDays - daysUntilTrip
                   const pct = Math.min(100, Math.max(5, (elapsed / totalDays) * 100))
                   return (
-                    <div className="mt-5 bg-white/[0.06] backdrop-blur-md rounded-2xl p-4 border border-white/[0.08]">
+                    <div className="mt-5 bg-gray-50 rounded-2xl p-4 border border-gray-100">
                       <div className="flex items-center justify-between mb-2.5">
-                        <p className="text-[11px] text-white/40 font-medium flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <p className="text-[11px] text-gray-400 font-medium flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
                           กำลังนับถอยหลัง
                         </p>
-                        <p className="text-[11px] text-white/30 font-mono">{Math.round(pct)}%</p>
+                        <p className="text-[11px] text-gray-300 font-mono">{Math.round(pct)}%</p>
                       </div>
-                      <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-1000"
-                          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #818cf8, #a78bfa, #c084fc)' }}
+                          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)' }}
                         />
                       </div>
                     </div>
