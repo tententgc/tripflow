@@ -58,9 +58,19 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {tour.days.map((day, i) => {
-              const colors = ['from-blue-500 to-indigo-500', 'from-violet-500 to-purple-500', 'from-pink-500 to-rose-500', 'from-emerald-500 to-teal-500', 'from-amber-500 to-orange-500', 'from-cyan-500 to-sky-500', 'from-red-500 to-rose-500']
-              const bg = colors[i % colors.length]
+            {tour.days.map((day) => {
+              // Thai day-of-week colors: Sun=red, Mon=yellow, Tue=pink, Wed=green, Thu=orange, Fri=blue, Sat=purple
+              const dayOfWeek = new Date(day.date).getDay()
+              const dayColors = [
+                'from-red-500 to-rose-500',      // 0 = อาทิตย์ (แดง)
+                'from-yellow-400 to-amber-500',   // 1 = จันทร์ (เหลือง)
+                'from-pink-400 to-pink-500',      // 2 = อังคาร (ชมพู)
+                'from-green-500 to-emerald-500',  // 3 = พุธ (เขียว)
+                'from-orange-400 to-orange-500',  // 4 = พฤหัสบดี (ส้ม)
+                'from-blue-500 to-indigo-500',    // 5 = ศุกร์ (ฟ้า)
+                'from-violet-500 to-purple-500',  // 6 = เสาร์ (ม่วง)
+              ]
+              const bg = dayColors[dayOfWeek] ?? dayColors[0]
               return (
                 <a key={day.id} href={`/tours/${tour.id}/itinerary`}
                   className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
