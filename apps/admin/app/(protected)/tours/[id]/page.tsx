@@ -64,6 +64,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
               return (
                 <a key={day.id} href={`/tours/${tour.id}/itinerary`}
                   className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg hover:border-indigo-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+                  <div className={`h-1 bg-gradient-to-r ${bg}`} />
                   <div className="p-4">
                     <div className="flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${bg} flex items-center justify-center flex-shrink-0 text-white font-bold text-sm shadow-sm`}>
@@ -206,45 +207,42 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
       <div className="mb-8">
         <a href="/tours" className="text-gray-400 hover:text-gray-600 text-xs font-medium mb-3 inline-block transition-colors">← ทัวร์ทั้งหมด</a>
 
-        <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
-          {/* Decorations */}
-          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
-          <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-white/5 blur-xl" />
-          <svg className="absolute inset-0 w-full h-full opacity-[0.05] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-            <defs><pattern id="admindots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white"/></pattern></defs>
-            <rect width="100%" height="100%" fill="url(#admindots)"/>
-          </svg>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Top accent */}
+          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
 
-          <div className="relative flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                {tour.countries.map(c => (
-                  <span key={c} className="text-xl">{({'CN':'🇨🇳','JP':'🇯🇵','KR':'🇰🇷','TH':'🇹🇭','FR':'🇫🇷','IT':'🇮🇹','SG':'🇸🇬'} as Record<string,string>)[c] ?? '🌍'}</span>
-                ))}
-                {tour.isChina && <span className="text-[10px] bg-red-500/80 px-2 py-0.5 rounded-full font-bold">China Mode</span>}
+          <div className="p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  {tour.countries.map(c => (
+                    <span key={c} className="text-xl">{({'CN':'🇨🇳','JP':'🇯🇵','KR':'🇰🇷','TH':'🇹🇭','FR':'🇫🇷','IT':'🇮🇹','SG':'🇸🇬'} as Record<string,string>)[c] ?? '🌍'}</span>
+                  ))}
+                  {tour.isChina && <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">🇨🇳 China Mode</span>}
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">{tour.title}</h1>
+                <p className="text-gray-400 text-sm mt-1">
+                  {new Date(tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} — {new Date(tour.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </p>
               </div>
-              <h1 className="text-xl font-bold mt-2">{tour.title}</h1>
-              <p className="text-white/60 text-sm mt-1">
-                {new Date(tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} — {new Date(tour.endDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
+              <TourDetailClient tour={tour} />
             </div>
-            <TourDetailClient tour={tour} />
-          </div>
 
-          {/* Stats row */}
-          <div className="relative flex gap-4 mt-5">
-            {[
-              { label: 'วัน', value: tour.days.length, icon: '📅' },
-              { label: 'สมาชิก', value: tour._count.members, icon: '👥' },
-              { label: 'เที่ยวบิน', value: tour.flights.length, icon: '✈️' },
-              { label: 'กิจกรรม', value: totalActivities, icon: '📍' },
-              { label: 'เอกสาร', value: tour.documents.length, icon: '🎫' },
-            ].map(stat => (
-              <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/10">
-                <p className="text-xs text-white/60">{stat.icon} {stat.label}</p>
-                <p className="text-lg font-bold">{stat.value}</p>
-              </div>
-            ))}
+            {/* Stats row */}
+            <div className="flex gap-3 mt-5">
+              {[
+                { label: 'วัน', value: tour.days.length, icon: '📅', color: 'bg-blue-50 text-blue-600' },
+                { label: 'สมาชิก', value: tour._count.members, icon: '👥', color: 'bg-violet-50 text-violet-600' },
+                { label: 'เที่ยวบิน', value: tour.flights.length, icon: '✈️', color: 'bg-sky-50 text-sky-600' },
+                { label: 'กิจกรรม', value: totalActivities, icon: '📍', color: 'bg-amber-50 text-amber-600' },
+                { label: 'เอกสาร', value: tour.documents.length, icon: '🎫', color: 'bg-emerald-50 text-emerald-600' },
+              ].map(stat => (
+                <div key={stat.label} className={`${stat.color} rounded-xl px-4 py-2.5`}>
+                  <p className="text-[10px] font-medium opacity-70">{stat.icon} {stat.label}</p>
+                  <p className="text-lg font-bold">{stat.value}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
