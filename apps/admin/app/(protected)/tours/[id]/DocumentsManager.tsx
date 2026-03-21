@@ -70,6 +70,36 @@ export default function DocumentsManager({
   const [adding, setAdding] = useState<string | null>(null) // null=not adding, ''=group, 'userId'=personal
   const [editingId, setEditingId] = useState<string | null>(null)
   const [docTab, setDocTab] = useState<'group' | 'personal'>('group')
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [deleting, setDeleting] = useState(false)
+
+  function toggleSelect(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  async function deleteSelected() {
+    if (selected.size === 0) return
+    if (!confirm(`ลบ ${selected.size} รายการ?`)) return
+    setDeleting(true)
+    try {
+      await Promise.all(
+        Array.from(selected).map(id =>
+          fetch(`/api/tours/${tourId}/documents/${id}`, { method: 'DELETE' })
+        )
+      )
+      setDocs(prev => prev.filter(d => !selected.has(d.id)))
+      setSelected(new Set())
+      setSelectMode(false)
+    } finally {
+      setDeleting(false)
+    }
+  }
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -350,7 +380,33 @@ export default function DocumentsManager({
 
   return (
     <div className="space-y-4">
-      <h2 className="font-semibold text-gray-900">เอกสาร / ตั๋ว ({docs.length})</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-gray-900">เอกสาร / ตั๋ว ({docs.length})</h2>
+        {docs.length > 0 && (
+          <button
+            onClick={() => { setSelectMode(v => !v); setSelected(new Set()); setEditingId(null) }}
+            className={`text-xs font-medium px-3 py-1 rounded-lg transition-colors ${
+              selectMode ? 'bg-red-50 text-red-600' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {selectMode ? 'ยกเลิก' : 'เลือกลบ'}
+          </button>
+        )}
+      </div>
+
+      {/* Bulk delete bar */}
+      {selectMode && selected.size > 0 && (
+        <div className="flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+          <p className="text-sm text-red-700 font-medium">เลือกแล้ว {selected.size} รายการ</p>
+          <button
+            onClick={deleteSelected}
+            disabled={deleting}
+            className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {deleting ? 'กำลังลบ...' : `🗑️ ลบ ${selected.size} รายการ`}
+          </button>
+        </div>
+      )}
 
       {/* Sub-tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
@@ -388,8 +444,17 @@ export default function DocumentsManager({
             if (editingId === doc.id) return <div key={doc.id}>{renderEditForm()}</div>
             const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
             return (
-              <button key={doc.id} onClick={() => startEdit(doc)}
-                className="w-full bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 px-4 py-3 text-left hover:border-blue-200 hover:shadow-md transition-all">
+              <button key={doc.id} onClick={() => selectMode ? toggleSelect(doc.id) : startEdit(doc)}
+                className={`w-full bg-white rounded-xl border shadow-sm flex items-center gap-3 px-4 py-3 text-left transition-all ${
+                  selected.has(doc.id) ? 'border-red-300 bg-red-50/50' : 'border-gray-100 hover:border-blue-200 hover:shadow-md'
+                }`}>
+                {selectMode && (
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    selected.has(doc.id) ? 'bg-red-500 border-red-500' : 'border-gray-300'
+                  }`}>
+                    {selected.has(doc.id) && <span className="text-white text-xs">✓</span>}
+                  </div>
+                )}
                 <span className="text-xl">{cfg.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
@@ -399,7 +464,7 @@ export default function DocumentsManager({
                     {doc.qrData && <span className="text-[10px] text-gray-400">⬛ QR</span>}
                   </div>
                 </div>
-                <span className="text-gray-300 text-sm">✏️</span>
+                {!selectMode && <span className="text-gray-300 text-sm">✏️</span>}
               </button>
             )
           })}
@@ -440,8 +505,17 @@ export default function DocumentsManager({
                     if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
                     const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
                     return (
-                      <button key={doc.id} onClick={() => startEdit(doc)}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-orange-50/30 transition-colors">
+                      <button key={doc.id} onClick={() => selectMode ? toggleSelect(doc.id) : startEdit(doc)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                          selected.has(doc.id) ? 'bg-red-50/50' : 'hover:bg-orange-50/30'
+                        }`}>
+                        {selectMode && (
+                          <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                            selected.has(doc.id) ? 'bg-red-500 border-red-500' : 'border-gray-300'
+                          }`}>
+                            {selected.has(doc.id) && <span className="text-white text-xs">✓</span>}
+                          </div>
+                        )}
                         <span className="text-lg">{cfg.emoji}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
@@ -450,7 +524,7 @@ export default function DocumentsManager({
                             {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
                           </div>
                         </div>
-                        <span className="text-gray-300 text-sm">✏️</span>
+                        {!selectMode && <span className="text-gray-300 text-sm">✏️</span>}
                       </button>
                     )
                   })}
