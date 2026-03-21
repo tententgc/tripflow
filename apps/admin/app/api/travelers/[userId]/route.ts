@@ -37,8 +37,15 @@ export async function DELETE(
   try {
     const { userId } = await params
 
-    // Remove from all tours first (FK constraint)
+    // Remove all related records first (FK constraints)
+    await db.checklistCheck.deleteMany({ where: { userId } })
+    await db.expenseParticipant.deleteMany({ where: { userId } })
+    await db.expense.deleteMany({ where: { paidById: userId } })
+    await db.notification.deleteMany({ where: { userId } })
+    await db.operatorStaff.deleteMany({ where: { userId } })
     await db.tourMember.deleteMany({ where: { userId } })
+    // Remove personal documents
+    await db.tourDocument.deleteMany({ where: { userId } })
     await db.user.delete({ where: { id: userId } })
 
     return NextResponse.json({ success: true })

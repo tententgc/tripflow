@@ -124,7 +124,12 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
 
   async function deleteTraveler(userId: string) {
     if (!confirm('ลบนักเดินทางนี้ออกจากระบบ? จะถูกนำออกจากทุกทัวร์ด้วย')) return
-    await fetch(`/api/travelers/${userId}`, { method: 'DELETE' })
+    const res = await fetch(`/api/travelers/${userId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert('ลบไม่สำเร็จ: ' + (err.error ?? `Error ${res.status}`))
+      return
+    }
     setUsers((prev) => prev.filter((u) => u.id !== userId))
     if (selectedUser?.id === userId) setSelectedUser(null)
   }
