@@ -3,15 +3,30 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --font-noto-sans-thai: 'Noto Sans Thai', sans-serif;
-    --font-noto-sans: 'Noto Sans', sans-serif;
-  }
-
   html {
-    font-family: var(--font-noto-sans-thai), var(--font-noto-sans), sans-serif;
+    /* Apple-style system font stack — looks native on every OS */
+    /* macOS/iOS: SF Pro + SF Pro Thai / Thonburi */
+    /* Windows: Segoe UI */
+    /* Android: Roboto */
+    /* Fallback: Inter (loaded via next/font) */
+    font-family:
+      var(--font-inter),
+      -apple-system,
+      BlinkMacSystemFont,
+      'SF Pro Text',
+      'SF Pro Thai',
+      'Segoe UI',
+      Roboto,
+      'Noto Sans Thai',
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'kern' 1, 'liga' 1;
   }
 
   * {
