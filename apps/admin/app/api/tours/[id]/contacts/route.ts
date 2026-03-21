@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -33,6 +33,14 @@ export async function POST(
         notes: body.notes ?? null,
       },
     })
+
+    logActivity({
+      action: 'contact.add',
+      entity: 'Contact',
+      entityId: contact.id,
+      description: `เพิ่มผู้ติดต่อ "${contact.name}"`,
+      tourId,
+    }).catch(() => {})
 
     return NextResponse.json(contact, { status: 201 })
   } catch (error) {

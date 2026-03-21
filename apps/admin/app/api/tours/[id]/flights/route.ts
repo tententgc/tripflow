@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function POST(
   req: NextRequest,
@@ -41,6 +41,14 @@ export async function POST(
         gate: body.gate ?? null,
       },
     })
+
+    logActivity({
+      action: 'flight.add',
+      entity: 'Flight',
+      entityId: flight.id,
+      description: `เพิ่มเที่ยวบิน ${flight.flightNo}`,
+      tourId,
+    }).catch(() => {})
 
     return NextResponse.json(flight, { status: 201 })
   } catch (error) {

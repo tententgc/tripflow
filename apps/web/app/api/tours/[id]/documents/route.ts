@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
@@ -73,6 +73,14 @@ export async function POST(
         userId: dbUser.id,
       },
     })
+
+    logActivity({
+      action: 'document.add',
+      entity: 'Document',
+      entityId: doc.id,
+      description: `อัพโหลดเอกสาร "${doc.title}" (ส่วนตัว)`,
+      tourId: id,
+    }).catch(() => {})
 
     return NextResponse.json(doc, { status: 201 })
   } catch (error) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@tripflow/database'
+import { db, logActivity } from '@tripflow/database'
 
 export async function GET(
   _req: NextRequest,
@@ -48,6 +48,14 @@ export async function POST(
         userId: body.userId || null,
       },
     })
+
+    logActivity({
+      action: 'document.add',
+      entity: 'Document',
+      entityId: doc.id,
+      description: `เพิ่มเอกสาร "${doc.title}"`,
+      tourId: id,
+    }).catch(() => {})
 
     return NextResponse.json(doc, { status: 201 })
   } catch (error) {
