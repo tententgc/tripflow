@@ -34,7 +34,7 @@ export async function POST(
       },
     })
 
-    logActivity({ action: 'activity.add', entity: 'Activity', entityId: activity.id, description: `เพิ่มกิจกรรม "${activity.title}"` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'activity.add', entity: 'Activity', entityId: activity.id, description: `เพิ่มกิจกรรม "${activity.title}"` }).catch(() => {})
 
     return NextResponse.json(activity, { status: 201 })
   } catch (error) {

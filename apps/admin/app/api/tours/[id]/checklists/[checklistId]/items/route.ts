@@ -25,7 +25,7 @@ export async function POST(
       },
     })
 
-    logActivity({ action: 'checklist.add', entity: 'ChecklistItem', entityId: item.id, description: `เพิ่มรายการเช็คลิสต์ "${item.label}"` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.add', entity: 'ChecklistItem', entityId: item.id, description: `เพิ่มรายการเช็คลิสต์ "${item.label}"` }).catch(() => {})
 
     return NextResponse.json(item, { status: 201 })
   } catch (error) {

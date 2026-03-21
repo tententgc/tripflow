@@ -15,7 +15,7 @@ export async function PATCH(
       include: { items: { orderBy: { order: 'asc' } } },
     })
 
-    logActivity({ action: 'checklist.update', entity: 'Checklist', entityId: checklistId, description: 'แก้ไขเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.update', entity: 'Checklist', entityId: checklistId, description: 'แก้ไขเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json(checklist)
   } catch (error) {
@@ -35,7 +35,7 @@ export async function DELETE(
     await db.checklistItem.deleteMany({ where: { checklistId } })
     await db.checklist.delete({ where: { id: checklistId } })
 
-    logActivity({ action: 'checklist.delete', entity: 'Checklist', entityId: checklistId, description: 'ลบเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'Checklist', entityId: checklistId, description: 'ลบเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

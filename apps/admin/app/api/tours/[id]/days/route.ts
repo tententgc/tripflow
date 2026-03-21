@@ -32,7 +32,7 @@ export async function POST(
       },
     })
 
-    logActivity({ action: 'day.add', entity: 'TourDay', entityId: day.id, description: `เพิ่มวันที่ ${day.dayNumber}`, tourId: id }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'day.add', entity: 'TourDay', entityId: day.id, description: `เพิ่มวันที่ ${day.dayNumber}`, tourId: id }).catch(() => {})
 
     return NextResponse.json(day, { status: 201 })
   } catch (error) {

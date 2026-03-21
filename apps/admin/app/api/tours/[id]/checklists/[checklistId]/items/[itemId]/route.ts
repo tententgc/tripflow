@@ -31,7 +31,7 @@ export async function DELETE(
     await db.checklistCheck.deleteMany({ where: { itemId } })
     await db.checklistItem.delete({ where: { id: itemId } })
 
-    logActivity({ action: 'checklist.delete', entity: 'ChecklistItem', entityId: itemId, description: 'ลบรายการเช็คลิสต์' }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'checklist.delete', entity: 'ChecklistItem', entityId: itemId, description: 'ลบรายการเช็คลิสต์' }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {

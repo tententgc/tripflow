@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    logActivity({ action: 'user.register', entity: 'User', entityId: user.id, description: `เพิ่มนักเดินทาง "${user.name}" (${user.email})` }).catch(() => {})
+    logActivity({ actorName: 'Admin', action: 'user.register', entity: 'User', entityId: user.id, description: `เพิ่มนักเดินทาง "${user.name}" (${user.email})` }).catch(() => {})
 
     return NextResponse.json(user, { status: 201 })
   } catch (error) {
