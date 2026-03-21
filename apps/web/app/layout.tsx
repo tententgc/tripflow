@@ -1,18 +1,10 @@
 import type { Metadata, Viewport } from 'next'
-import { Noto_Sans_Thai, Noto_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import './globals.css'
 
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ['thai'],
-  variable: '--font-noto-sans-thai',
-  weight: ['300', '400', '500', '600', '700'],
-  display: 'swap',
-})
-
-const notoSans = Noto_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-noto-sans',
-  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-inter',
   display: 'swap',
 })
 
@@ -20,6 +12,7 @@ export const metadata: Metadata = {
   title: 'TripFlow — ทริปของคุณ',
   description: 'แพลตฟอร์มบริหารทัวร์กลุ่มสำหรับนักเดินทางชาวไทย',
   manifest: '/manifest.json',
+  icons: { icon: '/favicon.svg' },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -40,16 +33,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#2563EB',
+  themeColor: '#6366F1',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="th" className={`${notoSansThai.variable} ${notoSans.variable}`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
-      <body className="font-thai bg-gray-50 antialiased">
+    <html lang="th" className={inter.variable}>
+      <body className="bg-gray-50 antialiased">
         {children}
       </body>
     </html>

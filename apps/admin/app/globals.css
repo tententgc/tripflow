@@ -3,6 +3,24 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-family:
+      var(--font-inter),
+      -apple-system,
+      BlinkMacSystemFont,
+      'SF Pro Text',
+      'SF Pro Thai',
+      'Segoe UI',
+      Roboto,
+      'Noto Sans Thai',
+      'Helvetica Neue',
+      Arial,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   * { min-height: 0; }
 
   button, a, [role="button"], [role="tab"], summary, label[for] {

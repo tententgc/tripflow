@@ -8,8 +8,18 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-noto-sans-thai)', 'var(--font-noto-sans)', 'sans-serif'],
-        thai: ['var(--font-noto-sans-thai)', 'sans-serif'],
+        sans: [
+          'var(--font-inter)',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'SF Pro Text',
+          'Segoe UI',
+          'Roboto',
+          'Noto Sans Thai',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
       },
       colors: {
         primary: {
