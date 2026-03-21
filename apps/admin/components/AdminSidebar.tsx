@@ -68,12 +68,17 @@ export default function AdminSidebar({ user }: Props) {
       {/* User + Logout */}
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center gap-3 px-3 py-2.5 mb-1">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
             {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="w-8 h-8 rounded-full object-cover" />
-            ) : (
-              <span className="text-blue-600 font-semibold text-sm">{user.name[0]}</span>
-            )}
+              <img
+                src={user.avatarUrl}
+                alt=""
+                className="w-8 h-8 rounded-full object-cover"
+                referrerPolicy="no-referrer"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden') }}
+              />
+            ) : null}
+            <span className={`text-blue-600 font-semibold text-sm ${user.avatarUrl ? 'hidden' : ''}`}>{user.name[0]}</span>
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>

@@ -83,13 +83,18 @@ export default async function HomePage() {
             <p className="text-white/50 text-xs mt-1">{tours.length} ทริป · {upcoming.length} กำลังจะมาถึง</p>
           </div>
           <a href="/profile" className="group">
-            {dbUser.avatarUrl ? (
-              <img src={dbUser.avatarUrl} alt="" className="w-12 h-12 rounded-2xl ring-2 ring-white/40 shadow-lg group-hover:ring-white/70 transition-all duration-300 group-hover:scale-105" />
-            ) : (
-              <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center ring-2 ring-white/30 shadow-lg border border-white/20 group-hover:ring-white/60 transition-all duration-300">
-                <span className="text-white font-bold text-lg">{dbUser.name[0]}</span>
-              </div>
-            )}
+            <div className="w-12 h-12 rounded-2xl ring-2 ring-white/40 shadow-lg group-hover:ring-white/70 transition-all duration-300 group-hover:scale-105 overflow-hidden bg-white/20 flex items-center justify-center border border-white/20">
+              {dbUser.avatarUrl && (
+                <img
+                  src={dbUser.avatarUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+              )}
+              {!dbUser.avatarUrl && <span className="text-white font-bold text-lg">{dbUser.name[0]}</span>}
+            </div>
           </a>
         </div>
       </div>
