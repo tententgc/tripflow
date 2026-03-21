@@ -17,7 +17,9 @@ export async function GET(
       },
       orderBy: { order: 'asc' },
     })
-    return NextResponse.json(checklists)
+    return NextResponse.json(checklists, {
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=300' },
+    })
   } catch (error) {
     console.error('Checklist GET error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })

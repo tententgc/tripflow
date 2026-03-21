@@ -62,7 +62,22 @@ nav a:hover {
   border-radius: 0.5rem;
 }
 
+/* Smooth page transitions */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.3s ease-out both;
+  }
+}
+
+/* Auto-animate page content */
+main > * {
+  animation: fadeInUp 0.25s ease-out both;
 }

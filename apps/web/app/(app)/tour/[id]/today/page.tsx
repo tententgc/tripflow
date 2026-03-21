@@ -185,8 +185,25 @@ export default function TodayPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gray-50 animate-pulse">
+        {/* TopBar skeleton */}
+        <div className="bg-gradient-to-br from-indigo-600 to-violet-700 px-4 pt-safe-top pb-5">
+          <div className="flex items-center gap-3 pt-4">
+            <div className="w-8 h-8 rounded-full bg-white/20" />
+            <div className="flex-1">
+              <div className="h-4 w-40 bg-white/30 rounded mb-1" />
+              <div className="h-3 w-28 bg-white/15 rounded" />
+            </div>
+            <div className="w-9 h-9 rounded-full bg-white/20" />
+          </div>
+        </div>
+
+        <div className="px-4 pt-4 space-y-3">
+          <div className="bg-white rounded-2xl p-4 h-16 border border-gray-100" />
+          <div className="bg-gradient-to-br from-indigo-500/20 to-violet-500/20 rounded-3xl h-44" />
+          <div className="bg-white rounded-3xl h-56 border border-gray-100" />
+          <div className="bg-white rounded-2xl h-24 border border-gray-100" />
+        </div>
       </div>
     )
   }
