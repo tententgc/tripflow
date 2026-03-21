@@ -30,7 +30,9 @@ export async function GET(
       },
       orderBy: { id: 'asc' },
     })
-    return NextResponse.json(documents)
+    return NextResponse.json(documents, {
+      headers: { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600' },
+    })
   } catch (error) {
     console.error('Documents GET error:', error)
     return NextResponse.json({ error: 'Database error' }, { status: 500 })
