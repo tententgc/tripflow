@@ -91,7 +91,7 @@ export function TopBar({
         <div className="relative flex-shrink-0" ref={menuRef}>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/40 hover:ring-white/70 transition-all flex items-center justify-center bg-white/20 shadow-lg"
+            className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-white/40 hover:ring-white/70 transition-[ring] flex items-center justify-center bg-white/20 shadow-lg no-btn-fx"
             aria-label="เมนูผู้ใช้"
           >
             {user?.avatarUrl ? (
