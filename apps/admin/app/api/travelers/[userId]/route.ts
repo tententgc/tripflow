@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const { userId } = await params
-    const body = await req.json() as { name?: string; nameEn?: string; phone?: string }
+    const body = await req.json() as { name?: string; nameEn?: string; phone?: string; passportNo?: string | null; passportExpiry?: string | null }
 
     const user = await db.user.update({
       where: { id: userId },
@@ -16,6 +16,8 @@ export async function PATCH(
         ...(body.name != null && { name: body.name }),
         ...(body.nameEn != null && { nameEn: body.nameEn }),
         ...(body.phone != null && { phone: body.phone }),
+        ...(body.passportNo !== undefined && { passportNo: body.passportNo }),
+        ...(body.passportExpiry !== undefined && { passportExpiry: body.passportExpiry ? new Date(body.passportExpiry) : null }),
       },
       include: {
         tourMembers: { include: { tour: { select: { id: true, title: true, startDate: true, endDate: true, primaryCountry: true, isChina: true, status: true } } } },
