@@ -395,21 +395,6 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
                 </div>
               </div>
 
-              {/* Passport */}
-              <div className="space-y-2.5">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">📘 พาสปอร์ต</p>
-                <div>
-                  <label className="text-[10px] text-gray-400 mb-0.5 block">เลขพาสปอร์ต</label>
-                  <input value={editPassportNo} onChange={(e) => setEditPassportNo(e.target.value)} placeholder="AB1234567"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
-                </div>
-                <div>
-                  <label className="text-[10px] text-gray-400 mb-0.5 block">วันหมดอายุ</label>
-                  <input type="date" value={editPassportExpiry} onChange={(e) => setEditPassportExpiry(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
-                </div>
-              </div>
-
               <button
                 onClick={saveEdit}
                 disabled={editSaving || !editName.trim()}
@@ -420,72 +405,70 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
 
               <div className="h-px bg-gray-100" />
 
-              {/* Assign tour */}
+              {/* Tour list + assign — FIRST */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">เพิ่มเข้าทัวร์</p>
-                {unassignedTours.length === 0 ? (
-                  <p className="text-xs text-gray-400">เข้าร่วมทุกทัวร์แล้ว</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">✈️ ทัวร์ที่เข้าร่วม ({selectedUser.tourMembers.length})</p>
+                {selectedUser.tourMembers.length === 0 ? (
+                  <p className="text-xs text-gray-400 mb-2">ยังไม่มีทัวร์</p>
                 ) : (
-                  <div className="space-y-2">
-                    <select
-                      value={assignTourId}
-                      onChange={(e) => setAssignTourId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                    >
+                  <div className="space-y-1.5 mb-3">
+                    {selectedUser.tourMembers.map((m) => (
+                      <div key={m.id} className="flex items-center gap-2 p-2.5 bg-indigo-50/50 rounded-xl border border-indigo-100/50">
+                        <span className="text-base">{countryFlags[m.tour.primaryCountry] ?? '🌍'}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-gray-800 truncate">{m.tour.title}</p>
+                          <p className="text-[10px] text-gray-400">
+                            {new Date(m.tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
+                          </p>
+                        </div>
+                        <button onClick={() => removeFromTour(m.tour.id)}
+                          className="text-gray-300 hover:text-red-500 transition-colors text-xs flex-shrink-0 p-1 rounded hover:bg-red-50">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {unassignedTours.length > 0 && (
+                  <div className="flex gap-2">
+                    <select value={assignTourId} onChange={(e) => setAssignTourId(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50">
                       <option value="">เลือกทัวร์...</option>
-                      {unassignedTours.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.title}
-                        </option>
-                      ))}
+                      {unassignedTours.map((t) => (<option key={t.id} value={t.id}>{t.title}</option>))}
                     </select>
-                    <button
-                      onClick={assignTour}
-                      disabled={assigning || !assignTourId}
-                      className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {assigning ? 'กำลังเพิ่ม...' : '+ เพิ่มเข้าทัวร์นี้'}
+                    <button onClick={assignTour} disabled={assigning || !assignTourId}
+                      className="px-3 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold hover:bg-indigo-700 disabled:opacity-40 transition-colors whitespace-nowrap">
+                      {assigning ? '...' : '+ เพิ่ม'}
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Tour list */}
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                  ทัวร์ที่เข้าร่วม ({selectedUser.tourMembers.length})
-                </p>
-                {selectedUser.tourMembers.length === 0 ? (
-                  <p className="text-xs text-gray-400">ยังไม่มีทัวร์</p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {selectedUser.tourMembers.map((m) => (
-                      <div key={m.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                        <span className="text-base">{countryFlags[m.tour.primaryCountry] ?? '🌍'}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-800 truncate">{m.tour.title}</p>
-                          <p className="text-xs text-gray-400">
-                            {new Date(m.tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => removeFromTour(m.tour.id)}
-                          className="text-gray-300 hover:text-red-500 transition-colors text-xs flex-shrink-0"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
+              <div className="h-px bg-gray-100" />
+
+              {/* Passport — SECOND */}
+              <div className="space-y-2.5">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">📘 พาสปอร์ต</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-gray-400 mb-0.5 block">เลขพาสปอร์ต</label>
+                    <input value={editPassportNo} onChange={(e) => setEditPassportNo(e.target.value)} placeholder="AB1234567"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
                   </div>
-                )}
+                  <div>
+                    <label className="text-[10px] text-gray-400 mb-0.5 block">หมดอายุ</label>
+                    <input type="date" value={editPassportExpiry} onChange={(e) => setEditPassportExpiry(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                  </div>
+                </div>
               </div>
+
+              <div className="h-px bg-gray-100" />
 
               {/* Delete */}
               <button
                 onClick={() => deleteTraveler(selectedUser.id)}
-                className="w-full py-2.5 border border-red-200 text-red-500 rounded-xl text-sm font-medium hover:bg-red-50 transition-colors"
+                className="w-full py-2 border border-red-200 text-red-500 rounded-xl text-xs font-medium hover:bg-red-50 transition-colors"
               >
-                ลบนักเดินทางนี้
+                🗑️ ลบนักเดินทางนี้
               </button>
             </div>
           </div>
