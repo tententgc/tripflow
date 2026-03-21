@@ -272,127 +272,56 @@ export default function TodayPage() {
         {/* Pre-trip: countdown + flights */}
         {isBeforeTrip && (
           <>
-            <div className="relative bg-gradient-to-br from-indigo-600 via-violet-500 to-fuchsia-500 rounded-3xl p-6 pb-5 text-white shadow-2xl overflow-hidden animate-slide-up delay-2 hover:shadow-[0_20px_60px_-15px_rgba(99,102,241,0.4)] transition-shadow duration-500">
-              {/* === Background decoration layer === */}
-              {/* Animated gradient orbs */}
-              <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-pink-400/20 blur-3xl animate-float" />
-              <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-cyan-400/15 blur-2xl animate-float-reverse" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 rounded-full bg-white/[0.03] blur-2xl" />
+            <div className="relative rounded-3xl overflow-hidden animate-slide-up delay-2" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)' }}>
+              {/* Soft ambient glow */}
+              <div className="absolute -top-20 -right-20 w-60 h-60 rounded-full bg-violet-500/30 blur-[80px] animate-float" />
+              <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-indigo-500/20 blur-[60px] animate-float-reverse" />
 
-              {/* Wave pattern at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 h-16 opacity-[0.06]">
-                <div className="animate-wave" style={{ width: '200%' }}>
-                  <svg viewBox="0 0 1200 60" className="w-full h-full" preserveAspectRatio="none">
-                    <path d="M0,30 C200,60 400,0 600,30 C800,60 1000,0 1200,30 C1400,60 1600,0 1800,30 C2000,60 2200,0 2400,30 V60 H0 Z" fill="white"/>
-                  </svg>
-                </div>
-              </div>
-
-              {/* Sparkle stars */}
-              <div className="absolute top-6 right-16 w-2 h-2 animate-sparkle" style={{ animationDelay: '0s' }}>
-                <svg viewBox="0 0 24 24" className="w-full h-full text-yellow-200" fill="currentColor">
-                  <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5Z"/>
-                </svg>
-              </div>
-              <div className="absolute top-14 right-8 w-1.5 h-1.5 animate-sparkle" style={{ animationDelay: '0.7s' }}>
-                <svg viewBox="0 0 24 24" className="w-full h-full text-pink-200" fill="currentColor">
-                  <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5Z"/>
-                </svg>
-              </div>
-              <div className="absolute bottom-14 right-24 w-1.5 h-1.5 animate-sparkle" style={{ animationDelay: '1.4s' }}>
-                <svg viewBox="0 0 24 24" className="w-full h-full text-cyan-200" fill="currentColor">
-                  <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5Z"/>
-                </svg>
-              </div>
-              <div className="absolute top-20 left-8 w-1 h-1 animate-sparkle" style={{ animationDelay: '2s' }}>
-                <svg viewBox="0 0 24 24" className="w-full h-full text-white/60" fill="currentColor">
-                  <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5Z"/>
-                </svg>
-              </div>
-
-              {/* Floating plane */}
-              <div className="absolute top-4 right-4 text-4xl opacity-20 animate-float" style={{ animationDuration: '6s' }}>
-                ✈️
-              </div>
-
-              {/* Orbiting dot */}
-              <div className="absolute top-8 right-8 w-0 h-0">
-                <div className="animate-orbit">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-300/70" />
-                </div>
-              </div>
-
-              {/* Drifting mini plane */}
-              <div className="absolute bottom-10 text-sm opacity-20 animate-drift-right" style={{ animationDelay: '3s' }}>
-                ✈
-              </div>
-
-              {/* Dot grid pattern */}
-              <svg className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <pattern id="countdown-dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="1" fill="white" />
-                  </pattern>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#countdown-dots)" />
-              </svg>
-
-              {/* === Content layer === */}
-              <div className="relative z-10">
-                {/* Header */}
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-sm border border-white/20">
-                    {countryFlags[tour.countries[0] ?? ''] ?? '🌍'}
+              {/* Glass card content */}
+              <div className="relative z-10 p-6">
+                {/* Top row */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-sm">
+                      {countryFlags[tour.countries[0] ?? ''] ?? '🌍'}
+                    </div>
+                    <p className="text-white/60 text-xs font-semibold tracking-wide">ออกเดินทางอีก</p>
                   </div>
-                  <p className="text-white/90 text-[11px] font-bold uppercase tracking-[0.15em]">ออกเดินทางอีก</p>
+                  <div className="text-3xl opacity-10 animate-float" style={{ animationDuration: '8s' }}>✈️</div>
                 </div>
 
-                {/* Big number */}
-                <div className="flex items-baseline gap-2 mt-4">
-                  <span
-                    className="text-7xl font-black tracking-tighter drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                    style={{
-                      fontFeatureSettings: '"tnum"',
-                      background: 'linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.7) 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                    }}
-                  >
+                {/* Number */}
+                <div className="mt-5 flex items-baseline gap-3">
+                  <span className="text-[5rem] font-black leading-none tracking-tighter text-white" style={{ fontFeatureSettings: '"tnum"' }}>
                     {daysUntilTrip}
                   </span>
-                  <span className="text-2xl font-semibold text-white/70 mb-2">วัน</span>
+                  <span className="text-xl font-medium text-white/40">วัน</span>
                 </div>
 
-                {/* Date line */}
-                <div className="mt-3 flex items-center gap-3">
-                  <div className="w-10 h-[1px] bg-gradient-to-r from-white/50 to-transparent" />
-                  <p className="text-white/70 text-xs font-medium">
-                    {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
-                </div>
+                {/* Date */}
+                <p className="text-white/50 text-sm mt-2">
+                  {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
 
-                {/* Progress bar */}
+                {/* Glass progress section */}
                 {(() => {
                   const totalDays = Math.max(1, Math.ceil((tripStart.getTime() - new Date(Date.now() - 30 * 86400000).getTime()) / 86400000))
                   const elapsed = totalDays - daysUntilTrip
                   const pct = Math.min(100, Math.max(5, (elapsed / totalDays) * 100))
                   return (
-                    <div className="mt-5">
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
-                        <div
-                          className="h-full rounded-full animate-progress-glow transition-all duration-1000"
-                          style={{
-                            width: `${pct}%`,
-                            background: 'linear-gradient(90deg, #fbbf24, #f97316, #ef4444)',
-                          }}
-                        />
-                      </div>
-                      <div className="flex justify-between mt-2">
-                        <p className="text-[10px] text-white/40 flex items-center gap-1">
-                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse" />
+                    <div className="mt-5 bg-white/[0.06] backdrop-blur-md rounded-2xl p-4 border border-white/[0.08]">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <p className="text-[11px] text-white/40 font-medium flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                           กำลังนับถอยหลัง
                         </p>
-                        <p className="text-[10px] text-white/40">{Math.round(pct)}%</p>
+                        <p className="text-[11px] text-white/30 font-mono">{Math.round(pct)}%</p>
+                      </div>
+                      <div className="h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000"
+                          style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #818cf8, #a78bfa, #c084fc)' }}
+                        />
                       </div>
                     </div>
                   )
