@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Metadata } from 'next'
 import SettingsClient from './SettingsClient'
+import StaffManager from './StaffManager'
 
 export const metadata: Metadata = { title: 'ตั้งค่า — TripFlow Admin' }
 
@@ -78,34 +79,14 @@ export default async function SettingsPage() {
           </div>
         )}
 
-        {/* Staff list */}
-        {operator && operator.staff.length > 0 && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center text-sm">👥</div>
-              <h2 className="font-bold text-gray-900 text-sm">ทีมผู้ดูแล ({operator.staff.length})</h2>
-            </div>
-            <div className="divide-y divide-gray-50">
-              {operator.staff.map(s => (
-                <div key={s.id} className="px-6 py-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600">
-                    {s.user.name[0]}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{s.user.name}</p>
-                    <p className="text-xs text-gray-400">{s.user.email}</p>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    s.role === 'OWNER' ? 'bg-amber-100 text-amber-700' :
-                    s.role === 'MANAGER' ? 'bg-blue-100 text-blue-700' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
-                    {s.role === 'OWNER' ? 'เจ้าของ' : s.role === 'MANAGER' ? 'ผู้จัดการ' : 'เจ้าหน้าที่'}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Staff management */}
+        {operator && (
+          <StaffManager initialStaff={operator.staff.map(s => ({
+            id: s.id,
+            role: s.role,
+            userName: s.user.name,
+            userEmail: s.user.email,
+          }))} />
         )}
 
         {/* System stats */}
