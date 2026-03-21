@@ -248,7 +248,6 @@ export default function TodayPage() {
         title={currentDay.title}
         subtitle={`${countryFlags[currentDay.country ?? ''] ?? '🌍'} ${currentDay.city ?? ''} · ${new Date(currentDay.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
         backHref="/home"
-        gradient={tour.isChina ? 'bg-gradient-to-br from-red-600 to-red-800' : undefined}
       />
 
       <div className="px-4 pt-4 space-y-4">

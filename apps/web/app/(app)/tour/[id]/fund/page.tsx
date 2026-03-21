@@ -196,7 +196,6 @@ export default function FundPage() {
       <TopBar
         title="กองกลาง"
         subtitle={fund ? `ยอดคงเหลือ ฿${fmt(fund.balance)}` : 'จัดการเงินกองกลางทริป'}
-        gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
       />
 
       {/* Tabs */}

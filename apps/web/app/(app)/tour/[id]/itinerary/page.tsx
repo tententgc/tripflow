@@ -53,7 +53,7 @@ export default function ItineraryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      <TopBar title="แผนเที่ยว" subtitle={tour?.title} backHref="/home" />
+      <TopBar title="แผนเที่ยว" subtitle={tour?.title ?? ''} backHref="/home" />
 
       <div className="px-4 py-4 space-y-3">
         {!tour?.days.length ? (
