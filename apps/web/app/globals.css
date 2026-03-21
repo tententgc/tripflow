@@ -60,122 +60,72 @@
 }
 
 /* ─────────────────────────────────────────────────────────
-   GLOBAL HOVER / ACTIVE EFFECTS
-   Written as raw CSS so they apply to existing markup
-   without having to touch every component file
+   GLOBAL HOVER / ACTIVE EFFECTS — Minimal Glassmorphism
 ───────────────────────────────────────────────────────── */
 
-/* ── 1. All <button> elements ───────────────────────────
-   Catches every button in the app regardless of className  */
-button:not(:disabled) {
-  transition: filter 150ms ease, transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
-}
-button:not(:disabled):hover {
-  filter: brightness(1.08);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-button:not(:disabled):active {
-  filter: brightness(0.96);
-  transform: translateY(0);
-  box-shadow: none;
+/* ── Universal transition for interactive elements */
+button, a, [role="button"] {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Opt-out: avatar / special buttons that shouldn't bounce or glow */
-button.no-btn-fx,
+/* ── Buttons — subtle lift */
+button:not(:disabled):not(.no-btn-fx):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+}
+button:not(:disabled):not(.no-btn-fx):active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ── Opt-out */
 button.no-btn-fx:hover,
 button.no-btn-fx:active {
-  filter: none !important;
   transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
-/* ── 2. Plain <a> links (nav items, back buttons, text links) */
-a {
-  transition: opacity 150ms ease, color 150ms ease, background-color 150ms ease;
-}
-a:hover {
-  opacity: 0.75;
-}
-a:active {
-  opacity: 0.55;
-}
+/* ── Links — fade, not opacity jump */
+a:hover { opacity: 0.85; }
+a:active { opacity: 0.7; }
 
-/* ── 3. Cards inside <a> — override opacity, use lift instead */
-a > div,
-a > article,
-a > section {
-  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+/* ── Cards inside links — glass lift */
+a > div, a > article {
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-a:hover > div,
-a:hover > article,
-a:hover > section {
-  opacity: 1; /* cancel parent opacity */
+a:hover > div, a:hover > article {
+  opacity: 1;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
 }
-a:active > div,
-a:active > article,
-a:active > section {
+a:active > div, a:active > article {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* ── 4. White cards that sit inside <a> get a bg tint on hover */
-a:hover > div.bg-white,
+/* ── Glass card hover tint */
 a:hover > div[class*="bg-white"] {
-  background-color: #f0f7ff !important;
+  background-color: rgba(238, 242, 255, 0.8) !important; /* indigo-50/80 */
 }
 
-/* ── 5. Bottom nav tabs */
-nav a {
-  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
-}
+/* ── Bottom nav */
+nav a { transition: all 200ms ease; }
 nav a:hover {
-  opacity: 1; /* cancel global a:hover opacity */
-  background-color: rgba(0, 0, 0, 0.04);
+  opacity: 1;
+  background-color: rgba(99, 102, 241, 0.06);
   border-radius: 0.75rem;
 }
-nav a:active {
-  transform: scale(0.90);
-  background-color: rgba(0, 0, 0, 0.08);
-}
+nav a:active { transform: scale(0.92); }
 
-/* ── 6. Pill / badge buttons (filter tabs, category chips) */
+/* ── Pill buttons */
 button[class*="rounded-full"]:not(:disabled):hover {
-  transform: scale(1.05) translateY(0);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transform: scale(1.03);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
 }
 
-/* ── 7. Icon buttons (circle action buttons) */
-button[class*="rounded-full"][class*="w-10"]:not(:disabled):hover,
-button[class*="rounded-full"][class*="w-12"]:not(:disabled):hover {
-  transform: scale(1.12) translateY(0);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
-}
-
-/* ── 8. Back / header action buttons with arrow/icon text */
-button[class*="text-gray"]:not(:disabled):hover {
-  color: #111827;
-  background-color: rgba(0, 0, 0, 0.06);
-  border-radius: 0.5rem;
-  filter: none;
-  transform: none;
-  box-shadow: none;
-}
-
-/* ── 9. List / menu rows (checklist items, member rows, etc.) */
-[role="button"],
-div[onclick] {
-  transition: background-color 150ms ease, transform 150ms ease;
-  cursor: pointer;
-}
-[role="button"]:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-[role="button"]:active {
-  background-color: rgba(0, 0, 0, 0.07);
-  transform: scale(0.99);
-}
+/* ── Interactive rows */
+[role="button"] { cursor: pointer; }
+[role="button"]:hover { background-color: rgba(99, 102, 241, 0.04); }
+[role="button"]:active { transform: scale(0.99); }
 
 /* ─────────────────────────────────────────────────────────
    COMPONENT CLASSES  (apply these in className for fine control)
