@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 interface Tour {
@@ -21,6 +21,15 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
   const [status, setStatus] = useState(tour.status)
   const [updating, setUpdating] = useState(false)
   const [open, setOpen] = useState(false)
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  useEffect(() => {
+    if (open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({ top: rect.bottom + 8, left: rect.left })
+    }
+  }, [open])
 
   const current = statusConfig[status] ?? statusConfig['DRAFT']!
 
@@ -47,6 +56,7 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
       {/* Status button */}
       <div className="relative">
         <button
+          ref={btnRef}
           onClick={() => setOpen(v => !v)}
           disabled={updating}
           className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold border transition-all duration-200 ${current.bg} ${current.text} ${current.border} hover:shadow-md disabled:opacity-50`}
@@ -62,7 +72,10 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="absolute left-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            <div
+              className="fixed w-48 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50"
+              style={{ top: pos.top, left: pos.left }}
+            >
               {Object.entries(statusConfig).map(([value, cfg]) => (
                 <button
                   key={value}
