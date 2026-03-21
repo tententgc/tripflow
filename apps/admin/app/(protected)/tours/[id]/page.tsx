@@ -231,9 +231,9 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
           ทัวร์ทั้งหมด
         </a>
 
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-visible relative">
           {/* Top accent */}
-          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+          <div className="h-1.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 rounded-t-2xl" />
 
           <div className="p-6">
             <div className="flex items-start justify-between">
