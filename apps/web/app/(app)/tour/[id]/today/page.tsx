@@ -258,7 +258,7 @@ export default function TodayPage() {
             <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
               <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
               <span className="text-white/80 text-[11px] font-medium bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 border border-white/10">
-                🧳 เตรียมตัวเดินทาง
+                เตรียมตัวเดินทาง
               </span>
             </div>
 
@@ -328,7 +328,7 @@ export default function TodayPage() {
 
             {tour.flights.length > 0 && (
               <div className="space-y-3 animate-slide-up delay-3">
-                <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">✈️ เที่ยวบิน ({tour.flights.length})</p>
+                <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">เที่ยวบิน ({tour.flights.length})</p>
                 {tour.flights.map((f) => {
                     const depart = new Date(f.departAt)
                     const arrive = new Date(f.arriveAt)
@@ -409,7 +409,7 @@ export default function TodayPage() {
         {/* Guide + contacts */}
         {(guide || tour.contacts.length > 0) && (
           <div className="space-y-3 animate-slide-up delay-4">
-            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">📋 ผู้ติดต่อ ({tour.contacts.length})</p>
+            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">ผู้ติดต่อ ({tour.contacts.length})</p>
             {tour.contacts.map((c) => {
               const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : '👤'
               const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'
@@ -505,7 +505,7 @@ export default function TodayPage() {
         {/* Before trip: Preparation checklist / During trip: Today's activities */}
         {isBeforeTrip && checklists.length > 0 ? (
           <div className="space-y-3 animate-slide-up delay-5">
-            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">✅ เตรียมตัวก่อนออกเดินทาง</p>
+            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">เตรียมตัวก่อนออกเดินทาง</p>
             {checklists.map(cl => {
               const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
               const totalCount = cl.items.length
