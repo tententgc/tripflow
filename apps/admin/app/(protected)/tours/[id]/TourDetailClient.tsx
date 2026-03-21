@@ -27,7 +27,9 @@ export default function TourDetailClient({ tour }: { tour: Tour }) {
   useEffect(() => {
     if (open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
-      setPos({ top: rect.bottom + 8, left: rect.left })
+      const dropdownWidth = 192 // w-48
+      const left = Math.min(rect.left, window.innerWidth - dropdownWidth - 16)
+      setPos({ top: rect.bottom + 8, left: Math.max(16, left) })
     }
   }, [open])
 
