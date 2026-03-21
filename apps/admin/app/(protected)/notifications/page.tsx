@@ -97,33 +97,47 @@ export default async function NotificationsPage() {
                 <div className="h-px flex-1 bg-gray-200" />
               </div>
 
-              <div className="space-y-1">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
                 {dateLogs.map((log) => {
                   const cfg = actionIcons[log.action] ?? { icon: '📌', color: 'bg-gray-100 text-gray-600' }
+                  const isDelete = log.action.includes('delete')
+                  const isAdd = log.action.includes('add') || log.action.includes('create') || log.action.includes('register')
                   return (
-                    <div key={log.id} className="flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors group">
-                      <div className={`w-9 h-9 rounded-xl ${cfg.color} flex items-center justify-center flex-shrink-0 text-base`}>
+                    <div key={log.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/50 transition-colors group">
+                      {/* Icon */}
+                      <div className={`w-10 h-10 rounded-xl ${cfg.color} flex items-center justify-center flex-shrink-0 text-lg`}>
                         {cfg.icon}
                       </div>
+
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800">{log.description}</p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          {log.actorName && (
-                            <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <span>👤</span> {log.actorName}
-                            </span>
-                          )}
-                          {log.tourId && tourMap[log.tourId] && (
-                            <a href={`/tours/${log.tourId}`} className="text-[10px] font-semibold text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full flex items-center gap-1 hover:bg-violet-100 transition-colors">
-                              <span>🗺️</span> {tourMap[log.tourId]}
-                            </a>
-                          )}
-                          <span className="text-[10px] text-gray-300">{log.action}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Actor */}
+                          <span className={`text-[11px] font-bold ${log.actorName === 'Admin' ? 'text-orange-600' : 'text-indigo-600'}`}>
+                            {log.actorName ?? 'System'}
+                          </span>
+                          {/* Action verb */}
+                          <span className="text-[11px] text-gray-500">{log.description.replace(/\[.*\]$/, '').trim()}</span>
                         </div>
+                        {/* Tour badge */}
+                        {log.tourId && tourMap[log.tourId] && (
+                          <a href={`/tours/${log.tourId}`} className="inline-flex items-center gap-1 text-[10px] font-medium text-violet-600 hover:text-violet-800 mt-0.5 transition-colors">
+                            🗺️ {tourMap[log.tourId]}
+                          </a>
+                        )}
                       </div>
-                      <span className="text-[10px] text-gray-300 flex-shrink-0 mt-1 group-hover:text-gray-400 transition-colors">
-                        {getTimeAgo(new Date(log.createdAt))}
-                      </span>
+
+                      {/* Time + action type */}
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-[10px] text-gray-400 group-hover:text-gray-500 transition-colors">
+                          {getTimeAgo(new Date(log.createdAt))}
+                        </p>
+                        <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded mt-0.5 inline-block ${
+                          isDelete ? 'bg-red-50 text-red-400' : isAdd ? 'bg-green-50 text-green-500' : 'bg-gray-50 text-gray-300'
+                        }`}>
+                          {log.action}
+                        </span>
+                      </div>
                     </div>
                   )
                 })}
