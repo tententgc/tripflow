@@ -251,26 +251,20 @@ export default function TodayPage() {
       />
 
       <div className="px-4 pt-4 space-y-4">
-        {/* Tour info card */}
-        <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl p-4 shadow-sm animate-slide-up delay-1 text-white">
-          <p className="font-semibold text-[15px]">{tour.title}</p>
-          <div className="flex items-center gap-3 mt-2 text-xs text-white/60">
-            <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''}</span>
-            <span>·</span>
-            <span>{tour.days.length} วัน</span>
-            <span>·</span>
-            <span>{tour.members.length} คน</span>
-            <span className="ml-auto text-white/90 font-semibold text-[11px] bg-white/15 px-2 py-0.5 rounded-full">
-              วันที่ {currentDay.dayNumber}/{tour.days.length}
-            </span>
-          </div>
-        </div>
+        {/* Tour info + countdown — merged */}
+        {isBeforeTrip ? (
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden animate-slide-up delay-1">
+            {/* Tour title bar — indigo accent */}
+            <div className="bg-indigo-600 px-5 py-3 flex items-center justify-between">
+              <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
+              <span className="text-white/70 text-[11px] font-medium bg-white/15 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
+                วันที่ {currentDay.dayNumber}/{tour.days.length}
+              </span>
+            </div>
 
-        {/* Pre-trip: countdown + flights */}
-        {isBeforeTrip && (
-          <>
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-5 shadow-sm border border-indigo-100/50 animate-slide-up delay-2">
-              <div className="flex items-start justify-between">
+            {/* Countdown */}
+            <div className="p-5">
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-indigo-500 tracking-wide">ออกเดินทางอีก</p>
                   <div className="mt-2 flex items-baseline gap-1.5">
@@ -279,13 +273,19 @@ export default function TodayPage() {
                     </span>
                     <span className="text-base font-medium text-gray-300">วัน</span>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'short' })}
-                  </p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-2xl flex-shrink-0">
                   {countryFlags[tour.countries[0] ?? ''] ?? '🌍'}
                 </div>
+              </div>
+
+              {/* Info row */}
+              <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
+                <span>{new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                <span>·</span>
+                <span>{tour.days[0]?.city ?? ''}</span>
+                <span>·</span>
+                <span>{tour.members.length} คน</span>
               </div>
 
               {/* Progress */}
@@ -302,6 +302,29 @@ export default function TodayPage() {
                 )
               })()}
             </div>
+          </div>
+        ) : (
+          /* During trip — just tour info */
+          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden animate-slide-up delay-1">
+            <div className="bg-indigo-600 px-5 py-3 flex items-center justify-between">
+              <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
+              <span className="text-white/70 text-[11px] font-medium bg-white/15 px-2 py-0.5 rounded-full flex-shrink-0 ml-2">
+                วันที่ {currentDay.dayNumber}/{tour.days.length}
+              </span>
+            </div>
+            <div className="px-5 py-3 flex items-center gap-3 text-xs text-gray-400">
+              <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''}</span>
+              <span>·</span>
+              <span>{tour.days.length} วัน</span>
+              <span>·</span>
+              <span>{tour.members.length} คน</span>
+            </div>
+          </div>
+        )}
+
+        {/* Pre-trip: flights */}
+        {isBeforeTrip && (
+          <>
 
             {tour.flights.length > 0 && (
               <div className="space-y-3 animate-slide-up delay-3">
@@ -373,7 +396,7 @@ export default function TodayPage() {
                           <span>{depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
                           {f.terminal && <><span>·</span><span>Terminal {f.terminal}</span></>}
                           {f.gate && <><span>·</span><span>Gate {f.gate}</span></>}
-                          <span className="ml-auto text-gray-300">{departUtc} → {arriveUtc}</span>
+                          <span className="ml-auto text-gray-500">{departUtc} → {arriveUtc}</span>
                         </div>
                       </div>
                     )
