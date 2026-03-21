@@ -25,6 +25,7 @@ interface Traveler {
   email: string
   phone: string | null
   avatarUrl: string | null
+  passportNo: string | null
   passportExpiry: string | Date | null
   createdAt: string | Date
   tourMembers: TourMembership[]
@@ -66,6 +67,8 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
   const [editName, setEditName] = useState('')
   const [editNameEn, setEditNameEn] = useState('')
   const [editPhone, setEditPhone] = useState('')
+  const [editPassportNo, setEditPassportNo] = useState('')
+  const [editPassportExpiry, setEditPassportExpiry] = useState('')
   const [editSaving, setEditSaving] = useState(false)
 
   // Assign tour state
@@ -83,6 +86,8 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
     setEditName(user.name)
     setEditNameEn(user.nameEn ?? '')
     setEditPhone(user.phone ?? '')
+    setEditPassportNo(user.passportNo ?? '')
+    setEditPassportExpiry(user.passportExpiry ? new Date(user.passportExpiry).toISOString().slice(0, 10) : '')
     setAssignTourId('')
   }
 
@@ -112,7 +117,13 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
     const res = await fetch(`/api/travelers/${selectedUser.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: editName.trim(), nameEn: editNameEn.trim() || null, phone: editPhone.trim() || null }),
+      body: JSON.stringify({
+        name: editName.trim(),
+        nameEn: editNameEn.trim() || null,
+        phone: editPhone.trim() || null,
+        passportNo: editPassportNo.trim() || null,
+        passportExpiry: editPassportExpiry ? new Date(editPassportExpiry).toISOString() : null,
+      }),
     })
     if (res.ok) {
       const updated = await res.json() as Traveler
@@ -342,56 +353,72 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
       {/* Right — detail panel */}
       {selectedUser && (
         <div className="w-80 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm sticky top-8 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-lg sticky top-8 overflow-hidden">
             {/* Header */}
-            <div className="bg-blue-600 p-5 text-white">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium opacity-80">รายละเอียด</span>
-                <button onClick={() => setSelectedUser(null)} className="text-white/60 hover:text-white text-lg leading-none">✕</button>
+            <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white relative overflow-hidden">
+              <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10 blur-xl" />
+              <div className="relative flex items-center justify-between mb-3">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">รายละเอียดนักเดินทาง</span>
+                <button onClick={() => setSelectedUser(null)} className="w-6 h-6 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-xs transition-colors">✕</button>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold">
+              <div className="relative flex items-center gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-lg font-bold overflow-hidden border border-white/20">
                   {selectedUser.avatarUrl
-                    ? <img src={selectedUser.avatarUrl} className="w-12 h-12 rounded-full object-cover" alt="" />
-                    : selectedUser.name[0]}
+                    ? <img src={selectedUser.avatarUrl} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+                    : <span className="text-xl">{selectedUser.name[0]}</span>}
                 </div>
                 <div>
-                  <p className="font-bold">{selectedUser.name}</p>
-                  <p className="text-blue-200 text-xs">{selectedUser.email}</p>
+                  <p className="font-bold text-lg leading-tight">{selectedUser.name}</p>
+                  <p className="text-white/60 text-xs mt-0.5">{selectedUser.email}</p>
                 </div>
               </div>
             </div>
 
             <div className="p-4 space-y-4">
               {/* Edit info */}
-              <div className="space-y-2">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">แก้ไขข้อมูล</p>
-                <input
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  placeholder="ชื่อ-นามสกุล ภาษาไทย"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  value={editNameEn}
-                  onChange={(e) => setEditNameEn(e.target.value)}
-                  placeholder="ชื่อภาษาอังกฤษ"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <input
-                  value={editPhone}
-                  onChange={(e) => setEditPhone(e.target.value)}
-                  placeholder="เบอร์โทรศัพท์"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  onClick={saveEdit}
-                  disabled={editSaving || !editName.trim()}
-                  className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {editSaving ? 'กำลังบันทึก...' : 'บันทึก'}
-                </button>
+              <div className="space-y-2.5">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ข้อมูลส่วนตัว</p>
+                <div>
+                  <label className="text-[10px] text-gray-400 mb-0.5 block">ชื่อ (ไทย)</label>
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="ชื่อ-นามสกุล"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 mb-0.5 block">ชื่อ (EN)</label>
+                  <input value={editNameEn} onChange={(e) => setEditNameEn(e.target.value)} placeholder="English name"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 mb-0.5 block">เบอร์โทร</label>
+                  <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="+66-81-000-0000"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                </div>
               </div>
+
+              {/* Passport */}
+              <div className="space-y-2.5">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">📘 พาสปอร์ต</p>
+                <div>
+                  <label className="text-[10px] text-gray-400 mb-0.5 block">เลขพาสปอร์ต</label>
+                  <input value={editPassportNo} onChange={(e) => setEditPassportNo(e.target.value)} placeholder="AB1234567"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 mb-0.5 block">วันหมดอายุ</label>
+                  <input type="date" value={editPassportExpiry} onChange={(e) => setEditPassportExpiry(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50/50" />
+                </div>
+              </div>
+
+              <button
+                onClick={saveEdit}
+                disabled={editSaving || !editName.trim()}
+                className="w-full py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {editSaving ? 'กำลังบันทึก...' : '💾 บันทึกข้อมูล'}
+              </button>
+
+              <div className="h-px bg-gray-100" />
 
               {/* Assign tour */}
               <div>
