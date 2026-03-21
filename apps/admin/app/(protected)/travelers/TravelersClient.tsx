@@ -181,16 +181,19 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
       {/* Left — list */}
       <div className="flex-1 min-w-0">
         {/* Toolbar */}
-        <div className="flex gap-3 mb-4">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ค้นหาชื่อ อีเมล เบอร์โทร..."
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+        <div className="flex gap-3 mb-5">
+          <div className="flex-1 relative">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 text-sm">🔍</span>
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ค้นหาชื่อ อีเมล เบอร์โทร..."
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-300 bg-gray-50/50"
+            />
+          </div>
           <button
             onClick={() => setShowAddForm(true)}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 whitespace-nowrap"
+            className="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 shadow-sm hover:shadow-md transition-all whitespace-nowrap"
           >
             + เพิ่มนักเดินทาง
           </button>
@@ -258,88 +261,82 @@ export default function TravelersClient({ initialUsers, allTours }: Props) {
           </div>
         )}
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {filtered.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-4xl mb-3">👥</p>
-              <p className="text-gray-500 font-medium">ไม่พบนักเดินทาง</p>
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 text-xs text-gray-500 font-medium">
-                  <th className="px-5 py-3 text-left">นักเดินทาง</th>
-                  <th className="px-5 py-3 text-left">ทัวร์ที่เข้าร่วม</th>
-                  <th className="px-5 py-3 text-left">พาสปอร์ต</th>
-                  <th className="px-5 py-3 text-right">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.map((user) => {
-                  const expiring = passportExpiringSoon(user.passportExpiry)
-                  const isSelected = selectedUser?.id === user.id
-                  return (
-                    <tr
-                      key={user.id}
-                      onClick={() => openDetail(user)}
-                      className={`cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+        {/* Cards */}
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 text-center">
+            <p className="text-4xl mb-3">👥</p>
+            <p className="text-gray-500 font-medium">ไม่พบนักเดินทาง</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {filtered.map((user) => {
+              const expiring = passportExpiringSoon(user.passportExpiry)
+              const isSelected = selectedUser?.id === user.id
+              return (
+                <div
+                  key={user.id}
+                  onClick={() => openDetail(user)}
+                  className={`bg-white rounded-2xl border shadow-sm p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+                    isSelected ? 'border-indigo-300 ring-2 ring-indigo-100' : 'border-gray-100 hover:border-indigo-200'
+                  }`}
+                >
+                  {/* User info */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-11 h-11 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {user.avatarUrl
+                        ? <img src={user.avatarUrl} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+                        : <span className="text-sm font-bold text-indigo-600">{user.name[0]}</span>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 text-sm truncate">{user.name}</p>
+                      <p className="text-xs text-gray-400 truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); deleteTraveler(user.id) }}
+                      className="text-gray-200 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 flex-shrink-0"
+                      title="ลบ"
                     >
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-gray-600">
-                            {user.avatarUrl
-                              ? <img src={user.avatarUrl} className="w-8 h-8 rounded-full object-cover" alt="" />
-                              : user.name[0]}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{user.name}</p>
-                            <p className="text-xs text-gray-400">{user.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex flex-wrap gap-1">
-                          {user.tourMembers.length === 0 ? (
-                            <span className="text-gray-400 text-xs">ยังไม่มีทัวร์</span>
-                          ) : (
-                            user.tourMembers.slice(0, 2).map((m) => (
-                              <span key={m.id} className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
-                                <span>{countryFlags[m.tour.primaryCountry] ?? '🌍'}</span>
-                                <span className="max-w-[100px] truncate">{m.tour.title}</span>
-                              </span>
-                            ))
-                          )}
-                          {user.tourMembers.length > 2 && (
-                            <span className="text-xs text-gray-400">+{user.tourMembers.length - 2}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 text-xs">
-                        {user.passportExpiry ? (
-                          <span className={expiring ? 'text-red-500 font-medium' : 'text-gray-500'}>
-                            {expiring ? '⚠️ ' : ''}
-                            {new Date(user.passportExpiry).toLocaleDateString('th-TH')}
+                      🗑️
+                    </button>
+                  </div>
+
+                  {/* Tours */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {user.tourMembers.length === 0 ? (
+                      <span className="text-gray-300 text-xs italic">ยังไม่มีทัวร์</span>
+                    ) : (
+                      <>
+                        {user.tourMembers.slice(0, 2).map((m) => (
+                          <span key={m.id} className="inline-flex items-center gap-1 text-[11px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-medium">
+                            <span>{countryFlags[m.tour.primaryCountry] ?? '🌍'}</span>
+                            <span className="max-w-[90px] truncate">{m.tour.title}</span>
                           </span>
-                        ) : (
-                          <span className="text-gray-300">—</span>
+                        ))}
+                        {user.tourMembers.length > 2 && (
+                          <span className="text-[11px] text-gray-400 self-center">+{user.tourMembers.length - 2}</span>
                         )}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); deleteTraveler(user.id) }}
-                          className="text-gray-300 hover:text-red-500 transition-colors text-xs px-2 py-1 rounded hover:bg-red-50"
-                        >
-                          ลบ
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Passport + phone */}
+                  <div className="flex items-center gap-3 pt-2 border-t border-gray-50 text-xs">
+                    {user.passportExpiry ? (
+                      <span className={`flex items-center gap-1 ${expiring ? 'text-red-500 font-semibold' : 'text-gray-400'}`}>
+                        {expiring ? '⚠️' : '📘'} {new Date(user.passportExpiry).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
+                      </span>
+                    ) : (
+                      <span className="text-gray-200 text-[10px]">ไม่มีพาสปอร์ต</span>
+                    )}
+                    {user.phone && (
+                      <span className="text-gray-400 ml-auto">📞 {user.phone}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Right — detail panel */}
