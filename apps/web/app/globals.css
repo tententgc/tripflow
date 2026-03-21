@@ -49,8 +49,9 @@
   }
 
   /* cursor on everything clickable */
-  button, a, [role="button"], [role="tab"], summary, label[for] {
-    cursor: pointer;
+  button, a, [role="button"], [role="tab"], summary, label[for],
+  [onclick], [class*="cursor-pointer"], select, input[type="checkbox"], input[type="radio"] {
+    cursor: pointer !important;
     -webkit-tap-highlight-color: transparent;
   }
 
