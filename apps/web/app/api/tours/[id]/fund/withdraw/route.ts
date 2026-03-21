@@ -64,7 +64,7 @@ export async function POST(
       },
     })
 
-    logActivity({ action: 'fund.withdraw', entity: 'FundTransaction', description: 'ถอนเงินจากกองกลาง', tourId: id }).catch(() => {})
+    logActivity({ action: 'fund.withdraw', entity: 'FundTransaction', description: 'ถอนเงินจากกองกลาง', actorId: me.id, actorName: me.name, tourId: id }).catch(() => {})
 
     return NextResponse.json({ transaction: tx, fund: updated })
   } catch (err) {

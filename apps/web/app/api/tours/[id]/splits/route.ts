@@ -79,6 +79,8 @@ export async function POST(
     entity: 'Expense',
     entityId: expense.id,
     description: `สร้างรายการหารค่าใช้จ่าย "${expense.title}"`,
+    actorId: me.id,
+    actorName: me.name,
     tourId: id,
   }).catch(() => {})
 

@@ -48,7 +48,8 @@ export async function POST(
       })
     }
 
-    logActivity({ action: 'checklist.check', entity: 'ChecklistCheck', description: checked ? 'ติ๊กเช็คลิสต์' : 'ยกเลิกติ๊กเช็คลิสต์', actorId: userId, tourId: id }).catch(() => {})
+    const actor = await db.user.findUnique({ where: { id: userId }, select: { name: true } })
+    logActivity({ action: 'checklist.check', entity: 'ChecklistCheck', description: checked ? 'ติ๊กเช็คลิสต์' : 'ยกเลิกติ๊กเช็คลิสต์', actorId: userId, ...(actor?.name ? { actorName: actor.name } : {}), tourId: id }).catch(() => {})
 
     return NextResponse.json({ success: true })
   } catch (error) {
