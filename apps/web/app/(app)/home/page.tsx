@@ -49,30 +49,45 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20">
-      {/* Header — glass style */}
-      <div className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 pt-safe-top">
-        <div className="flex items-center justify-between py-5 max-w-5xl mx-auto">
-          <div>
-            <p className="text-gray-400 text-xs font-medium">สวัสดี,</p>
-            <h1 className="text-xl font-bold text-gray-900 mt-0.5">{dbUser.name}</h1>
-          </div>
-          <a href="/profile">
-            <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-50 flex items-center justify-center">
-              {dbUser.avatarUrl ? (
-                <img src={dbUser.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-              ) : (
-                <span className="text-indigo-600 font-bold text-sm">{dbUser.name[0]}</span>
-              )}
+      {/* Header with gradient accent */}
+      <div className="relative">
+        <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
+        <div className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 pt-safe-top">
+          <div className="flex items-center justify-between py-5 max-w-5xl mx-auto">
+            <div>
+              <p className="text-gray-400 text-xs font-medium">สวัสดี,</p>
+              <h1 className="text-xl font-bold text-gray-900 mt-0.5">{dbUser.name}</h1>
             </div>
-          </a>
+            <a href="/profile">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-indigo-50 flex items-center justify-center border border-indigo-100">
+                {dbUser.avatarUrl ? (
+                  <img src={dbUser.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <span className="text-indigo-600 font-bold text-sm">{dbUser.name[0]}</span>
+                )}
+              </div>
+            </a>
+          </div>
         </div>
       </div>
 
       <div className="px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full">
+        {/* Quick stats */}
+        <div className="flex gap-3 mb-6">
+          <div className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-gray-100/60">
+            <p className="text-3xl font-black text-indigo-600">{upcoming.length}</p>
+            <p className="text-xs text-gray-400 mt-0.5">ทริปที่กำลังจะมาถึง</p>
+          </div>
+          <div className="flex-1 bg-white/80 backdrop-blur-xl rounded-2xl p-4 border border-gray-100/60">
+            <p className="text-3xl font-black text-gray-900">{tours.length}</p>
+            <p className="text-xs text-gray-400 mt-0.5">ทริปทั้งหมด</p>
+          </div>
+        </div>
+
         {/* Section title */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-bold text-gray-900 text-lg">ทริปของฉัน</h2>
-          <span className="text-xs text-gray-400">{upcoming.length} กำลังจะมาถึง</span>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-gray-900 text-[15px]">ทริปของฉัน</h2>
+          <div className="h-[1px] flex-1 mx-4 bg-gradient-to-r from-indigo-200 via-violet-200 to-transparent" />
         </div>
 
         {tours.length === 0 ? (
@@ -96,7 +111,7 @@ export default async function HomePage() {
                   className="flex group"
                 >
                   <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 overflow-hidden flex flex-col w-full
-                    transition-all duration-200 hover:shadow-md hover:border-indigo-200/60">
+                    transition-all duration-200 hover:shadow-md hover:border-indigo-200/60 ring-1 ring-transparent hover:ring-indigo-100">
                     {/* Cover */}
                     <div className="aspect-[16/9] bg-gradient-to-br from-indigo-100 to-violet-100 relative flex-shrink-0 overflow-hidden">
                       {tour.coverImageUrl && (
