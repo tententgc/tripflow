@@ -69,6 +69,7 @@ export default function DocumentsManager({
   const [docs, setDocs] = useState<DocItem[]>(initialDocuments)
   const [adding, setAdding] = useState<string | null>(null) // null=not adding, ''=group, 'userId'=personal
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [docTab, setDocTab] = useState<'group' | 'personal'>('group')
   const [form, setForm] = useState<FormState>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -341,188 +342,128 @@ export default function DocumentsManager({
     byMember.set(uid, arr)
   }
 
+  // All members list for personal tab (with and without docs)
+  const allMembers = members.map(m => ({
+    ...m,
+    docs: byMember.get(m.userId) ?? [],
+  }))
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-gray-900">เอกสาร / ตั๋ว ({docs.length})</h2>
+    <div className="space-y-4">
+      <h2 className="font-semibold text-gray-900">เอกสาร / ตั๋ว ({docs.length})</h2>
+
+      {/* Sub-tabs */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+        <button
+          onClick={() => { setDocTab('group'); setAdding(null); setEditingId(null) }}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+            docTab === 'group' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          📂 เอกสารรวม ({groupDocs.length})
+        </button>
+        <button
+          onClick={() => { setDocTab('personal'); setAdding(null); setEditingId(null) }}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+            docTab === 'personal' ? 'bg-white text-orange-700 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          👤 รายบุคคล ({personalDocs.length})
+        </button>
       </div>
 
-      {docs.length === 0 && !adding && (
-        <div className="bg-white rounded-2xl p-8 text-center border border-gray-100">
-          <p className="text-3xl mb-2">🎫</p>
-          <p className="text-gray-600 font-medium">ยังไม่มีเอกสาร</p>
-          <p className="text-gray-400 text-sm mt-1">เพิ่มตั๋ว เวาเชอร์ หรือเอกสารสำหรับทัวร์นี้</p>
-        </div>
-      )}
+      {/* ═══ GROUP TAB ═══ */}
+      {docTab === 'group' && (
+        <div className="space-y-2">
+          <p className="text-[10px] text-blue-500 font-medium px-1">นักเดินทางทุกคนเห็นเอกสารในส่วนนี้</p>
 
-      {/* ═══ Group documents ═══ */}
-      {groupDocs.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex items-center gap-2">
-            <span className="text-base">📂</span>
-            <h3 className="text-sm font-bold text-blue-800">เอกสารรวม</h3>
-            <span className="text-[10px] bg-blue-200/60 text-blue-700 px-2 py-0.5 rounded-full font-semibold">{groupDocs.length}</span>
-            <p className="text-[10px] text-blue-500 ml-auto">ทุกคนเห็น</p>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {groupDocs.map(doc => {
-              if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
-              const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
-              return (
-                <button
-                  key={doc.id}
-                  onClick={() => startEdit(doc)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50/50 transition-colors"
-                >
-                  <span className="text-xl">{cfg.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
-                    <div className="flex gap-2 mt-0.5">
-                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">{cfg.label}</span>
-                      {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
-                      {doc.qrData && <span className="text-[10px] text-gray-400">⬛ QR</span>}
-                    </div>
+          {groupDocs.length === 0 && adding !== '' && (
+            <div className="bg-blue-50/50 rounded-2xl p-6 text-center border border-blue-100">
+              <p className="text-2xl mb-2">📂</p>
+              <p className="text-gray-500 text-sm">ยังไม่มีเอกสารรวม</p>
+            </div>
+          )}
+
+          {groupDocs.map(doc => {
+            if (editingId === doc.id) return <div key={doc.id}>{renderEditForm()}</div>
+            const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
+            return (
+              <button key={doc.id} onClick={() => startEdit(doc)}
+                className="w-full bg-white rounded-xl border border-gray-100 shadow-sm flex items-center gap-3 px-4 py-3 text-left hover:border-blue-200 hover:shadow-md transition-all">
+                <span className="text-xl">{cfg.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
+                  <div className="flex gap-2 mt-0.5">
+                    <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-full font-medium">{cfg.label}</span>
+                    {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? '📄 PDF' : '📎 ไฟล์'}</span>}
+                    {doc.qrData && <span className="text-[10px] text-gray-400">⬛ QR</span>}
                   </div>
-                  <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Add group doc button */}
-          {adding === '' ? (
-            <div className="p-3">{renderAddForm('เพิ่มเอกสารรวม (ทุกคนเห็น)', 'blue')}</div>
-          ) : (
-            <button
-              onClick={() => { setAdding(''); setForm({ ...emptyForm, userId: '' }); setEditingId(null) }}
-              className="w-full py-2.5 text-blue-500 text-xs font-medium hover:bg-blue-50 transition-colors border-t border-blue-100"
-            >
-              + เพิ่มเอกสารรวม
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* No group docs yet — still show add button */}
-      {groupDocs.length === 0 && (
-        <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex items-center gap-2">
-            <span className="text-base">📂</span>
-            <h3 className="text-sm font-bold text-blue-800">เอกสารรวม</h3>
-            <p className="text-[10px] text-blue-500 ml-auto">ทุกคนเห็น</p>
-          </div>
-          {adding === '' ? (
-            <div className="p-3">{renderAddForm('เพิ่มเอกสารรวม (ทุกคนเห็น)', 'blue')}</div>
-          ) : (
-            <button
-              onClick={() => { setAdding(''); setForm({ ...emptyForm, userId: '' }); setEditingId(null) }}
-              className="w-full py-3 text-blue-500 text-xs font-medium hover:bg-blue-50 transition-colors"
-            >
-              + เพิ่มเอกสารรวม
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* ═══ Personal documents by member ═══ */}
-      {personalDocs.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-base">👤</span>
-            <h3 className="text-sm font-bold text-gray-700">ตั๋วรายบุคคล</h3>
-            <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold">{personalDocs.length}</span>
-            <p className="text-[10px] text-gray-400 ml-auto">เฉพาะเจ้าของเห็น</p>
-          </div>
-          {Array.from(byMember.entries()).map(([uid, memberDocs]) => (
-            <div key={uid} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">
-                  {(memberMap[uid] ?? '?')[0]}
                 </div>
-                <p className="text-xs font-bold text-orange-800">{memberMap[uid] ?? 'ไม่ทราบชื่อ'}</p>
-                <span className="text-[10px] text-orange-500 ml-auto">{memberDocs.length} ตั๋ว</span>
+                <span className="text-gray-300 text-sm">✏️</span>
+              </button>
+            )
+          })}
+
+          {adding === '' ? (
+            renderAddForm('เพิ่มเอกสารรวม (ทุกคนเห็น)', 'blue')
+          ) : (
+            <button onClick={() => { setAdding(''); setForm({ ...emptyForm, userId: '' }); setEditingId(null) }}
+              className="w-full py-2.5 border-2 border-dashed border-blue-200 text-blue-500 rounded-xl text-sm font-medium hover:bg-blue-50 transition-colors">
+              + เพิ่มเอกสารรวม
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ═══ PERSONAL TAB ═══ */}
+      {docTab === 'personal' && (
+        <div className="space-y-4">
+          <p className="text-[10px] text-orange-500 font-medium px-1">เฉพาะเจ้าของตั๋วเท่านั้นที่เห็น</p>
+
+          {allMembers.map(m => (
+            <div key={m.userId} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Member header */}
+              <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-amber-400 flex items-center justify-center text-[11px] font-bold text-white shadow-sm">
+                  {m.name[0]}
+                </div>
+                <p className="text-sm font-bold text-gray-800">{m.name}</p>
+                <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-semibold ml-auto">
+                  {m.docs.length} ตั๋ว
+                </span>
               </div>
-              <div className="divide-y divide-gray-50">
-                {memberDocs.map(doc => {
-                  if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
-                  const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
-                  return (
-                    <button
-                      key={doc.id}
-                      onClick={() => startEdit(doc)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-orange-50/50 transition-colors"
-                    >
-                      <span className="text-lg">{cfg.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
-                        <div className="flex gap-2 mt-0.5">
-                          <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full font-medium">{cfg.label}</span>
-                          {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
+
+              {/* Docs */}
+              {m.docs.length > 0 && (
+                <div className="divide-y divide-gray-50">
+                  {m.docs.map(doc => {
+                    if (editingId === doc.id) return <div key={doc.id} className="p-3">{renderEditForm()}</div>
+                    const cfg = typeLabels[doc.type] ?? typeLabels['OTHER']!
+                    return (
+                      <button key={doc.id} onClick={() => startEdit(doc)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-orange-50/30 transition-colors">
+                        <span className="text-lg">{cfg.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{doc.title}</p>
+                          <div className="flex gap-2 mt-0.5">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full font-medium">{cfg.label}</span>
+                            {doc.fileUrl && <span className="text-[10px] text-blue-500">{isPdf(doc.fileUrl) ? 'PDF' : 'ไฟล์'}</span>}
+                          </div>
                         </div>
-                      </div>
-                      <span className="text-gray-300 text-sm flex-shrink-0">✏️</span>
-                    </button>
-                  )
+                        <span className="text-gray-300 text-sm">✏️</span>
+                      </button>
+                    )
                   })}
                 </div>
+              )}
 
-                {/* Add personal doc for this member */}
-                {adding === uid ? (
-                  <div className="p-3 border-t border-orange-100">{renderAddForm(`เพิ่มตั๋วให้ ${memberMap[uid] ?? 'สมาชิก'}`, 'orange')}</div>
-                ) : (
-                  <button
-                    onClick={() => { setAdding(uid); setForm({ ...emptyForm, userId: uid }); setEditingId(null) }}
-                    className="w-full py-2 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors border-t border-orange-100"
-                  >
-                    + เพิ่มตั๋วให้ {memberMap[uid] ?? 'สมาชิก'}
-                  </button>
-                )}
-              </div>
-            ))}
-
-            {/* Members who have no docs yet */}
-            {members.filter(m => !byMember.has(m.userId)).map(m => (
-              <div key={m.userId} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-                <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">{m.name[0]}</div>
-                  <p className="text-xs font-bold text-orange-800">{m.name}</p>
-                  <span className="text-[10px] text-orange-400 ml-auto">0 ตั๋ว</span>
-                </div>
-                {adding === m.userId ? (
-                  <div className="p-3">{renderAddForm(`เพิ่มตั๋วให้ ${m.name}`, 'orange')}</div>
-                ) : (
-                  <button
-                    onClick={() => { setAdding(m.userId); setForm({ ...emptyForm, userId: m.userId }); setEditingId(null) }}
-                    className="w-full py-2.5 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors"
-                  >
-                    + เพิ่มตั๋วให้ {m.name}
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-      )}
-
-      {/* Show personal section even if no personal docs yet */}
-      {personalDocs.length === 0 && members.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <span className="text-base">👤</span>
-            <h3 className="text-sm font-bold text-gray-700">ตั๋วรายบุคคล</h3>
-            <p className="text-[10px] text-gray-400 ml-auto">เฉพาะเจ้าของเห็น</p>
-          </div>
-          {members.map(m => (
-            <div key={m.userId} className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
-              <div className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100 flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-orange-200 flex items-center justify-center text-[10px] font-bold text-orange-700">{m.name[0]}</div>
-                <p className="text-xs font-bold text-orange-800">{m.name}</p>
-              </div>
+              {/* Add for this member */}
               {adding === m.userId ? (
-                <div className="p-3">{renderAddForm(`เพิ่มตั๋วให้ ${m.name}`, 'orange')}</div>
+                <div className="p-3 border-t border-orange-100">{renderAddForm(`เพิ่มตั๋วให้ ${m.name}`, 'orange')}</div>
               ) : (
                 <button
                   onClick={() => { setAdding(m.userId); setForm({ ...emptyForm, userId: m.userId }); setEditingId(null) }}
-                  className="w-full py-2.5 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors"
+                  className="w-full py-2 text-orange-500 text-xs font-medium hover:bg-orange-50 transition-colors border-t border-orange-50"
                 >
                   + เพิ่มตั๋วให้ {m.name}
                 </button>
