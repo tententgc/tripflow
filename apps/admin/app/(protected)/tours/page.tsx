@@ -3,12 +3,12 @@ import { Metadata } from 'next'
 
 export const metadata: Metadata = { title: 'จัดการทัวร์ — TripFlow Admin' }
 
-const statusLabels: Record<string, { label: string; color: string }> = {
-  DRAFT: { label: 'ฉบับร่าง', color: 'bg-gray-100 text-gray-600' },
-  PUBLISHED: { label: 'เผยแพร่แล้ว', color: 'bg-green-100 text-green-700' },
-  ACTIVE: { label: 'กำลังเดินทาง', color: 'bg-blue-100 text-blue-700' },
-  COMPLETED: { label: 'เสร็จสิ้น', color: 'bg-purple-100 text-purple-700' },
-  CANCELLED: { label: 'ยกเลิก', color: 'bg-red-100 text-red-700' },
+const statusConfig: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  DRAFT:     { label: 'ฉบับร่าง',     dot: 'bg-gray-400',   bg: 'bg-gray-50',    text: 'text-gray-600' },
+  PUBLISHED: { label: 'เผยแพร่แล้ว',  dot: 'bg-blue-500',   bg: 'bg-blue-50',    text: 'text-blue-700' },
+  ACTIVE:    { label: 'กำลังเดินทาง', dot: 'bg-green-500',  bg: 'bg-green-50',   text: 'text-green-700' },
+  COMPLETED: { label: 'เสร็จสิ้น',    dot: 'bg-violet-500', bg: 'bg-violet-50',  text: 'text-violet-700' },
+  CANCELLED: { label: 'ยกเลิก',       dot: 'bg-red-500',    bg: 'bg-red-50',     text: 'text-red-700' },
 }
 
 const countryFlags: Record<string, string> = {
@@ -18,88 +18,135 @@ const countryFlags: Record<string, string> = {
 
 export default async function ToursPage() {
   const tours = await db.tour.findMany({
-    include: { _count: { select: { members: true } } },
-    orderBy: { startDate: 'asc' },
+    include: { _count: { select: { members: true } }, days: { select: { id: true } } },
+    orderBy: { startDate: 'desc' },
   })
+
+  const now = new Date()
+  const active = tours.filter(t => t.status === 'ACTIVE' || t.status === 'PUBLISHED')
+  const draft = tours.filter(t => t.status === 'DRAFT')
+  const past = tours.filter(t => t.status === 'COMPLETED' || t.status === 'CANCELLED')
 
   return (
     <div className="p-8">
+      {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">จัดการทัวร์</h1>
-          <p className="text-gray-500 text-sm mt-1">{tours.length} ทัวร์ทั้งหมด</p>
+          <p className="text-gray-400 text-sm mt-1">{tours.length} ทัวร์ · {active.length} กำลังดำเนินการ</p>
         </div>
         <a
           href="/tours/new"
-          className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors"
+          className="px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 shadow-sm hover:shadow-md transition-all"
         >
           + สร้างทัวร์ใหม่
         </a>
       </div>
 
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'ทั้งหมด', value: tours.length, color: 'from-gray-50 to-gray-100 text-gray-700', icon: '📊' },
+          { label: 'กำลังดำเนินการ', value: active.length, color: 'from-blue-50 to-indigo-50 text-blue-700', icon: '✈️' },
+          { label: 'ฉบับร่าง', value: draft.length, color: 'from-amber-50 to-orange-50 text-amber-700', icon: '📝' },
+          { label: 'เสร็จสิ้น', value: past.length, color: 'from-violet-50 to-purple-50 text-violet-700', icon: '✅' },
+        ].map(s => (
+          <div key={s.label} className={`bg-gradient-to-br ${s.color} rounded-2xl p-4 border border-gray-100`}>
+            <p className="text-xs font-medium opacity-60">{s.icon} {s.label}</p>
+            <p className="text-2xl font-bold mt-1">{s.value}</p>
+          </div>
+        ))}
+      </div>
+
       {tours.length === 0 ? (
-        <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-          <p className="text-5xl mb-4">🗺️</p>
-          <p className="font-semibold text-gray-900 text-lg">ยังไม่มีทัวร์</p>
-          <p className="text-gray-500 text-sm mt-2 mb-6">เริ่มสร้างทัวร์แรกของคุณได้เลย</p>
-          <a href="/tours/new" className="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700">
+        <div className="bg-white rounded-3xl p-16 text-center shadow-sm border border-gray-100">
+          <div className="w-20 h-20 rounded-full bg-indigo-50 flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">🗺️</span>
+          </div>
+          <p className="font-bold text-gray-900 text-lg">ยังไม่มีทัวร์</p>
+          <p className="text-gray-500 text-sm mt-2 mb-6 max-w-xs mx-auto">เริ่มสร้างทัวร์แรกของคุณได้เลย</p>
+          <a href="/tours/new" className="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 shadow-sm">
             + สร้างทัวร์ใหม่
           </a>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">ทัวร์</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">วันที่</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สมาชิก</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase">สถานะ</th>
-                <th className="px-6 py-4" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {tours.map((tour) => {
-                const status = statusLabels[tour.status] ?? { label: tour.status, color: 'bg-gray-100 text-gray-600' }
-                return (
-                  <tr key={tour.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-1">
-                          {tour.countries.map((c) => (
-                            <span key={c} className="text-lg">{countryFlags[c] ?? '🌍'}</span>
-                          ))}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 text-sm">{tour.title}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {tour.isChina && <span className="text-red-500 mr-1">CN Mode</span>}
-                            {tour.tourCode ?? tour.cities.join(', ')}
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {new Date(tour.startDate).toLocaleDateString('th-TH')} — {new Date(tour.endDate).toLocaleDateString('th-TH')}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {tour._count.members}/{tour.maxMembers ?? '∞'} คน
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${status.color}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {tours.map((tour) => {
+            const status = statusConfig[tour.status] ?? statusConfig['DRAFT']!
+            const daysCount = tour.days.length
+            const startDate = new Date(tour.startDate)
+            const endDate = new Date(tour.endDate)
+            const isUpcoming = startDate > now
+            const daysUntil = isUpcoming ? Math.ceil((startDate.getTime() - now.getTime()) / 86400000) : 0
+
+            return (
+              <a
+                key={tour.id}
+                href={`/tours/${tour.id}`}
+                className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-lg hover:-translate-y-1 hover:border-indigo-200 transition-all duration-300"
+              >
+                {/* Cover or gradient header */}
+                {tour.coverImageUrl ? (
+                  <div className="h-32 relative overflow-hidden">
+                    <img src={tour.coverImageUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                    <div className="absolute bottom-3 left-3 flex gap-1.5">
+                      {tour.countries.map((c) => (
+                        <span key={c} className="text-xl drop-shadow-lg">{countryFlags[c] ?? '🌍'}</span>
+                      ))}
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${status.bg} ${status.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                         {status.label}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <a href={`/tours/${tour.id}`} className="text-blue-600 text-sm font-medium hover:underline">
-                        จัดการ →
-                      </a>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="h-24 bg-gradient-to-br from-indigo-500 to-violet-500 relative overflow-hidden">
+                    <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-white/10 blur-xl" />
+                    <div className="absolute bottom-3 left-3 flex gap-1.5">
+                      {tour.countries.map((c) => (
+                        <span key={c} className="text-xl drop-shadow-lg">{countryFlags[c] ?? '🌍'}</span>
+                      ))}
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/90 ${status.text}`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                        {status.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Content */}
+                <div className="p-4">
+                  <p className="font-bold text-gray-900 text-sm leading-snug line-clamp-2 group-hover:text-indigo-700 transition-colors">
+                    {tour.title}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {tour.isChina && <span className="text-red-500 font-medium mr-1">CN</span>}
+                    {tour.tourCode && <span className="font-mono mr-1">{tour.tourCode}</span>}
+                    {tour.cities.slice(0, 3).join(' · ')}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+                    <div className="flex gap-3 text-[11px] text-gray-400">
+                      <span>📅 {startDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })} — {endDate.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
+                    </div>
+                    <div className="flex gap-2 text-[11px]">
+                      <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full font-medium">{daysCount} วัน</span>
+                      <span className="bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full font-medium">{tour._count.members} คน</span>
+                    </div>
+                  </div>
+
+                  {isUpcoming && daysUntil > 0 && (
+                    <p className="text-[10px] text-indigo-500 font-semibold mt-2">ออกเดินทางใน {daysUntil} วัน</p>
+                  )}
+                </div>
+              </a>
+            )
+          })}
         </div>
       )}
     </div>
