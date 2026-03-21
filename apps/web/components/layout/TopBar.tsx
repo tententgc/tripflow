@@ -95,14 +95,23 @@ export function TopBar({
           {open && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-gray-200/50 overflow-hidden z-50">
-                <div className="px-4 py-3 border-b border-gray-100">
-                  <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">บัญชีของฉัน</p>
-                  <p className="text-sm font-semibold text-gray-900 truncate mt-0.5">{user?.name}</p>
-                </div>
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden z-50">
+                <a href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-indigo-50/50 transition-colors border-b border-gray-100/60">
+                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden flex-shrink-0 border border-indigo-100/50">
+                    {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    ) : (
+                      <span className="text-indigo-600 font-bold text-xs">{user?.name?.[0]}</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
+                    <p className="text-[10px] text-indigo-500">ดูโปรไฟล์</p>
+                  </div>
+                </a>
                 <button
                   onClick={logout}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors text-left font-medium"
+                  className="w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-50/50 transition-colors text-left font-medium"
                 >
                   ออกจากระบบ
                 </button>
