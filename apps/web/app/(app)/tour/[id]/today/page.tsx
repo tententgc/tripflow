@@ -328,111 +328,59 @@ export default function TodayPage() {
                     const departUtc = getUtcOffset(f.departTz)
                     const arriveUtc = getUtcOffset(f.arriveTz)
                     return (
-                      <div key={f.id} className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-sm border border-gray-100/80 overflow-hidden relative hover:shadow-md transition-all duration-300">
-                        {/* Background decoration */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-sky-50 to-transparent rounded-bl-full opacity-80" />
+                      <div key={f.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 p-5 hover:shadow-md transition-shadow duration-300">
+                        {/* Airline + flight no */}
+                        <div className="flex items-center gap-3 mb-4">
+                          {f.airlineIata ? (
+                            <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0 p-1">
+                              <img src={`https://pics.avs.io/80/80/${f.airlineIata}.png`} alt={f.airline} className="w-full h-full object-contain"
+                                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-xl">✈️</span>' }} />
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                              <span className="text-xl">✈️</span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[15px] font-bold text-gray-900">{f.flightNo}</p>
+                            <p className="text-xs text-gray-400">{f.airline}</p>
+                          </div>
+                          <span className="text-xs text-gray-400 font-medium">{hours}h {mins}m</span>
+                        </div>
 
-                        {/* Airline header */}
-                        <div className="p-5 pb-4 relative">
-                          <div className="flex items-center gap-4">
-                            {f.airlineIata ? (
-                              <div className="w-14 h-14 rounded-2xl bg-white shadow-md border border-gray-100 flex items-center justify-center flex-shrink-0 p-1.5">
-                                <img
-                                  src={`https://pics.avs.io/120/120/${f.airlineIata}.png`}
-                                  alt={f.airline}
-                                  className="w-full h-full object-contain"
-                                  onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-3xl">✈️</span>' }}
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-100 to-blue-50 flex items-center justify-center flex-shrink-0 shadow-sm">
-                                <span className="text-3xl">✈️</span>
-                              </div>
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-lg font-bold text-gray-900">{f.flightNo}</p>
-                              <p className="text-sm text-gray-400">{f.airline}</p>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              <p className="text-xs font-semibold text-indigo-500 bg-indigo-50 px-2.5 py-1 rounded-full">{hours}h {mins}m</p>
-                            </div>
+                        {/* Route */}
+                        <div className="flex items-center gap-3">
+                          <div className="flex-shrink-0">
+                            <p className="text-xl font-bold text-gray-900 tracking-tight">
+                              {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
+                            </p>
+                            <p className="text-xs font-semibold text-gray-700 mt-0.5">{f.fromIata}</p>
+                          </div>
+
+                          <div className="flex-1 flex items-center gap-1 px-1">
+                            <div className="w-2 h-2 rounded-full border-[1.5px] border-gray-300 flex-shrink-0" />
+                            <div className="flex-1 h-[1px] bg-gray-200" />
+                            <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 -mx-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0011.5 2 1.5 1.5 0 0010 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+                            </svg>
+                            <div className="flex-1 h-[1px] bg-gray-200" />
+                            <div className="w-2 h-2 rounded-full bg-gray-400 flex-shrink-0" />
+                          </div>
+
+                          <div className="flex-shrink-0 text-right">
+                            <p className="text-xl font-bold text-gray-900 tracking-tight">
+                              {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
+                            </p>
+                            <p className="text-xs font-semibold text-gray-700 mt-0.5">{f.toIata}</p>
                           </div>
                         </div>
 
-                        {/* Ticket tear line */}
-                        <div className="relative flex items-center mx-2">
-                          <div className="w-4 h-4 rounded-full bg-gray-50 -ml-4 border-r border-gray-100 flex-shrink-0" />
-                          <div className="flex-1 border-t-2 border-dashed border-gray-100" />
-                          <div className="w-4 h-4 rounded-full bg-gray-50 -mr-4 border-l border-gray-100 flex-shrink-0" />
-                        </div>
-
-                        {/* Route section */}
-                        <div className="p-5 pt-4">
-                          {/* Route visualization */}
-                          <div className="flex items-center gap-4 mb-1">
-                            {/* Departure */}
-                            <div className="w-[85px] flex-shrink-0">
-                              <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">
-                                {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
-                              </p>
-                              <p className="text-[10px] text-gray-400 font-medium mt-1">{departUtc}</p>
-                            </div>
-
-                            {/* Route line — takes remaining space */}
-                            <div className="flex-1 flex flex-col items-center py-1">
-                              <div className="w-full flex items-center">
-                                <div className="w-3 h-3 rounded-full border-2 border-indigo-400 bg-white flex-shrink-0 shadow-sm" />
-                                <div className="flex-1 relative h-0 mx-1">
-                                  <div className="absolute inset-x-0 top-0 border-t-[2px] border-dashed border-indigo-300/60" />
-                                  {/* Animated plane on the line */}
-                                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                                    <div className="bg-indigo-500 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-md shadow-indigo-200">
-                                      <span className="text-[9px]">✈</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="w-3 h-3 rounded-full bg-indigo-500 flex-shrink-0 shadow-sm shadow-indigo-200" />
-                              </div>
-                              <p className="text-[10px] text-indigo-400 font-semibold mt-2">{hours}h {mins}m</p>
-                            </div>
-
-                            {/* Arrival */}
-                            <div className="w-[85px] flex-shrink-0 text-right">
-                              <p className="text-2xl font-black text-gray-900 tracking-tight leading-none">
-                                {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
-                              </p>
-                              <p className="text-[10px] text-gray-400 font-medium mt-1">{arriveUtc}</p>
-                            </div>
-                          </div>
-
-                          {/* Airport names row */}
-                          <div className="flex items-start justify-between mt-1">
-                            <div className="max-w-[45%]">
-                              <p className="text-sm font-bold text-gray-800">{f.fromIata}</p>
-                              <p className="text-[11px] text-gray-400 leading-snug">{f.fromAirport}</p>
-                            </div>
-                            <div className="max-w-[45%] text-right">
-                              <p className="text-sm font-bold text-gray-800">{f.toIata}</p>
-                              <p className="text-[11px] text-gray-400 leading-snug">{f.toAirport}</p>
-                            </div>
-                          </div>
-
-                          {/* Bottom info badges */}
-                          <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-50">
-                            <span className="text-[11px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                              📅 {depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                            {f.terminal && (
-                              <span className="text-[11px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                                🏢 Terminal {f.terminal}
-                              </span>
-                            )}
-                            {f.gate && (
-                              <span className="text-[11px] text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                                🚪 Gate {f.gate}
-                              </span>
-                            )}
-                          </div>
+                        {/* Info */}
+                        <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100/80 text-[11px] text-gray-400">
+                          <span>{depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
+                          {f.terminal && <><span>·</span><span>Terminal {f.terminal}</span></>}
+                          {f.gate && <><span>·</span><span>Gate {f.gate}</span></>}
+                          <span className="ml-auto text-gray-300">{departUtc} → {arriveUtc}</span>
                         </div>
                       </div>
                     )
