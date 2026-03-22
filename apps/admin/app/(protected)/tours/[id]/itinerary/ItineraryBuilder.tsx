@@ -51,14 +51,14 @@ interface Tour {
 }
 
 const categoryOptions = [
-  { value: 'SIGHTSEEING', label: 'สถานที่ท่องเที่ยว', emoji: '🏛️' },
-  { value: 'FOOD', label: 'อาหาร', emoji: '🍜' },
-  { value: 'TRANSPORT', label: 'การเดินทาง', emoji: '🚌' },
-  { value: 'ACCOMMODATION', label: 'ที่พัก', emoji: '🏨' },
-  { value: 'SHOPPING', label: 'ช้อปปิ้ง', emoji: '🛍️' },
-  { value: 'TEMPLE', label: 'วัด/ศาสนสถาน', emoji: '⛩️' },
-  { value: 'NATURE', label: 'ธรรมชาติ', emoji: '🌿' },
-  { value: 'OTHER', label: 'อื่นๆ', emoji: '📍' },
+  { value: 'SIGHTSEEING', label: 'สถานที่ท่องเที่ยว', emoji: '🏛️', color: 'bg-indigo-100 text-indigo-600' },
+  { value: 'FOOD', label: 'อาหาร', emoji: '🍜', color: 'bg-orange-100 text-orange-600' },
+  { value: 'TRANSPORT', label: 'การเดินทาง', emoji: '🚌', color: 'bg-sky-100 text-sky-600' },
+  { value: 'ACCOMMODATION', label: 'ที่พัก', emoji: '🏨', color: 'bg-violet-100 text-violet-600' },
+  { value: 'SHOPPING', label: 'ช้อปปิ้ง', emoji: '🛍️', color: 'bg-pink-100 text-pink-600' },
+  { value: 'TEMPLE', label: 'วัด/ศาสนสถาน', emoji: '⛩️', color: 'bg-amber-100 text-amber-600' },
+  { value: 'NATURE', label: 'ธรรมชาติ', emoji: '🌿', color: 'bg-emerald-100 text-emerald-600' },
+  { value: 'OTHER', label: 'อื่นๆ', emoji: '📍', color: 'bg-gray-100 text-gray-600' },
 ]
 
 type EditState = {
@@ -324,7 +324,7 @@ function ActivityForm({
             disabled={deleting}
             className="px-3 py-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm disabled:opacity-50"
             title="ลบกิจกรรม"
-          >🗑️</button>
+          ><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg></button>
         )}
       </div>
     </div>
@@ -337,17 +337,8 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
   const [addingActivity, setAddingActivity] = useState<string | null>(null)
   const [editingActivity, setEditingActivity] = useState<string | null>(null)
   const [addingDay, setAddingDay] = useState(false)
-  const [editingAccom, setEditingAccom] = useState<string | null>(null)
-  const [accomForm, setAccomForm] = useState({
-    name: '', nameLocal: '', address: '', phone: '',
-    checkIn: '', checkOut: '', confirmationNo: '',
-    wifiName: '', wifiPassword: '', roomType: '', imageUrl: '', notes: '',
-  })
   const [editingDayHeader, setEditingDayHeader] = useState<string | null>(null)
   const [dayHeaderForm, setDayHeaderForm] = useState({ title: '', city: '' })
-  const [savingAccom, setSavingAccom] = useState(false)
-  const [uploadingAccomImg, setUploadingAccomImg] = useState(false)
-  const accomImgRef = useRef<HTMLInputElement>(null)
 
   // Drag and drop state
   const [dragItem, setDragItem] = useState<{ dayId: string; actIndex: number } | null>(null)
@@ -394,63 +385,6 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
     setDragItem(null)
     setDragOverItem(null)
   }, [dragItem, dragOverItem, days, tour.id])
-
-  async function uploadAccomImage(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploadingAccomImg(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      if (res.ok) {
-        const data = await res.json()
-        setAccomForm(p => ({ ...p, imageUrl: data.url }))
-      }
-    } finally {
-      setUploadingAccomImg(false)
-    }
-  }
-
-  function startEditAccom(day: Day) {
-    setEditingAccom(day.id)
-    const a = day.accommodation
-    setAccomForm({
-      name: a?.name ?? '', nameLocal: a?.nameLocal ?? '', address: a?.address ?? '',
-      phone: a?.phone ?? '', checkIn: a?.checkIn ?? '', checkOut: a?.checkOut ?? '',
-      confirmationNo: a?.confirmationNo ?? '', wifiName: a?.wifiName ?? '',
-      wifiPassword: a?.wifiPassword ?? '', roomType: a?.roomType ?? '',
-      imageUrl: a?.imageUrl ?? '', notes: a?.notes ?? '',
-    })
-  }
-
-  async function saveAccom(dayId: string) {
-    if (!accomForm.name.trim()) return
-    setSavingAccom(true)
-    try {
-      const res = await fetch(`/api/tours/${tour.id}/days/${dayId}/accommodation`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(accomForm),
-      })
-      if (res.ok) {
-        const updated = await res.json()
-        setDays(prev => prev.map(d => d.id === dayId ? { ...d, accommodation: updated } : d))
-        setEditingAccom(null)
-      }
-    } finally {
-      setSavingAccom(false)
-    }
-  }
-
-  async function deleteAccom(dayId: string) {
-    if (!confirm('ลบที่พักของวันนี้?')) return
-    const res = await fetch(`/api/tours/${tour.id}/days/${dayId}/accommodation`, { method: 'DELETE' })
-    if (res.ok) {
-      setDays(prev => prev.map(d => d.id === dayId ? { ...d, accommodation: null } : d))
-      setEditingAccom(null)
-    }
-  }
 
   async function addDay() {
     setAddingDay(true)
@@ -509,9 +443,9 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
         </div>
       ) : (
         days.map((day) => (
-          <div key={day.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div key={day.id} className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-hidden">
             {/* Day header — click to edit */}
-            <div className="p-4 border-b border-gray-100">
+            <div className="p-4 border-b border-gray-100/60 bg-gradient-to-r from-indigo-50/40 to-transparent">
               {editingDayHeader === day.id ? (
                 <div className="space-y-2">
                   <div className="flex gap-2">
@@ -545,7 +479,8 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                   className="cursor-pointer group"
                 >
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold text-gray-900">วันที่ {day.dayNumber} — {day.title}</p>
+                    <span className="text-xs font-bold text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-md">วันที่ {day.dayNumber}</span>
+                    <p className="font-semibold text-gray-900">{day.title}</p>
                     <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
                     </svg>
@@ -566,7 +501,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                     key={meal.key}
                     onClick={() => updateMeals(day.id, meal.key, !day[meal.key])}
                     className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      day[meal.key] ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'
+                      day[meal.key] ? 'bg-green-100 text-green-700 border border-green-200 shadow-sm' : 'bg-gray-50 text-gray-400 border border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     {meal.emoji} {meal.label}
@@ -631,32 +566,60 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                       ) : (
                         <button
                           onClick={() => { setEditingActivity(act.id); setAddingActivity(null) }}
-                          className="w-full flex items-center gap-3 p-2 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left group cursor-grab active:cursor-grabbing"
+                          className="w-full flex items-center gap-3 p-2.5 bg-white/70 backdrop-blur-sm border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-xl transition-all text-left group cursor-grab active:cursor-grabbing shadow-sm"
                         >
                           {/* Drag handle */}
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
                           </svg>
-                          {(act.imageUrls ?? []).length > 0 ? (
-                            <div className="relative flex-shrink-0">
-                              <img src={act.imageUrls[0]} alt="" className="w-12 h-10 rounded-lg object-cover" />
-                              {act.imageUrls.length > 1 && (
-                                <span className="absolute -bottom-1 -right-1 bg-gray-800 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                                  {act.imageUrls.length}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="w-12 h-10 rounded-lg bg-gray-200 flex items-center justify-center flex-shrink-0 text-lg">
-                              {categoryOptions.find((c) => c.value === act.category)?.emoji ?? '📍'}
-                            </div>
-                          )}
-                          {act.time && <span className="text-xs text-gray-500 w-12 flex-shrink-0">{act.time}</span>}
+                          {(() => {
+                            const cat = categoryOptions.find((c) => c.value === act.category)
+                            return (act.imageUrls ?? []).length > 0 ? (
+                              <div className="relative flex-shrink-0">
+                                <img src={act.imageUrls[0]} alt="" className="w-12 h-10 rounded-lg object-cover ring-1 ring-gray-200" />
+                                {act.imageUrls.length > 1 && (
+                                  <span className="absolute -bottom-1 -right-1 bg-indigo-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                                    {act.imageUrls.length}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <div className={`w-12 h-10 rounded-lg flex items-center justify-center flex-shrink-0 text-lg ${cat?.color ?? 'bg-gray-100 text-gray-600'}`}>
+                                {cat?.emoji ?? '📍'}
+                              </div>
+                            )
+                          })()}
+                          {act.time && <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md w-14 text-center flex-shrink-0">{act.time}</span>}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">{act.title}</p>
-                            {act.titleLocal && <p className="text-xs text-gray-400">{act.titleLocal}</p>}
+                            {act.titleLocal && <p className="text-xs text-gray-500">{act.titleLocal}</p>}
                           </div>
-                          <span className="text-gray-300 group-hover:text-blue-400 flex-shrink-0 text-sm">✏️</span>
+                          <div className="flex gap-0.5 flex-shrink-0">
+                            <div className="p-1.5 text-gray-400 group-hover:text-indigo-600 hover:!bg-indigo-50 rounded-lg transition-colors">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+                            </div>
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (!confirm('ลบกิจกรรมนี้?')) return
+                                fetch(`/api/tours/${tour.id}/days/${day.id}/activities/${act.id}`, { method: 'DELETE' })
+                                  .then(res => {
+                                    if (res.ok) {
+                                      setDays(prev => prev.map(d =>
+                                        d.id === day.id ? { ...d, activities: d.activities.filter(a => a.id !== act.id) } : d
+                                      ))
+                                    }
+                                  })
+                              }}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') (e.target as HTMLElement).click() }}
+                              className="p-1.5 text-gray-400 group-hover:text-red-500 hover:!text-red-600 hover:!bg-red-50 rounded-lg transition-colors"
+                              title="ลบกิจกรรม"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                            </div>
+                          </div>
                         </button>
                       )}
                     </div>
@@ -664,116 +627,39 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                 </div>
               )}
 
-              {/* Accommodation */}
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                {editingAccom === day.id ? (
-                  <div className="bg-violet-50 rounded-xl p-3 space-y-2">
-                    <p className="text-xs font-semibold text-violet-700">🏨 ที่พัก</p>
-
-                    {/* Image: upload or paste URL */}
-                    <input ref={accomImgRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={uploadAccomImage} className="hidden" />
-                    {accomForm.imageUrl ? (
-                      <div className="relative w-full h-28 rounded-xl overflow-hidden border border-violet-200">
-                        <img src={accomForm.imageUrl} alt="" className="w-full h-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => setAccomForm(p => ({ ...p, imageUrl: '' }))}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 text-white rounded-full text-xs flex items-center justify-center hover:bg-black/70"
-                        >✕</button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => accomImgRef.current?.click()}
-                        disabled={uploadingAccomImg}
-                        className="w-full h-20 border border-dashed border-violet-300 rounded-xl flex items-center justify-center hover:border-violet-400 transition-colors bg-white"
-                      >
-                        {uploadingAccomImg ? (
-                          <span className="text-xs text-violet-400">กำลังอัพโหลด...</span>
-                        ) : (
-                          <div className="text-center">
-                            <span className="text-xl">📷</span>
-                            <p className="text-[10px] text-violet-400 mt-0.5">อัพโหลดรูปที่พัก</p>
-                          </div>
-                        )}
-                      </button>
-                    )}
-                    <input
-                      type="text"
-                      value={accomForm.imageUrl}
-                      onChange={e => setAccomForm(p => ({ ...p, imageUrl: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
-                      placeholder="หรือวาง URL รูปภาพ (https://...)"
-                    />
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="text" value={accomForm.name} onChange={e => setAccomForm(p => ({ ...p, name: e.target.value }))}
-                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ชื่อโรงแรม *" autoFocus />
-                      <input type="text" value={accomForm.nameLocal} onChange={e => setAccomForm(p => ({ ...p, nameLocal: e.target.value }))}
-                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ชื่อภาษาท้องถิ่น" />
-                      <input type="text" value={accomForm.address} onChange={e => setAccomForm(p => ({ ...p, address: e.target.value }))}
-                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ที่อยู่" />
-                      <input type="text" value={accomForm.phone} onChange={e => setAccomForm(p => ({ ...p, phone: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เบอร์โทร" />
-                      <input type="text" value={accomForm.roomType} onChange={e => setAccomForm(p => ({ ...p, roomType: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="ประเภทห้อง" />
-                      <input type="text" value={accomForm.checkIn} onChange={e => setAccomForm(p => ({ ...p, checkIn: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เช็คอิน (14:00)" />
-                      <input type="text" value={accomForm.checkOut} onChange={e => setAccomForm(p => ({ ...p, checkOut: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="เช็คเอาต์ (12:00)" />
-                      <input type="text" value={accomForm.confirmationNo} onChange={e => setAccomForm(p => ({ ...p, confirmationNo: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="Confirmation No." />
-                      <input type="text" value={accomForm.wifiName} onChange={e => setAccomForm(p => ({ ...p, wifiName: e.target.value }))}
-                        className="px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="WiFi ชื่อ" />
-                      <input type="text" value={accomForm.wifiPassword} onChange={e => setAccomForm(p => ({ ...p, wifiPassword: e.target.value }))}
-                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="WiFi รหัส" />
-                      <input type="text" value={accomForm.notes} onChange={e => setAccomForm(p => ({ ...p, notes: e.target.value }))}
-                        className="col-span-2 px-3 py-2 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-violet-500" placeholder="หมายเหตุ" />
-                    </div>
-                    <div className="flex gap-2 pt-1">
-                      <button onClick={() => saveAccom(day.id)} disabled={savingAccom || !accomForm.name.trim()}
-                        className="flex-1 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium disabled:opacity-50">
-                        {savingAccom ? 'กำลังบันทึก...' : 'บันทึกที่พัก'}
-                      </button>
-                      <button onClick={() => setEditingAccom(null)}
-                        className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-lg text-sm">ยกเลิก</button>
-                      {day.accommodation && (
-                        <button onClick={() => deleteAccom(day.id)}
-                          className="px-3 py-2 text-red-400 hover:text-red-600 rounded-lg text-sm">🗑️</button>
-                      )}
-                    </div>
-                  </div>
-                ) : day.accommodation ? (
-                  <button
-                    onClick={() => startEditAccom(day)}
-                    className="w-full flex items-center gap-3 p-2.5 bg-violet-50 hover:bg-violet-100 rounded-xl transition-colors text-left group"
-                  >
+              {/* Accommodation — read-only display, managed via Hotels tab */}
+              {day.accommodation && (
+                <div className="mt-3 pt-3 border-t border-gray-100/60">
+                  <div className="flex items-center gap-3 p-3 bg-violet-50/50 border border-violet-200/50 rounded-xl">
                     {day.accommodation.imageUrl ? (
-                      <div className="w-14 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                      <div className="w-14 h-10 rounded-lg overflow-hidden flex-shrink-0 ring-1 ring-violet-200/50">
                         <img src={day.accommodation.imageUrl} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-violet-200 flex items-center justify-center flex-shrink-0 text-lg">🏨</div>
+                      <div className="w-10 h-10 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21m-3.75 3H21" /></svg>
+                      </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{day.accommodation.name}</p>
-                      <div className="flex gap-2 text-[10px] text-gray-500 mt-0.5">
-                        {day.accommodation.checkIn && <span>เช็คอิน {day.accommodation.checkIn}</span>}
-                        {day.accommodation.confirmationNo && <span>#{day.accommodation.confirmationNo}</span>}
-                        {day.accommodation.wifiName && <span>📶 {day.accommodation.wifiName}</span>}
+                      <div className="flex gap-3 text-[11px] text-violet-600 mt-0.5">
+                        {day.accommodation.checkIn && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            เช็คอิน {day.accommodation.checkIn}
+                          </span>
+                        )}
+                        {day.accommodation.wifiName && (
+                          <span className="flex items-center gap-1">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12.53 18.22l-.53.53-.53-.53a.75.75 0 011.06 0z" /></svg>
+                            {day.accommodation.wifiName}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <span className="text-gray-300 group-hover:text-violet-400 flex-shrink-0 text-sm">✏️</span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => startEditAccom(day)}
-                    className="w-full py-2 border border-dashed border-violet-300 text-violet-500 rounded-xl text-xs hover:bg-violet-50 transition-colors"
-                  >
-                    + เพิ่มที่พัก
-                  </button>
-                )}
-              </div>
+                  </div>
+                </div>
+              )}
 
               {addingActivity === day.id ? (
                 <ActivityForm
@@ -793,7 +679,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
               ) : (
                 <button
                   onClick={() => { setAddingActivity(day.id); setEditingActivity(null) }}
-                  className="w-full py-2 border border-dashed border-gray-300 text-gray-500 rounded-xl text-sm hover:border-blue-400 hover:text-blue-600 transition-colors"
+                  className="w-full py-2.5 bg-indigo-50/50 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-100/50 hover:border-indigo-400 transition-colors"
                 >
                   + เพิ่มกิจกรรม
                 </button>
@@ -806,7 +692,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
       <button
         onClick={addDay}
         disabled={addingDay}
-        className="w-full py-3 border border-dashed border-blue-300 text-blue-600 rounded-2xl text-sm font-medium hover:bg-blue-50 transition-colors disabled:opacity-50"
+        className="w-full py-3 bg-emerald-50/50 border-2 border-dashed border-emerald-300 text-emerald-600 rounded-2xl text-sm font-medium hover:bg-emerald-100/50 hover:border-emerald-400 transition-colors disabled:opacity-50"
       >
         {addingDay ? 'กำลังเพิ่ม...' : `+ เพิ่มวันที่ ${days.length + 1}`}
       </button>
