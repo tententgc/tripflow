@@ -566,10 +566,10 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                       ) : (
                         <button
                           onClick={() => { setEditingActivity(act.id); setAddingActivity(null) }}
-                          className="w-full flex items-center gap-3 p-2.5 bg-white/70 backdrop-blur-sm border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-xl transition-all text-left group cursor-grab active:cursor-grabbing shadow-sm"
+                          className="w-full flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 bg-white/70 backdrop-blur-sm border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/30 rounded-xl transition-all text-left group cursor-grab active:cursor-grabbing shadow-sm"
                         >
-                          {/* Drag handle */}
-                          <svg className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          {/* Drag handle — hidden on mobile */}
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-indigo-400 flex-shrink-0 hidden sm:block" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
                           </svg>
                           {(() => {
@@ -589,7 +589,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                               </div>
                             )
                           })()}
-                          {act.time && <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md w-14 text-center flex-shrink-0">{act.time}</span>}
+                          {act.time && <span className="text-[11px] sm:text-xs font-semibold text-indigo-600 bg-indigo-50 px-1.5 sm:px-2 py-0.5 rounded-md w-12 sm:w-14 text-center flex-shrink-0">{act.time}</span>}
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 truncate">{act.title}</p>
                             {act.titleLocal && <p className="text-xs text-gray-500">{act.titleLocal}</p>}
