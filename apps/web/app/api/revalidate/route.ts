@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { invalidateCache } from '@/lib/cache'
+import { revalidatePath } from 'next/cache'
 
 /**
  * POST /api/revalidate
@@ -9,7 +10,6 @@ import { invalidateCache } from '@/lib/cache'
  */
 export async function POST(req: NextRequest) {
   try {
-    // Simple auth — admin sends service role key as bearer token
     const auth = req.headers.get('authorization')
     const expectedKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!auth || !expectedKey || auth !== `Bearer ${expectedKey}`) {
@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
 
     const { tourId } = await req.json() as { tourId?: string }
 
+    // 1. Clear in-memory API cache
     if (tourId) {
-      // Invalidate specific tour caches
       invalidateCache(`tour:${tourId}`)
       invalidateCache(`splits:${tourId}`)
       invalidateCache(`fund:${tourId}`)
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
       invalidateCache(`emergency:${tourId}`)
       invalidateCache(`chat-tour:${tourId}`)
     } else {
-      // Invalidate all tour caches
       invalidateCache('tour:')
       invalidateCache('splits:')
       invalidateCache('fund:')
@@ -36,6 +35,12 @@ export async function POST(req: NextRequest) {
       invalidateCache('phrases:')
       invalidateCache('emergency:')
       invalidateCache('chat-tour:')
+    }
+
+    // 2. Revalidate Next.js server component pages (home page, tour pages)
+    revalidatePath('/home')
+    if (tourId) {
+      revalidatePath(`/tour/${tourId}`)
     }
 
     return NextResponse.json({ ok: true, tourId: tourId ?? 'all' })

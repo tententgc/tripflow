@@ -8,6 +8,7 @@ import Link from 'next/link'
 import DevSetupButton from './DevSetupButton'
 
 export const metadata: Metadata = { title: 'ทริปของฉัน — TripFlow' }
+export const dynamic = 'force-dynamic'
 
 const countryFlags: Record<string, string> = {
   CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭',
