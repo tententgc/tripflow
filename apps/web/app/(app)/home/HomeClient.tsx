@@ -43,23 +43,41 @@ export default function HomeClient({ initialData }: Props) {
   const history = tours.filter(t => t.status === 'COMPLETED' || t.status === 'CANCELLED')
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-violet-50/30 to-purple-50/40">
+      {/* Header — glass with subtle glow */}
       <div className="relative">
-        <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
-        <div className="bg-white/50 backdrop-blur-md border-b border-white/60 px-4 pt-safe-top">
-          <div className="flex items-center justify-between py-5 max-w-5xl mx-auto">
-            <div>
-              <p className="text-indigo-400 text-xs font-semibold">สวัสดี,</p>
-              <h1 className="text-xl font-bold text-gray-900 mt-0.5">{user.name}</h1>
+        <div className="bg-white/70 backdrop-blur-2xl border-b border-indigo-100/30 px-4 pt-safe-top relative overflow-hidden">
+          {/* Subtle glow orbs at bottom border */}
+          <div className="absolute bottom-0 left-1/4 w-48 h-8 bg-indigo-200/15 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 left-1/2 w-40 h-6 bg-violet-200/10 rounded-full blur-2xl" />
+          <div className="absolute bottom-0 right-1/4 w-36 h-8 bg-purple-200/12 rounded-full blur-2xl" />
+          {/* Combined header row */}
+          <div className="relative flex items-center justify-between py-4 max-w-5xl mx-auto">
+            {/* Left: logo + greeting */}
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200/40 flex-shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" opacity="0.4"/>
+                  <path d="M5 17L10 12L5 10L18 6L14 19L12 14L5 17Z" fill="white" fillOpacity="0.95"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 text-[11px] font-bold tracking-wide">TripFlow · สวัสดี</p>
+                <h1 className="text-lg font-bold text-gray-900 mt-0.5 leading-tight">{user.name}</h1>
+              </div>
             </div>
             <Link href="/profile">
-              <div className="w-11 h-11 rounded-xl overflow-hidden bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center border border-indigo-200/50 ring-2 ring-white shadow-sm">
-                {user.avatarUrl ? (
-                  <Image src={user.avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
-                ) : (
-                  <span className="text-indigo-600 font-bold text-sm">{user.name[0]}</span>
-                )}
+              <div className="relative group">
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-indigo-400 via-violet-400 to-purple-500 opacity-60 group-hover:opacity-100 blur-sm transition-opacity" />
+                <div className="relative p-[2px] rounded-xl bg-gradient-to-br from-indigo-400 via-violet-400 to-purple-500">
+                  <div className="w-11 h-11 rounded-[10px] overflow-hidden bg-white flex items-center justify-center">
+                    {user.avatarUrl ? (
+                      <Image src={user.avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
+                    ) : (
+                      <span className="text-indigo-600 font-bold text-sm">{user.name[0]}</span>
+                    )}
+                  </div>
+                </div>
               </div>
             </Link>
           </div>
