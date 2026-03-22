@@ -97,52 +97,161 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
 
   const isMoreActive = activeTab === 'chat' || activeTab === 'calculator' || activeTab === 'checklist' || activeTab === 'fund'
 
+  const serviceTints: Record<string, { bg: string; color: string }> = {
+    chat:       { bg: 'rgba(124,92,252,0.1)',  color: '#8b5cf6' },
+    calculator: { bg: 'rgba(16,185,129,0.1)',  color: '#10b981' },
+    checklist:  { bg: 'rgba(59,130,246,0.1)',  color: '#3b82f6' },
+    fund:       { bg: 'rgba(249,115,22,0.1)',  color: '#f97316' },
+  }
+
   return (
     <>
-      {/* Bottom sheet overlay */}
+      <style>{`
+        @keyframes sheetSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes sheetBdIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes sheetRowIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalPopIn { from { opacity: 0; transform: translate(-50%,-50%) scale(0.94); } to { opacity: 1; transform: translate(-50%,-50%) scale(1); } }
+      `}</style>
+
+      {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+          className="fixed inset-0 z-40"
+          style={{
+            background: 'rgba(15,10,30,0.45)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            animation: 'sheetBdIn 0.2s ease both',
+          }}
           onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Bottom sheet — light glass */}
-      <div className={`fixed left-0 right-0 z-50 bg-white/80 backdrop-blur-2xl border-t border-gray-200/50 rounded-t-3xl shadow-2xl shadow-black/10 transition-all duration-300 ease-out ${
-        open ? 'bottom-0' : '-bottom-full'
-      }`}>
-        <div className="px-4 pt-3 pb-2 flex justify-center">
-          <div className="w-10 h-1 bg-gray-300/60 rounded-full" />
-        </div>
-        <div className="px-4 pb-3">
-          <p className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-3">เลือกบริการ</p>
-          <div className="space-y-2">
-            {services.map((s) => (
-              <button
-                key={s.id}
-                onClick={handleServiceClick(s.id)}
-                className="w-full flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/60 border border-gray-100/80 hover:bg-white/90 active:scale-[0.98] transition-all"
-              >
-                <span className="w-10 h-10 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center flex-shrink-0 text-indigo-600">
-                  {serviceIcons[s.id]}
-                </span>
-                <div className="text-left flex-1">
-                  <p className="text-gray-900 font-semibold text-sm">{s.label}</p>
-                  <p className="text-gray-400 text-xs mt-0.5">{s.desc}</p>
-                </div>
-                <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-                </svg>
-              </button>
-            ))}
+      {/* Mobile bottom sheet (<900px) */}
+      {open && (
+        <div
+          className="fixed left-0 right-0 bottom-0 z-50 min-[900px]:hidden overflow-y-auto"
+          style={{
+            maxHeight: '85vh',
+            background: 'rgba(255,255,255,0.78)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.9)',
+            borderBottom: 'none',
+            borderRadius: '28px 28px 0 0',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 -8px 40px rgba(0,0,0,0.1), 0 -2px 12px rgba(0,0,0,0.05)',
+            animation: 'sheetSlideUp 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
+          }}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center" style={{ margin: '12px auto 0' }}>
+            <div className="rounded-full" style={{ width: '36px', height: '4px', background: 'rgba(0,0,0,0.12)' }} />
           </div>
-          <div className="h-safe-bottom pb-4" />
+
+          {/* Header */}
+          <div style={{ padding: '16px 20px 12px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+            <p className="text-[13px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.08em' }}>เลือกบริการ</p>
+          </div>
+
+          {/* Service list */}
+          <div style={{ padding: '8px 16px 32px 16px' }}>
+            {services.map((s, i) => {
+              const tint = serviceTints[s.id] ?? { bg: 'rgba(0,0,0,0.06)', color: '#6b7280' }
+              return (
+                <div key={s.id}>
+                  {i > 0 && <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.05)', marginLeft: '58px' }} />}
+                  <button
+                    onClick={handleServiceClick(s.id)}
+                    className="w-full flex items-center gap-3.5 no-btn-fx active:scale-[0.98] transition-all duration-150"
+                    style={{
+                      padding: '14px 4px',
+                      borderRadius: '14px',
+                      animation: `sheetRowIn 0.2s ease-out ${0.15 + i * 0.03}s both`,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.04)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
+                      {serviceIcons[s.id]}
+                    </span>
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="text-[14px] font-semibold text-[#1a1a2e]">{s.label}</p>
+                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap" style={{ color: 'rgba(30,30,60,0.4)' }}>{s.desc}</p>
+                    </div>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.18)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </div>
+              )
+            })}
+            <div className="h-safe-bottom" />
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Desktop centered modal (>=900px) */}
+      {open && (
+        <div
+          className="fixed z-50 hidden min-[900px]:block"
+          style={{
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '92vw', maxWidth: '400px',
+            background: 'rgba(255,255,255,0.78)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.9)',
+            borderRadius: '24px',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 24px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08)',
+            animation: 'modalPopIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Header */}
+          <div style={{ padding: '18px 20px 14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+            <p className="text-[13px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.08em' }}>เลือกบริการ</p>
+          </div>
+
+          {/* Service list */}
+          <div style={{ padding: '8px 16px 20px 16px' }}>
+            {services.map((s, i) => {
+              const tint = serviceTints[s.id] ?? { bg: 'rgba(0,0,0,0.06)', color: '#6b7280' }
+              return (
+                <div key={s.id}>
+                  {i > 0 && <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.05)', marginLeft: '58px' }} />}
+                  <button
+                    onClick={handleServiceClick(s.id)}
+                    className="w-full flex items-center gap-3.5 no-btn-fx active:scale-[0.98] transition-all duration-150"
+                    style={{
+                      padding: '14px 4px',
+                      borderRadius: '14px',
+                      animation: `sheetRowIn 0.2s ease-out ${0.12 + i * 0.03}s both`,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.04)' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                  >
+                    <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
+                      {serviceIcons[s.id]}
+                    </span>
+                    <div className="text-left flex-1 min-w-0">
+                      <p className="text-[14px] font-semibold text-[#1a1a2e]">{s.label}</p>
+                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap" style={{ color: 'rgba(30,30,60,0.4)' }}>{s.desc}</p>
+                    </div>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.18)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Nav bar — light glass */}
       <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/70 backdrop-blur-2xl border-t border-gray-200/50 pb-safe">
-        <div className="flex">
+        <div className="flex max-w-[1100px] min-[900px]:px-8 mx-auto">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
             return (

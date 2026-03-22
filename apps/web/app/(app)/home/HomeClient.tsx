@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useApi } from '@/lib/swr'
@@ -29,10 +30,37 @@ interface Props {
   initialData: HomeData
 }
 
+const glass: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.60)',
+  backdropFilter: 'blur(20px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+  border: '1px solid rgba(255,255,255,0.85)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 24px rgba(100,80,180,0.07)',
+  borderRadius: '20px',
+}
+
+function useCountUp(target: number, dur = 1000) {
+  const [v, setV] = useState(0)
+  const ref = useRef(0)
+  useEffect(() => {
+    if (target <= 0) { setV(0); return }
+    const from = ref.current; ref.current = target
+    const t0 = performance.now()
+    let raf: number
+    const tick = (now: number) => {
+      const p = Math.min((now - t0) / dur, 1)
+      setV(Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3))))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, dur])
+  return v
+}
+
 export default function HomeClient({ initialData }: Props) {
-  // SWR auto-refreshes every 15s — picks up admin changes automatically
   const { data } = useApi<HomeData>('/api/my-tours', {
-    fallbackData: initialData, // use server-rendered data instantly, then refresh in background
+    fallbackData: initialData,
   })
 
   const tours = data?.tours ?? initialData.tours
@@ -42,226 +70,333 @@ export default function HomeClient({ initialData }: Props) {
   const upcoming = tours.filter(t => t.status === 'PUBLISHED')
   const history = tours.filter(t => t.status === 'COMPLETED' || t.status === 'CANCELLED')
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="fixed top-[-50px] right-[-30px] w-[300px] h-[300px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #a5b4fc 0%, transparent 70%)', opacity: 0.24, filter: 'blur(50px)' }} />
-      <div className="fixed top-[28%] left-[-60px] w-[260px] h-[260px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #c4b5fd 0%, transparent 70%)', opacity: 0.3, filter: 'blur(50px)' }} />
-      <div className="fixed top-[48%] right-[5%] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)', opacity: 0.14, filter: 'blur(45px)' }} />
-      <div className="fixed bottom-[-60px] right-[-40px] w-[370px] h-[370px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, #a855f7 40%, transparent 70%)', opacity: 0.2, filter: 'blur(60px)' }} />
-      <div className="fixed bottom-[15%] left-[9%] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', opacity: 0.16, filter: 'blur(45px)' }} />
-      <div className="fixed bottom-[-20px] left-[35%] w-[300px] h-[190px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #ddd6fe 0%, transparent 70%)', opacity: 0.36, filter: 'blur(50px)' }} />
+  // Next departure
+  const nextTrip = [...active, ...upcoming][0] ?? null
+  const nextCountdown = nextTrip ? getTripCountdown(new Date(nextTrip.startDate), new Date(nextTrip.endDate)) : null
+  const daysUntilDeparture = nextCountdown?.daysUntilDeparture ?? 0
+  const animatedDays = useCountUp(daysUntilDeparture > 0 ? daysUntilDeparture : 0)
 
-      {/* Header — glass with subtle glow */}
-      <div className="relative z-10">
-        <div className="bg-white/70 backdrop-blur-2xl border-b border-indigo-100/30 px-4 pt-safe-top relative overflow-hidden">
-          {/* Subtle glow orbs at bottom border */}
-          <div className="absolute bottom-0 left-1/4 w-48 h-8 bg-indigo-200/15 rounded-full blur-2xl" />
-          <div className="absolute bottom-0 left-1/2 w-40 h-6 bg-violet-200/10 rounded-full blur-2xl" />
-          <div className="absolute bottom-0 right-1/4 w-36 h-8 bg-purple-200/12 rounded-full blur-2xl" />
-          {/* Combined header row */}
-          <div className="relative flex items-center justify-between py-4 max-w-5xl mx-auto">
-            {/* Left: logo + greeting */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-200/40 flex-shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="9" stroke="white" strokeWidth="1.5" opacity="0.4"/>
-                  <path d="M5 17L10 12L5 10L18 6L14 19L12 14L5 17Z" fill="white" fillOpacity="0.95"/>
-                </svg>
+  return (
+    <div className="min-h-screen bg-[#f0f1f8] relative overflow-hidden">
+      <style>{`
+        @keyframes float1 { from { transform: translate(0,0) } to { transform: translate(30px, 40px) } }
+        @keyframes float2 { from { transform: translate(0,0) } to { transform: translate(-20px, 30px) } }
+        @keyframes float3 { from { transform: translateX(-50%) translateY(0) } to { transform: translateX(-50%) translateY(-20px) } }
+        @keyframes homeSlideRight { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes homeCardIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      {/* Ambient blobs — scaled down on mobile */}
+      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+        <div className="absolute rounded-full w-[360px] h-[360px] min-[900px]:w-[600px] min-[900px]:h-[600px]" style={{ top: -100, left: -100, background: 'radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%)', animation: 'float1 18s ease-in-out infinite alternate' }} />
+        <div className="absolute rounded-full w-[300px] h-[300px] min-[900px]:w-[500px] min-[900px]:h-[500px]" style={{ top: 0, right: -80, background: 'radial-gradient(circle, rgba(99,102,241,0.12), transparent 70%)', animation: 'float2 22s ease-in-out infinite alternate' }} />
+        <div className="absolute rounded-full w-[420px] h-[240px] min-[900px]:w-[700px] min-[900px]:h-[400px]" style={{ bottom: 100, left: '50%', transform: 'translateX(-50%)', background: 'radial-gradient(circle, rgba(167,139,250,0.1), transparent 70%)', animation: 'float3 26s ease-in-out infinite alternate' }} />
+      </div>
+
+      {/* Header */}
+      <div className="relative" style={{ zIndex: 2 }}>
+        <div className="px-4 min-[900px]:px-5 pt-safe-top" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+          <div className="flex items-center justify-between py-3 min-[900px]:py-4 max-w-[1080px] mx-auto">
+            <div className="flex items-center gap-3">
+              <div className="w-9 min-[900px]:w-10 h-9 min-[900px]:h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #7c5cfc, #6366f1)' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f8f8fc" strokeWidth="1.5" opacity="0.4"/><path d="M5 17L10 12L5 10L18 6L14 19L12 14L5 17Z" fill="#f8f8fc" fillOpacity="0.95"/></svg>
               </div>
               <div>
-                <p className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-violet-500 text-[11px] font-bold tracking-wide">TripFlow · สวัสดี</p>
-                <h1 className="text-lg font-bold text-gray-900 mt-0.5 leading-tight">{user.name}</h1>
+                <p className="text-[11px] font-semibold" style={{ color: 'rgba(30,30,60,0.4)' }}>สวัสดี</p>
+                <h1 className="text-[15px] min-[900px]:text-[17px] font-extrabold text-[#1a1a2e] leading-tight mt-0.5">{user.name}</h1>
               </div>
             </div>
-            <Link href="/profile">
-              <div className="relative group">
-                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-indigo-400 via-violet-400 to-purple-500 opacity-60 group-hover:opacity-100 blur-sm transition-opacity" />
-                <div className="relative p-[2px] rounded-xl bg-gradient-to-br from-indigo-400 via-violet-400 to-purple-500">
-                  <div className="w-11 h-11 rounded-[10px] overflow-hidden bg-white flex items-center justify-center">
-                    {user.avatarUrl ? (
-                      <Image src={user.avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
-                    ) : (
-                      <span className="text-indigo-600 font-bold text-sm">{user.name[0]}</span>
-                    )}
-                  </div>
-                </div>
+            <Link href="/profile" className="no-btn-fx">
+              <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 10px rgba(0,0,0,0.12)', background: 'rgba(255,255,255,0.5)' }}>
+                {user.avatarUrl ? (
+                  <Image src={user.avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
+                ) : (
+                  <span className="text-[#7c5cfc] font-bold text-sm">{user.name[0]}</span>
+                )}
               </div>
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full page-content">
-        {/* Quick stats */}
-        <div className="flex gap-3 mb-6">
-          {active.length > 0 && (
-            <div className="flex-1 bg-white/50 backdrop-blur-md rounded-2xl p-4 border border-emerald-200 relative overflow-hidden">
-              <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full bg-emerald-400/15 blur-lg" />
-              <div className="relative flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
+      {/* Content */}
+      <div className="relative px-4 min-[900px]:px-6 max-w-[1080px] mx-auto" style={{ zIndex: 1, paddingTop: '24px', paddingBottom: '100px' }}>
+        <div className="min-[900px]:grid min-[900px]:gap-6" style={{ gridTemplateColumns: '300px 1fr', alignItems: 'start' }}>
+
+          {/* ═══ LEFT COLUMN ═══ */}
+          {/* MOBILE: compact combined card */}
+          <div className="min-[900px]:hidden flex flex-col gap-4 mb-4" style={{ animation: 'homeSlideRight 0.4s ease-out both' }}>
+            {/* User + stats combined */}
+            <div className="rounded-[20px] flex items-center gap-3.5" style={{ ...glass, padding: '16px 20px' }}>
+              <div className="w-11 h-11 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)' }}>
+                {user.avatarUrl ? (
+                  <Image src={user.avatarUrl} alt="" width={44} height={44} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
+                ) : (
+                  <span className="text-[#7c5cfc] font-bold text-sm">{user.name[0]}</span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[15px] font-extrabold text-[#1a1a2e] truncate">{user.name}</p>
+                <span className="inline-flex items-center gap-1 h-5 px-2 rounded-[20px] text-[10px] font-bold mt-1" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>
+                  ✈ TripFlow
+                </span>
+              </div>
+              <div className="flex items-center gap-0 flex-shrink-0">
+                <div className="text-center px-3">
+                  <p className="text-[20px] font-extrabold text-[#1a1a2e]">{upcoming.length + active.length}</p>
+                  <p className="text-[10px]" style={{ color: 'rgba(30,30,60,0.4)' }}>จะมาถึง</p>
                 </div>
-                <div>
-                  <p className="text-2xl font-black text-emerald-600">{active.length}</p>
-                  <p className="text-[11px] text-emerald-500 font-medium">กำลังเดินทาง</p>
+                <div style={{ width: '0.5px', height: '28px', background: 'rgba(0,0,0,0.08)' }} />
+                <div className="text-center px-3">
+                  <p className="text-[20px] font-extrabold text-[#1a1a2e]">{history.length}</p>
+                  <p className="text-[10px]" style={{ color: 'rgba(30,30,60,0.4)' }}>ผ่านมา</p>
                 </div>
               </div>
             </div>
-          )}
-          <div className="flex-1 bg-white/50 backdrop-blur-md rounded-2xl p-4 border border-indigo-200 relative overflow-hidden">
-            <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full bg-indigo-400/15 blur-lg" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+
+            {/* Next departure — horizontal on mobile */}
+            {nextTrip && daysUntilDeparture > 0 && (
+              <div className="rounded-[20px] relative overflow-hidden" style={glass}>
+                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[20px]" style={{ background: 'linear-gradient(to bottom, #7c5cfc, #a78bfa)' }} />
+                <div className="flex items-center justify-between gap-3" style={{ padding: '14px 18px 14px 22px' }}>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.09em' }}>ออกเดินทางครั้งต่อไป</p>
+                    <p className="text-[13px] font-bold text-[#1a1a2e] mt-1 truncate">{nextTrip.title}</p>
+                  </div>
+                  <div className="flex items-end gap-1 flex-shrink-0">
+                    <span className="text-[28px] font-extrabold text-[#7c5cfc]" style={{ letterSpacing: '-0.02em', lineHeight: '1', textShadow: '0 0 20px rgba(124,92,252,0.25)' }}>
+                      {animatedDays}
+                    </span>
+                    <span className="text-[11px] pb-0.5" style={{ color: 'rgba(30,30,60,0.35)' }}>วัน</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-black text-indigo-600">{upcoming.length}</p>
-                <p className="text-[11px] text-gray-500 font-medium">ทริปที่จะมาถึง</p>
-              </div>
-            </div>
+            )}
           </div>
-          <div className="flex-1 bg-white/50 backdrop-blur-md rounded-2xl p-4 border border-violet-200 relative overflow-hidden">
-            <div className="absolute -top-3 -right-3 w-16 h-16 rounded-full bg-violet-400/15 blur-lg" />
-            <div className="relative flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg>
+
+          {/* DESKTOP: full left column */}
+          <div className="hidden min-[900px]:flex min-[900px]:sticky min-[900px]:top-[80px] flex-col gap-3.5" style={{ animation: 'homeSlideRight 0.4s ease-out both' }}>
+            {/* Profile card */}
+            <div className="rounded-[20px] p-5" style={glass}>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0" style={{ border: '2px solid rgba(255,255,255,0.9)', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)' }}>
+                  {user.avatarUrl ? (
+                    <Image src={user.avatarUrl} alt="" width={48} height={48} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
+                  ) : (
+                    <span className="text-[#7c5cfc] font-bold">{user.name[0]}</span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[16px] font-extrabold text-[#1a1a2e] truncate">{user.name}</p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 h-6 px-2.5 rounded-[20px] text-[11px] font-bold" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>
+                ✈ TripFlow
+              </span>
+            </div>
+
+            {/* Stats */}
+            <div className="rounded-[20px] p-4 flex items-center gap-3.5" style={glass}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.12)' }}>
+                <svg className="w-5 h-5" style={{ color: '#8b5cf6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
               </div>
               <div>
-                <p className="text-2xl font-black text-violet-600">{tours.length}</p>
-                <p className="text-[11px] text-gray-500 font-medium">ทริปทั้งหมด</p>
+                <p className="text-[28px] font-extrabold text-[#1a1a2e]" style={{ letterSpacing: '-0.02em' }}>{upcoming.length + active.length}</p>
+                <p className="text-[12px]" style={{ color: 'rgba(30,30,60,0.4)' }}>ทริปที่จะมาถึง</p>
               </div>
             </div>
+
+            <div className="rounded-[20px] p-4 flex items-center gap-3.5" style={glass}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                <svg className="w-5 h-5" style={{ color: '#3b82f6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg>
+              </div>
+              <div>
+                <p className="text-[28px] font-extrabold text-[#1a1a2e]" style={{ letterSpacing: '-0.02em' }}>{history.length}</p>
+                <p className="text-[12px]" style={{ color: 'rgba(30,30,60,0.4)' }}>ทริปที่ผ่านมา</p>
+              </div>
+            </div>
+
+            {/* Next departure */}
+            {nextTrip && daysUntilDeparture > 0 && (
+              <div className="rounded-[20px] relative overflow-hidden" style={glass}>
+                <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-[20px]" style={{ background: 'linear-gradient(to bottom, #7c5cfc, #a78bfa)' }} />
+                <div className="p-5 pl-6">
+                  <p className="text-[10px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.09em' }}>ออกเดินทางครั้งต่อไป</p>
+                  <p className="text-[14px] font-bold text-[#1a1a2e] mt-1 line-clamp-2">{nextTrip.title}</p>
+                  <div className="mt-3 flex items-end gap-1.5">
+                    <span className="text-[32px] font-extrabold text-[#7c5cfc]" style={{ letterSpacing: '-0.02em', lineHeight: '1', textShadow: '0 0 20px rgba(124,92,252,0.25)' }}>
+                      {animatedDays}
+                    </span>
+                    <span className="text-[12px] pb-1" style={{ color: 'rgba(30,30,60,0.35)' }}>วันข้างหน้า</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ═══ RIGHT COLUMN ═══ */}
+          <div className="flex flex-col gap-5">
+            {tours.length === 0 ? (
+              <div className="rounded-[20px] p-12 text-center" style={glass}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.15)' }}>
+                  <svg className="w-8 h-8 text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" /></svg>
+                </div>
+                <p className="text-[#1a1a2e] font-bold text-lg">ยังไม่มีทริป</p>
+                <p className="text-sm mt-2 max-w-xs mx-auto" style={{ color: 'rgba(30,30,60,0.4)' }}>รอรับคำเชิญจากผู้จัดทัวร์ หรือขอให้ admin เพิ่มคุณเข้าทริป</p>
+              </div>
+            ) : (
+              <>
+                {/* Active */}
+                {active.length > 0 && (
+                  <TripSection title="กำลังเดินทาง" accentColor="#10b981" tours={active} variant="active" />
+                )}
+
+                {/* Upcoming */}
+                {upcoming.length > 0 && (
+                  <TripSection title="ทริปที่จะมาถึง" accentGradient tours={upcoming} variant="upcoming" />
+                )}
+
+                {/* History */}
+                {history.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      <div className="w-[3px] h-[18px] rounded-full" style={{ background: 'rgba(30,30,60,0.2)' }} />
+                      <h2 className="text-[16px] font-extrabold" style={{ color: 'rgba(30,30,60,0.4)' }}>ประวัติการเดินทาง</h2>
+                    </div>
+                    <div className="grid grid-cols-2 min-[900px]:grid-cols-3 gap-2.5">
+                      {history.map((tour, i) => (
+                        <HistoryCard key={tour.id} tour={tour} index={i} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-
-        {tours.length === 0 ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-12 text-center border border-indigo-100/40">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498l4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 00-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0z" />
-              </svg>
-            </div>
-            <p className="text-gray-900 font-bold text-lg">ยังไม่มีทริป</p>
-            <p className="text-gray-500 text-sm mt-2 max-w-xs mx-auto">รอรับคำเชิญจากผู้จัดทัวร์ หรือขอให้ admin เพิ่มคุณเข้าทริป</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* กำลังเดินทาง */}
-            {active.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-                  </span>
-                  <h2 className="font-bold text-emerald-700 text-[15px]">กำลังเดินทาง</h2>
-                  <div className="h-[1px] flex-1 bg-gradient-to-r from-emerald-200 to-transparent" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {active.map(tour => <TourCard key={tour.id} tour={tour} variant="active" />)}
-                </div>
-              </div>
-            )}
-
-            {/* ทริปที่จะมาถึง */}
-            {upcoming.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-1.5 h-5 rounded-full bg-indigo-500" />
-                  <h2 className="font-bold text-gray-900 text-[15px]">ทริปที่จะมาถึง</h2>
-                  <div className="h-[1px] flex-1 bg-gradient-to-r from-indigo-200 via-violet-200 to-transparent" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {upcoming.map(tour => <TourCard key={tour.id} tour={tour} variant="upcoming" />)}
-                </div>
-              </div>
-            )}
-
-            {/* ประวัติ */}
-            {history.length > 0 && (
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-1.5 h-5 rounded-full bg-gray-300" />
-                  <h2 className="font-bold text-gray-500 text-[15px]">ประวัติการเดินทาง</h2>
-                  <div className="h-[1px] flex-1 bg-gradient-to-r from-gray-200 to-transparent" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {history.map(tour => <TourCard key={tour.id} tour={tour} variant={tour.status === 'CANCELLED' ? 'cancelled' : 'completed'} />)}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )
 }
 
-function TourCard({ tour, variant }: { tour: TourItem; variant: 'active' | 'upcoming' | 'completed' | 'cancelled' }) {
+// ── Section with trip cards ──
+function TripSection({ title, accentColor, accentGradient, tours, variant }: {
+  title: string; accentColor?: string; accentGradient?: boolean
+  tours: TourItem[]; variant: 'active' | 'upcoming'
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-[3px] h-[18px] rounded-full" style={{ background: accentGradient ? 'linear-gradient(to bottom, #7c5cfc, #4fc3f7)' : accentColor }} />
+        <h2 className="text-[16px] font-extrabold" style={{ color: accentColor ?? '#1a1a2e' }}>{title}</h2>
+      </div>
+      <div className="grid grid-cols-1 min-[640px]:grid-cols-2 gap-3">
+        {tours.map((tour, i) => (
+          <TripCard key={tour.id} tour={tour} variant={variant} index={i} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Trip card ──
+function TripCard({ tour, variant, index }: { tour: TourItem; variant: 'active' | 'upcoming'; index: number }) {
   const countdown = getTripCountdown(new Date(tour.startDate), new Date(tour.endDate))
   const daysCount = tour.days.length
-  const isHistory = variant === 'completed' || variant === 'cancelled'
-
-  const borderColor = {
-    active: 'border-emerald-200/60 ring-emerald-100 hover:border-emerald-300',
-    upcoming: 'border-gray-100/60 ring-transparent hover:border-indigo-200/60 hover:ring-indigo-100',
-    completed: 'border-gray-100/40 ring-transparent',
-    cancelled: 'border-red-200/40 ring-transparent',
-  }[variant]
+  const b = tour.days.filter(d => d.mealBreakfast).length
+  const l = tour.days.filter(d => d.mealLunch).length
+  const d = tour.days.filter(d => d.mealDinner).length
 
   return (
-    <Link href={`/tour/${tour.id}/today`} className="flex group">
-      <div className={`bg-white/50 backdrop-blur-md rounded-2xl border overflow-hidden flex flex-col w-full
-        transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 ring-1 ${borderColor}
-        ${isHistory ? 'opacity-60 hover:opacity-90' : ''}`}>
-        <div className={`aspect-[16/9] relative flex-shrink-0 overflow-hidden ${isHistory ? 'bg-gray-100' : 'bg-gradient-to-br from-indigo-100 to-violet-100'}`}>
-          {tour.coverImageUrl && (
-            <Image src={tour.coverImageUrl} alt="" fill unoptimized
-              className={`object-cover absolute inset-0 transition-all duration-500 group-hover:scale-105 ${isHistory ? 'grayscale group-hover:grayscale-0' : ''}`} />
+    <Link href={`/tour/${tour.id}/today`} className="block no-btn-fx group" style={{ animation: `homeCardIn 0.35s ease-out ${index * 0.06}s both` }}>
+      <div className="rounded-[20px] overflow-hidden transition-all duration-250 group-hover:-translate-y-1 group-hover:shadow-[0_12px_36px_rgba(100,80,180,0.14)]" style={glass}>
+        {/* Image */}
+        <div className="relative overflow-hidden h-[180px] min-[900px]:h-[200px]">
+          {tour.coverImageUrl ? (
+            <Image src={tour.coverImageUrl} alt="" fill unoptimized className="object-cover transition-transform duration-400 group-hover:scale-[1.03]" />
+          ) : (
+            <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, rgba(124,92,252,0.15), rgba(99,102,241,0.1))' }} />
           )}
-          {!isHistory && <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />}
-          <div className="absolute bottom-3 left-3 flex gap-1">
-            {tour.countries.map(c => <span key={c} className="text-lg drop-shadow-md">{countryFlags[c] ?? '🌍'}</span>)}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(8,6,20,0.75) 0%, transparent 55%)' }} />
+
+          {/* Country pill */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 rounded-[20px] text-[11px] font-bold" style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.15)', color: '#f8f8fc' }}>
+            {tour.countries.map(c => countryFlags[c] ?? '').join('')} {tour.primaryCountry}
           </div>
+
+          {/* Active badge */}
           {variant === 'active' && (
-            <span className="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-full bg-emerald-500 text-white font-bold shadow-sm flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />กำลังเดินทาง
-            </span>
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 px-2.5 py-1 rounded-[20px] text-[10px] font-bold" style={{ background: 'rgba(16,185,129,0.85)', backdropFilter: 'blur(8px)', color: '#f8f8fc' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#f8f8fc] animate-pulse" />กำลังเดินทาง
+            </div>
           )}
-          {variant === 'cancelled' && <span className="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-full bg-red-500 text-white font-bold">ยกเลิก</span>}
-          {variant === 'completed' && <span className="absolute top-3 left-3 text-[10px] px-2.5 py-1 rounded-full bg-gray-500 text-white font-bold">เสร็จสิ้น</span>}
-          {tour.isChina && <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full bg-white/80 backdrop-blur-sm text-red-600 font-semibold border border-white/50">CN</span>}
+
+          {/* Trip name ON image */}
+          <p className="absolute bottom-10 left-3.5 right-12 text-[14px] min-[900px]:text-[15px] font-extrabold line-clamp-2 leading-snug" style={{ color: '#f8f8fc', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+            {tour.title}
+          </p>
+
+          {/* Countdown pill */}
+          {countdown.daysUntilDeparture !== undefined && countdown.daysUntilDeparture > 0 && (
+            <div className="absolute bottom-2.5 right-2.5 px-2.5 py-1 rounded-[20px] text-[11px] font-bold" style={{ background: 'rgba(124,92,252,0.85)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)', color: '#f8f8fc' }}>
+              {countdown.daysUntilDeparture} วัน
+            </div>
+          )}
         </div>
-        <div className="p-4 flex flex-col flex-1">
-          <p className={`font-semibold text-sm leading-snug line-clamp-2 flex-1 transition-colors ${
-            variant === 'cancelled' ? 'text-red-700/70 line-through' : 'text-gray-900 group-hover:text-indigo-600'
-          }`}>{tour.title}</p>
 
-          {/* Meal summary */}
-          {!isHistory && daysCount > 0 && (() => {
-            const b = tour.days.filter(d => d.mealBreakfast).length
-            const l = tour.days.filter(d => d.mealLunch).length
-            const d = tour.days.filter(d => d.mealDinner).length
-            if (b === 0 && l === 0 && d === 0) return null
-            return (
-              <div className="flex gap-1.5 mt-2 flex-wrap">
-                {b > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-orange-100 text-orange-600 rounded-md font-semibold border border-orange-200/50">เช้า {b} มื้อ</span>}
-                {l > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-green-100 text-green-600 rounded-md font-semibold border border-green-200/50">กลางวัน {l} มื้อ</span>}
-                {d > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-violet-100 text-violet-600 rounded-md font-semibold border border-violet-200/50">เย็น {d} มื้อ</span>}
-              </div>
-            )
-          })()}
-
-          <div className="mt-3 pt-3 border-t border-gray-100/60 flex items-center justify-between gap-2">
-            <p className="text-gray-500 text-xs truncate flex items-center gap-1">
-              <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" /></svg>
-              {tour.cities.slice(0, 2).join(' · ')} · {daysCount} วัน
-            </p>
-            <span className={`text-[11px] font-bold shrink-0 px-2 py-0.5 rounded-md ${
-              variant === 'active' ? 'text-emerald-700 bg-emerald-50' : variant === 'cancelled' ? 'text-red-500 bg-red-50' : variant === 'completed' ? 'text-gray-400 bg-gray-50' : 'text-indigo-700 bg-indigo-50'
-            }`}>{variant === 'cancelled' ? 'ยกเลิกแล้ว' : countdown.label}</span>
+        {/* Footer */}
+        <div style={{ padding: '12px 14px 14px' }}>
+          {(b > 0 || l > 0 || d > 0) && (
+            <div className="flex flex-wrap gap-1.5">
+              {b > 0 && <span className="inline-flex items-center h-[22px] px-2 rounded-[20px] text-[10px] font-semibold" style={{ background: 'rgba(251,191,36,0.12)', color: 'rgba(180,130,10,0.9)', border: '1px solid rgba(251,191,36,0.2)' }}>🌅 เช้า {b}</span>}
+              {l > 0 && <span className="inline-flex items-center h-[22px] px-2 rounded-[20px] text-[10px] font-semibold" style={{ background: 'rgba(34,197,94,0.1)', color: 'rgba(22,140,65,0.9)', border: '1px solid rgba(34,197,94,0.18)' }}>🍱 กลางวัน {l}</span>}
+              {d > 0 && <span className="inline-flex items-center h-[22px] px-2 rounded-[20px] text-[10px] font-semibold" style={{ background: 'rgba(124,92,252,0.1)', color: 'rgba(100,70,210,0.9)', border: '1px solid rgba(124,92,252,0.18)' }}>🌙 เย็น {d}</span>}
+            </div>
+          )}
+          <div className="flex items-center gap-1.5 mt-2 text-[12px]" style={{ color: 'rgba(30,30,60,0.4)' }}>
+            <span>📍</span>
+            <span className="truncate">{tour.cities.slice(0, 2).join(' · ')}</span>
+            <span style={{ color: 'rgba(0,0,0,0.15)' }}>·</span>
+            <span className="flex-shrink-0">{daysCount} วัน</span>
           </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
+// ── History card ──
+function HistoryCard({ tour, index }: { tour: TourItem; index: number }) {
+  const countdown = getTripCountdown(new Date(tour.startDate), new Date(tour.endDate))
+  const cancelled = tour.status === 'CANCELLED'
+
+  return (
+    <Link href={`/tour/${tour.id}/today`} className="block no-btn-fx group" style={{ animation: `homeCardIn 0.35s ease-out ${(index + 6) * 0.06}s both` }}>
+      <div className="rounded-[20px] overflow-hidden transition-all duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_8px_24px_rgba(100,80,180,0.1)]" style={glass}>
+        <div className="relative overflow-hidden h-[110px] min-[900px]:h-[140px]">
+          {tour.coverImageUrl ? (
+            <Image src={tour.coverImageUrl} alt="" fill unoptimized className="object-cover" style={{ filter: 'saturate(30%) brightness(0.85)' }} />
+          ) : (
+            <div className="w-full h-full" style={{ background: 'rgba(0,0,0,0.04)' }} />
+          )}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(8,6,20,0.6) 0%, transparent 50%)' }} />
+
+          {cancelled && (
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-[10px] text-[10px] font-bold" style={{ background: 'rgba(239,68,68,0.85)', backdropFilter: 'blur(6px)', color: '#f8f8fc' }}>
+              ยกเลิก
+            </div>
+          )}
+
+          <p className="absolute bottom-2 left-2.5 right-2.5 text-[13px] font-bold truncate" style={{ color: '#f8f8fc', textShadow: '0 1px 6px rgba(0,0,0,0.4)' }}>
+            {tour.title}
+          </p>
+        </div>
+
+        <div style={{ padding: '8px 10px 10px' }}>
+          <p className="text-[11px] truncate" style={{ color: 'rgba(30,30,60,0.35)' }}>
+            {tour.cities.slice(0, 2).join(' · ')} · {tour.days.length} วัน
+          </p>
+          {cancelled && <p className="text-[11px] font-semibold text-[#ef4444] mt-0.5">ยกเลิกแล้ว</p>}
         </div>
       </div>
     </Link>
