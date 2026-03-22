@@ -16,6 +16,7 @@ interface TopBarProps {
   subtitle?: string
   backHref?: string
   gradient?: string
+  variant?: 'light' | 'dark'
   children?: React.ReactNode
 }
 
@@ -23,8 +24,10 @@ export function TopBar({
   title,
   subtitle,
   backHref,
+  variant = 'light',
   children,
 }: TopBarProps) {
+  const isDark = variant === 'dark'
   const router = useRouter()
   const { data: me } = useApi<{ name: string; avatarUrl: string | null }>('/api/auth/me')
   const user: UserInfo | null = me ? { name: me.name, avatarUrl: me.avatarUrl ?? null } : null
@@ -48,23 +51,23 @@ export function TopBar({
   }
 
   return (
-    <div className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 pt-safe-top sticky top-0 z-30">
-      <div className="flex items-center gap-3 py-3">
+    <div className={`${isDark ? 'bg-[#080810]/80 border-b border-white/[0.06]' : 'bg-white/70 border-b border-gray-200/50'} backdrop-blur-xl px-4 pt-safe-top sticky top-0 z-30`}>
+      <div className="flex items-center gap-3 py-3 max-w-[1100px] min-[900px]:px-8 mx-auto">
         {/* Back button */}
         <button
           onClick={() => backHref ? router.push(backHref) : router.back()}
-          className="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-50 hover:bg-indigo-100 active:scale-95 transition-all flex-shrink-0 no-btn-fx"
+          className={`w-9 h-9 flex items-center justify-center rounded-xl active:scale-95 transition-all flex-shrink-0 no-btn-fx ${isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-indigo-50 hover:bg-indigo-100'}`}
           aria-label="ย้อนกลับ"
         >
-          <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className={`w-4 h-4 ${isDark ? 'text-white/60' : 'text-indigo-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
         {/* Title */}
         <div className="flex-1 min-w-0">
-          <h1 className="text-[15px] font-bold text-gray-900 leading-tight truncate">{title}</h1>
-          {subtitle && <p className="text-[11px] text-gray-400 truncate mt-0.5">{subtitle}</p>}
+          <h1 className={`text-[15px] font-bold leading-tight truncate ${isDark ? 'text-[#f0f0ff]' : 'text-gray-900'}`}>{title}</h1>
+          {subtitle && <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-white/[0.45]' : 'text-gray-400'}`}>{subtitle}</p>}
         </div>
 
         {/* Extra slot */}
@@ -74,7 +77,7 @@ export function TopBar({
         <div className="relative flex-shrink-0" ref={menuRef}>
           <button
             onClick={() => setOpen((v) => !v)}
-            className="w-9 h-9 rounded-xl overflow-hidden bg-indigo-50 flex items-center justify-center no-btn-fx hover:ring-2 hover:ring-indigo-200 transition-all"
+            className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center no-btn-fx hover:ring-2 transition-all ${isDark ? 'bg-white/[0.06] hover:ring-white/20' : 'bg-indigo-50 hover:ring-indigo-200'}`}
             aria-label="เมนูผู้ใช้"
           >
             {user?.avatarUrl ? (
@@ -89,7 +92,7 @@ export function TopBar({
                 unoptimized
               />
             ) : null}
-            <span className={`text-indigo-600 font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
+            <span className={`${isDark ? 'text-violet-300' : 'text-indigo-600'} font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
           </button>
 
           {open && (

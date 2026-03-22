@@ -23,18 +23,26 @@ interface TourBasic {
   isChina: boolean
 }
 
-const typeConfig: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  FLIGHT_TICKET:    { label: 'ตั๋วเครื่องบิน',    color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-100' },
-  HOTEL_VOUCHER:    { label: 'เวาเชอร์โรงแรม',    color: 'text-violet-600',  bg: 'bg-violet-50',  border: 'border-violet-100' },
-  TOUR_VOUCHER:     { label: 'เวาเชอร์ทัวร์',      color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  VISA:             { label: 'วีซ่า',               color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100' },
-  QR_CODE:          { label: 'QR Code',             color: 'text-gray-600',    bg: 'bg-gray-50',    border: 'border-gray-200' },
-  INSURANCE:        { label: 'ประกันเดินทาง',       color: 'text-teal-600',    bg: 'bg-teal-50',    border: 'border-teal-100' },
-  PASSPORT:         { label: 'พาสปอร์ต',            color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100' },
-  MAP:              { label: 'แผนที่',               color: 'text-amber-600',   bg: 'bg-amber-50',   border: 'border-amber-100' },
-  VISIT_JAPAN_WEB:  { label: 'Visit Japan Web',     color: 'text-rose-600',    bg: 'bg-rose-50',    border: 'border-rose-100' },
-  CHINA_HEALTH_KIT: { label: 'China Health Kit',    color: 'text-red-600',     bg: 'bg-red-50',     border: 'border-red-100' },
-  OTHER:            { label: 'เอกสารอื่น',           color: 'text-gray-500',    bg: 'bg-gray-50',    border: 'border-gray-200' },
+// ── Type config with hex colors ──
+const typeColors: Record<string, string> = {
+  FLIGHT_TICKET: '#3b82f6', HOTEL_VOUCHER: '#8b5cf6', TOUR_VOUCHER: '#22c55e',
+  VISA: '#ef4444', QR_CODE: '#6b7280', INSURANCE: '#14b8a6',
+  PASSPORT: '#6366f1', MAP: '#f59e0b', VISIT_JAPAN_WEB: '#ef4444',
+  CHINA_HEALTH_KIT: '#ef4444', OTHER: '#94a3b8',
+}
+const typeLabels: Record<string, string> = {
+  FLIGHT_TICKET: 'ตั๋วเครื่องบิน', HOTEL_VOUCHER: 'เวาเชอร์โรงแรม',
+  TOUR_VOUCHER: 'เวาเชอร์ทัวร์', VISA: 'วีซ่า', QR_CODE: 'QR Code',
+  INSURANCE: 'ประกันเดินทาง', PASSPORT: 'พาสปอร์ต', MAP: 'แผนที่',
+  VISIT_JAPAN_WEB: 'Visit Japan Web', CHINA_HEALTH_KIT: 'China Health Kit',
+  OTHER: 'เอกสารอื่น',
+}
+
+function rgba(hex: string, a: number) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${a})`
 }
 
 const typeIcons: Record<string, React.ReactNode> = {
@@ -70,17 +78,26 @@ function getIcon(type: string) {
 }
 
 const docTypeOptions = [
-  { value: 'FLIGHT_TICKET',  label: 'ตั๋วเครื่องบิน' },
-  { value: 'HOTEL_VOUCHER',  label: 'เวาเชอร์โรงแรม' },
-  { value: 'TOUR_VOUCHER',   label: 'เวาเชอร์ทัวร์' },
-  { value: 'VISA',           label: 'วีซ่า' },
-  { value: 'INSURANCE',      label: 'ประกันเดินทาง' },
-  { value: 'OTHER',          label: 'อื่นๆ' },
+  { value: 'FLIGHT_TICKET', label: 'ตั๋วเครื่องบิน' },
+  { value: 'HOTEL_VOUCHER', label: 'เวาเชอร์โรงแรม' },
+  { value: 'TOUR_VOUCHER', label: 'เวาเชอร์ทัวร์' },
+  { value: 'VISA', label: 'วีซ่า' },
+  { value: 'INSURANCE', label: 'ประกันเดินทาง' },
+  { value: 'OTHER', label: 'อื่นๆ' },
 ]
 
 function isPdf(url: string | null): boolean {
   return !!url && url.toLowerCase().endsWith('.pdf')
 }
+
+// ── Glass tokens ──
+const glassStyle = {
+  background: 'rgba(255,255,255,0.62)',
+  backdropFilter: 'blur(20px) saturate(160%)',
+  WebkitBackdropFilter: 'blur(20px) saturate(160%)',
+  border: '1px solid rgba(255,255,255,0.88)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 20px rgba(0,0,0,0.05)',
+} as const
 
 function QRCanvas({ data }: { data: string }) {
   const ref = useRef<HTMLCanvasElement>(null)
@@ -89,7 +106,7 @@ function QRCanvas({ data }: { data: string }) {
       import('qrcode').then(QRCode => {
         QRCode.default.toCanvas(ref.current!, data, {
           width: 200, margin: 1,
-          color: { dark: '#000000', light: '#FFFFFF' },
+          color: { dark: '#1a1a2e', light: '#f8f8fc' },
         })
       })
     }
@@ -98,7 +115,8 @@ function QRCanvas({ data }: { data: string }) {
 }
 
 function DocumentModal({ doc, onClose }: { doc: Document; onClose: () => void }) {
-  const cfg = typeConfig[doc.type] ?? typeConfig['OTHER']!
+  const hex = typeColors[doc.type] ?? typeColors['OTHER']!
+  const label = typeLabels[doc.type] ?? typeLabels['OTHER']!
   const hasFile = !!doc.fileUrl
   const hasQr = !!doc.qrData
   const fileIsPdf = hasFile && isPdf(doc.fileUrl)
@@ -106,131 +124,214 @@ function DocumentModal({ doc, onClose }: { doc: Document; onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-[100]">
-      {/* Backdrop — frosted dark */}
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+      <style>{`
+        @keyframes modalBdIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes modalBdOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(12px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        @keyframes sheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      `}</style>
 
-      {/* Modal — centered */}
-      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-        <div className="relative w-full max-w-md pointer-events-auto bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0"
+        style={{
+          background: 'rgba(15,10,30,0.6)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          animation: 'modalBdIn 0.2s ease both',
+        }}
+        onClick={onClose}
+      />
 
-          {/* Close button — floating */}
-          <button onClick={onClose}
-            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 backdrop-blur-sm text-white/80 hover:bg-black/20 transition-colors">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+      {/* Desktop: centered modal / Mobile: bottom sheet */}
+      {/* Centered modal (>=640px) */}
+      <div className="fixed inset-0 hidden min-[640px]:flex items-center justify-center p-4 pointer-events-none">
+        <div
+          className="relative w-[92vw] max-w-[480px] pointer-events-auto rounded-[24px] overflow-hidden"
+          style={{
+            background: 'rgba(255,255,255,0.72)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.9)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 24px 60px rgba(0,0,0,0.18), 0 8px 24px rgba(0,0,0,0.08)',
+            animation: 'modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
+          }}
+        >
+          <ModalContent doc={doc} hex={hex} label={label} hasFile={hasFile} hasQr={hasQr} fileIsPdf={fileIsPdf} fileIsImage={fileIsImage} onClose={onClose} />
+        </div>
+      </div>
 
-          {/* Document preview area */}
-          <div className="relative bg-gradient-to-b from-gray-900/5 to-gray-100/50">
-            {fileIsImage && (
-              <div className="flex items-center justify-center p-6 min-h-[240px]">
-                <img src={doc.fileUrl!} alt={doc.title} className="max-w-full max-h-[50vh] object-contain rounded-2xl shadow-lg ring-1 ring-black/5" />
-              </div>
-            )}
-            {fileIsPdf && (
-              <iframe src={`${doc.fileUrl}#toolbar=0&navpanes=0`} className="w-full border-0" style={{ height: '50vh' }} title={doc.title} />
-            )}
-            {hasQr && !hasFile && (
-              <div className="flex flex-col items-center justify-center p-8 min-h-[200px]">
-                <div className="bg-white rounded-2xl p-4 shadow-lg">
-                  <QRCanvas data={doc.qrData!} />
-                </div>
-                <p className="text-xs text-gray-400 mt-3">แสดง QR Code นี้ที่จุดตรวจ</p>
-              </div>
-            )}
-            {!hasFile && !hasQr && (
-              <div className="flex flex-col items-center justify-center p-12 min-h-[160px]">
-                <div className={`w-16 h-16 rounded-2xl ${cfg.bg} ${cfg.border} border flex items-center justify-center ${cfg.color} mb-3`}>
-                  <div className="scale-150">{getIcon(doc.type)}</div>
-                </div>
-                <p className="text-sm text-gray-400">ยังไม่มีไฟล์แนบ</p>
-              </div>
-            )}
+      {/* Bottom sheet (<640px) */}
+      <div className="fixed inset-x-0 bottom-0 min-[640px]:hidden pointer-events-auto" style={{ maxHeight: '90vh' }}>
+        <div
+          className="rounded-t-[24px] overflow-hidden overflow-y-auto"
+          style={{
+            maxHeight: '90vh',
+            background: 'rgba(255,255,255,0.72)',
+            backdropFilter: 'blur(28px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.9)',
+            borderBottom: 'none',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 -8px 40px rgba(0,0,0,0.12)',
+            animation: 'sheetIn 0.3s cubic-bezier(0.22,1,0.36,1) both',
+          }}
+        >
+          {/* Drag handle */}
+          <div className="flex justify-center pt-2.5 pb-1">
+            <div className="w-9 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.12)' }} />
           </div>
-
-          {/* Info section */}
-          <div className="px-5 py-4 space-y-2">
-            {/* Type badge + personal */}
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] px-2 py-0.5 ${cfg.bg} ${cfg.color} ${cfg.border} border rounded-full font-semibold`}>{cfg.label}</span>
-              {doc.isPersonal && (
-                <span className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-500 border border-indigo-100 rounded-full font-semibold">ส่วนตัว</span>
-              )}
-              {fileIsPdf && <span className="text-[10px] text-gray-400">PDF</span>}
-            </div>
-
-            {/* Title */}
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">{doc.title}</h2>
-            {doc.titleEn && <p className="text-sm text-gray-400 -mt-1">{doc.titleEn}</p>}
-
-            {/* Description */}
-            {doc.description && <p className="text-sm text-gray-500 leading-relaxed">{doc.description}</p>}
-          </div>
-
-          {/* Action buttons */}
-          {hasFile && (
-            <div className="px-5 pb-5 pt-1">
-              <a href={doc.fileUrl!} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-600 text-white rounded-2xl text-sm font-semibold active:scale-[0.98] transition-all shadow-sm">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-                </svg>
-                เปิดไฟล์เต็มจอ
-              </a>
-            </div>
-          )}
+          <ModalContent doc={doc} hex={hex} label={label} hasFile={hasFile} hasQr={hasQr} fileIsPdf={fileIsPdf} fileIsImage={fileIsImage} onClose={onClose} />
         </div>
       </div>
     </div>
   )
 }
 
-function DocCard({ doc, onClick, onDelete }: {
-  doc: Document
-  onClick: () => void
-  onDelete?: () => void
+function ModalContent({ doc, hex, label, hasFile, hasQr, fileIsPdf, fileIsImage, onClose }: {
+  doc: Document; hex: string; label: string
+  hasFile: boolean; hasQr: boolean; fileIsPdf: boolean; fileIsImage: boolean
+  onClose: () => void
 }) {
-  const cfg = typeConfig[doc.type] ?? typeConfig['OTHER']!
+  return (
+    <>
+      {/* Header */}
+      <div className="flex items-center gap-3" style={{ padding: '18px 20px 14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: rgba(hex, 0.1), color: hex }}>
+          {getIcon(doc.type)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[15px] font-bold text-[#1a1a2e] truncate">{doc.title}</p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: rgba(hex, 0.1), border: `1px solid ${rgba(hex, 0.2)}`, color: hex }}>{label}</span>
+            {fileIsPdf && <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(0,0,0,0.05)', color: 'rgba(30,30,60,0.5)' }}>PDF</span>}
+            {doc.isPersonal && <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>ส่วนตัว</span>}
+          </div>
+        </div>
+        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 no-btn-fx transition-colors" style={{ background: 'rgba(0,0,0,0.06)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.1)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)' }}>
+          <span className="text-[14px] text-[rgba(30,30,60,0.4)]">✕</span>
+        </button>
+      </div>
+
+      {/* Preview area */}
+      <div style={{ background: 'rgba(0,0,0,0.02)' }}>
+        {fileIsImage && (
+          <div className="flex items-center justify-center p-5 min-h-[200px]">
+            <img src={doc.fileUrl!} alt={doc.title} className="max-w-full max-h-[50vh] object-contain rounded-2xl" style={{ border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
+          </div>
+        )}
+        {fileIsPdf && (
+          <iframe src={`${doc.fileUrl}#toolbar=0&navpanes=0`} className="w-full border-0" style={{ height: '50vh' }} title={doc.title} />
+        )}
+        {hasQr && !hasFile && (
+          <div className="flex flex-col items-center justify-center p-8 min-h-[200px]">
+            <div className="rounded-2xl p-4" style={{ background: '#f8f8fc', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
+              <QRCanvas data={doc.qrData!} />
+            </div>
+            <p className="text-xs text-[rgba(30,30,60,0.4)] mt-3">แสดง QR Code นี้ที่จุดตรวจ</p>
+          </div>
+        )}
+        {!hasFile && !hasQr && (
+          <div className="flex flex-col items-center justify-center p-12 min-h-[140px]">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: rgba(hex, 0.1), border: `1px solid ${rgba(hex, 0.2)}`, color: hex }}>
+              <div className="scale-125">{getIcon(doc.type)}</div>
+            </div>
+            <p className="text-sm text-[rgba(30,30,60,0.4)]">ยังไม่มีไฟล์แนบ</p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer — info + action */}
+      <div style={{ padding: '14px 20px 20px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.5)' }}>
+        {(doc.titleEn || doc.description) && (
+          <div className="mb-3.5">
+            {doc.titleEn && <p className="text-[12px] text-[rgba(30,30,60,0.4)]">{doc.titleEn}</p>}
+            {doc.description && <p className="text-[13px] text-[rgba(30,30,60,0.5)] leading-relaxed mt-1">{doc.description}</p>}
+          </div>
+        )}
+
+        {hasFile && (
+          <a
+            href={doc.fileUrl!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[14px] text-[15px] font-semibold text-[#3d3a5c] no-btn-fx transition-all duration-[180ms] hover:-translate-y-px active:scale-[0.98]"
+            style={{
+              background: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(255,255,255,0.9)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 12px rgba(0,0,0,0.06)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(124,92,252,0.06)'
+              e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.7)'
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.9)'
+            }}
+          >
+            <svg className="w-[18px] h-[18px] text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+            เปิดไฟล์เต็มจอ
+          </a>
+        )}
+      </div>
+    </>
+  )
+}
+
+function DocRow({ doc, onClick, onDelete }: { doc: Document; onClick: () => void; onDelete?: () => void }) {
+  const hex = typeColors[doc.type] ?? typeColors['OTHER']!
+  const label = typeLabels[doc.type] ?? typeLabels['OTHER']!
 
   return (
     <div
       onClick={onClick}
-      className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] hover:bg-white/70 hover:shadow-md transition-all"
+      className="flex items-center gap-3 cursor-pointer transition-colors duration-150 hover:bg-[rgba(255,255,255,0.5)]"
+      style={{ padding: '14px 16px' }}
     >
-      {/* Thumbnail — always emoji */}
-      <div className={`w-11 h-11 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: rgba(hex, 0.1), color: hex }}>
         {getIcon(doc.type)}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{doc.title}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className={`text-[10px] px-1.5 py-0.5 ${cfg.bg} ${cfg.color} rounded-full font-semibold`}>
-            {cfg.label}
+        <p className="text-[14px] font-semibold text-[#1a1a2e] truncate whitespace-nowrap">{doc.title}</p>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(0,0,0,0.05)', color: 'rgba(30,30,60,0.5)' }}>
+            {label}
           </span>
           {doc.fileUrl && isPdf(doc.fileUrl) && (
-            <span className="text-[10px] text-gray-400">PDF</span>
+            <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(0,0,0,0.05)', color: 'rgba(30,30,60,0.5)' }}>
+              PDF
+            </span>
           )}
           {doc.isPersonal && (
-            <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-semibold">ส่วนตัว</span>
+            <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>
+              ส่วนตัว
+            </span>
           )}
         </div>
-        {doc.description && (
-          <p className="text-[11px] text-gray-400 mt-0.5 truncate">{doc.description}</p>
-        )}
       </div>
 
-      <div className="flex items-center gap-1 flex-shrink-0">
+      <div className="flex items-center gap-2 flex-shrink-0">
         {onDelete && (
           <button
             onClick={(e) => { e.stopPropagation(); onDelete() }}
-            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-xl transition-colors no-btn-fx"
+            style={{ color: 'rgba(0,0,0,0.2)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(0,0,0,0.2)' }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
             </svg>
           </button>
         )}
-        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg className="w-3.5 h-3.5" style={{ color: 'rgba(0,0,0,0.2)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
       </div>
@@ -247,7 +348,6 @@ export default function DocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
 
-  // Add ticket form
   const [adding, setAdding] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -294,37 +394,25 @@ export default function DocumentsPage() {
       const res = await fetch(`/api/tours/${tourId}/documents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formTitle.trim(),
-          type: formType,
-          fileUrl: formFileUrl,
-        }),
+        body: JSON.stringify({ title: formTitle.trim(), type: formType, fileUrl: formFileUrl }),
       })
       if (res.ok) {
         const doc = await res.json() as Document
         setDocs(prev => [...prev, doc])
-        setFormTitle('')
-        setFormType('FLIGHT_TICKET')
-        setFormFileUrl('')
-        setAdding(false)
+        setFormTitle(''); setFormType('FLIGHT_TICKET'); setFormFileUrl(''); setAdding(false)
       }
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
   async function deleteDoc(docId: string) {
     const res = await fetch(`/api/tours/${tourId}/documents/${docId}`, { method: 'DELETE' })
-    if (res.ok) {
-      setDocs(prev => prev.filter(d => d.id !== docId))
-      setSelectedDoc(null)
-    }
+    if (res.ok) { setDocs(prev => prev.filter(d => d.id !== docId)); setSelectedDoc(null) }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#f0f2f8] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -334,123 +422,121 @@ export default function DocumentsPage() {
   const groupDocs = docs.filter(d => !d.isPersonal)
   const myDocs = docs.filter(d => d.isPersonal && d.userId === userId)
 
-  const inputCls = 'w-full px-3 py-2.5 border border-gray-200/80 bg-white/50 backdrop-blur-sm rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-300 transition-colors'
+  const inputCls = 'w-full px-3 py-2.5 rounded-xl text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[rgba(124,92,252,0.3)] transition-colors'
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
+    <div className="min-h-screen bg-[#f0f2f8] relative overflow-hidden" style={{ paddingBottom: '100px' }}>
+      <style>{`
+        @keyframes docCardIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Ambient background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-15%] right-[-10%] w-[600px] h-[600px] rounded-full opacity-60" style={{ background: 'radial-gradient(circle, #ede9f6 0%, transparent 70%)' }} />
+        <div className="absolute bottom-[-10%] left-[-15%] w-[550px] h-[550px] rounded-full opacity-50" style={{ background: 'radial-gradient(circle, #e8eaf2 0%, transparent 70%)' }} />
+      </div>
+
       <TopBar title="ตั๋ว / เอกสาร" subtitle={tour.title} />
 
-      <div className="px-4 pt-4 space-y-4 max-w-3xl mx-auto">
-        {/* Group documents */}
+      <div className="relative z-10 px-4 pt-4 max-w-[680px] mx-auto space-y-5">
+        {/* ═══ GROUP DOCUMENTS ═══ */}
         {groupDocs.length > 0 && (
-          <div>
-            <p className="text-[11px] text-indigo-400 font-semibold uppercase tracking-wider mb-2">
-              ตั๋วจากผู้จัดทัวร์ ({groupDocs.length})
-            </p>
-            <div className="space-y-2">
-              {groupDocs.map(doc => (
-                <DocCard key={doc.id} doc={doc} onClick={() => setSelectedDoc(doc)} />
+          <div style={{ animation: 'docCardIn 0.3s ease-out 0ms both' }}>
+            <div className="flex items-center gap-2 mb-2 pl-1">
+              <p className="text-[11px] font-bold uppercase text-[rgba(30,30,60,0.4)]" style={{ letterSpacing: '0.09em' }}>ตั๋วจากผู้จัดทัวร์</p>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>{groupDocs.length}</span>
+            </div>
+            <div className="rounded-[20px] overflow-hidden" style={glassStyle}>
+              {groupDocs.map((doc, i) => (
+                <div key={doc.id}>
+                  {i > 0 && <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.05)', marginLeft: '68px' }} />}
+                  <DocRow doc={doc} onClick={() => setSelectedDoc(doc)} />
+                </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* My personal documents */}
-        <div>
-          <p className="text-[11px] text-indigo-400 font-semibold uppercase tracking-wider mb-2">
-            ตั๋วของฉัน ({myDocs.length})
-          </p>
+        {/* ═══ MY DOCUMENTS ═══ */}
+        <div style={{ animation: 'docCardIn 0.3s ease-out 80ms both' }}>
+          <div className="flex items-center gap-2 mb-2 pl-1">
+            <p className="text-[11px] font-bold uppercase text-[rgba(30,30,60,0.4)]" style={{ letterSpacing: '0.09em' }}>ตั๋วของฉัน</p>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>{myDocs.length}</span>
+          </div>
 
           {myDocs.length > 0 && (
-            <div className="space-y-2 mb-3">
-              {myDocs.map(doc => (
-                <DocCard
-                  key={doc.id}
-                  doc={doc}
-                  onClick={() => setSelectedDoc(doc)}
-                  onDelete={() => deleteDoc(doc.id)}
-                />
+            <div className="rounded-[20px] overflow-hidden mb-3" style={glassStyle}>
+              {myDocs.map((doc, i) => (
+                <div key={doc.id}>
+                  {i > 0 && <div style={{ height: '0.5px', background: 'rgba(0,0,0,0.05)', marginLeft: '68px' }} />}
+                  <DocRow doc={doc} onClick={() => setSelectedDoc(doc)} onDelete={() => deleteDoc(doc.id)} />
+                </div>
               ))}
             </div>
           )}
 
           {/* Add ticket form */}
           {adding ? (
-            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm p-4 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-900">เพิ่มตั๋วของฉัน</h3>
+            <div className="rounded-[20px] p-5 space-y-3" style={glassStyle}>
+              <h3 className="text-sm font-semibold text-[#1a1a2e]">เพิ่มตั๋วของฉัน</h3>
 
-              {/* File upload */}
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                onChange={handleFileUpload}
-                className="hidden"
-              />
+              <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={handleFileUpload} className="hidden" />
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="w-full py-8 border-2 border-dashed border-indigo-200/40 rounded-2xl flex flex-col items-center gap-2 bg-white/30 backdrop-blur-sm active:bg-white/50 transition-colors"
+                className="w-full py-8 rounded-2xl flex flex-col items-center gap-2 active:scale-[0.99] transition-all no-btn-fx"
+                style={{ border: '1.5px dashed rgba(124,92,252,0.3)', background: 'rgba(255,255,255,0.4)' }}
               >
                 {uploading ? (
                   <>
-                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="text-sm text-gray-500">กำลังอัพโหลด...</span>
+                    <div className="w-6 h-6 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+                    <span className="text-sm text-[rgba(30,30,60,0.5)]">กำลังอัพโหลด...</span>
                   </>
                 ) : formFileUrl ? (
                   <>
-                    <svg className="w-7 h-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <svg className="w-7 h-7 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span className="text-sm text-emerald-600 font-medium">อัพโหลดแล้ว — กดเพื่อเปลี่ยน</span>
+                    <span className="text-sm text-[#22c55e] font-medium">อัพโหลดแล้ว — กดเพื่อเปลี่ยน</span>
                   </>
                 ) : (
                   <>
-                    <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <svg className="w-7 h-7 text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
-                    <span className="text-sm text-gray-500">เลือกไฟล์ PDF หรือรูปภาพ</span>
+                    <span className="text-sm text-[rgba(30,30,60,0.4)]">เลือกไฟล์ PDF หรือรูปภาพ</span>
                   </>
                 )}
               </button>
 
               <div>
-                <label className="text-[11px] text-gray-400 font-medium mb-1 block">ชื่อตั๋ว</label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={e => setFormTitle(e.target.value)}
-                  className={inputCls}
-                  placeholder="เช่น ตั๋วเครื่องบิน TG676"
-                />
+                <label className="text-[11px] text-[rgba(30,30,60,0.4)] font-bold mb-1 block uppercase" style={{ letterSpacing: '0.06em' }}>ชื่อตั๋ว</label>
+                <input type="text" value={formTitle} onChange={e => setFormTitle(e.target.value)}
+                  className={inputCls} placeholder="เช่น ตั๋วเครื่องบิน TG676"
+                  style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.06)' }} />
               </div>
 
               <div>
-                <label className="text-[11px] text-gray-400 font-medium mb-1 block">ประเภท</label>
-                <select
-                  value={formType}
-                  onChange={e => setFormType(e.target.value)}
-                  className={inputCls}
-                >
-                  {docTypeOptions.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
+                <label className="text-[11px] text-[rgba(30,30,60,0.4)] font-bold mb-1 block uppercase" style={{ letterSpacing: '0.06em' }}>ประเภท</label>
+                <select value={formType} onChange={e => setFormType(e.target.value)}
+                  className={inputCls} style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                  {docTypeOptions.map(t => (<option key={t.value} value={t.value}>{t.label}</option>))}
                 </select>
               </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={addDocument}
-                  disabled={saving || !formTitle.trim() || !formFileUrl}
-                  className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] hover:bg-indigo-700 transition-all shadow-sm"
-                >
+              <div className="flex gap-2 pt-1">
+                <button onClick={addDocument} disabled={saving || !formTitle.trim() || !formFileUrl}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#f8f8fc] disabled:opacity-40 active:scale-[0.98] transition-all no-btn-fx"
+                  style={{ background: 'linear-gradient(to right, #7c5cfc, #4fc3f7)', boxShadow: '0 4px 16px rgba(124,92,252,0.25)' }}>
                   {saving ? 'กำลังบันทึก...' : 'เพิ่มตั๋ว'}
                 </button>
-                <button
-                  onClick={() => { setAdding(false); setFormTitle(''); setFormFileUrl('') }}
-                  className="px-4 py-2.5 border border-white/60 text-gray-500 rounded-xl text-sm bg-white/40 backdrop-blur-sm hover:bg-white/60 transition-all"
-                >
+                <button onClick={() => { setAdding(false); setFormTitle(''); setFormFileUrl('') }}
+                  className="px-4 py-2.5 rounded-xl text-sm text-[rgba(30,30,60,0.5)] transition-all no-btn-fx"
+                  style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.06)' }}>
                   ยกเลิก
                 </button>
               </div>
@@ -458,7 +544,17 @@ export default function DocumentsPage() {
           ) : (
             <button
               onClick={() => setAdding(true)}
-              className="w-full py-3 bg-white/30 backdrop-blur-sm border-2 border-dashed border-indigo-200/40 text-indigo-500 rounded-2xl text-sm font-medium active:bg-white/50 hover:bg-white/50 hover:border-indigo-300/50 transition-all"
+              className="w-full flex items-center justify-center h-[52px] rounded-2xl text-[14px] font-semibold no-btn-fx transition-all duration-200 hover:-translate-y-px"
+              style={{
+                background: 'rgba(255,255,255,0.55)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: '1.5px dashed rgba(124,92,252,0.3)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
+                color: '#7c5cfc',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.6)'; e.currentTarget.style.background = 'rgba(124,92,252,0.05)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.55)' }}
             >
               + เพิ่มตั๋วของฉัน
             </button>
@@ -467,23 +563,20 @@ export default function DocumentsPage() {
 
         {/* Empty state */}
         {docs.length === 0 && !adding && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-3">
-              <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <div className="flex flex-col items-center justify-center py-16 rounded-[20px]" style={{ ...glassStyle, animation: 'docCardIn 0.3s ease-out 150ms both' }}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.15)' }}>
+              <svg className="w-7 h-7 text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
               </svg>
             </div>
-            <p className="text-base font-semibold text-gray-700">ยังไม่มีตั๋ว</p>
-            <p className="text-sm text-gray-400 mt-1">ผู้จัดทัวร์จะเพิ่มตั๋วก่อนเดินทาง</p>
-            <p className="text-sm text-gray-400 mt-0.5">หรือคุณสามารถเพิ่มตั๋วส่วนตัวได้เอง</p>
+            <p className="text-[15px] font-semibold text-[#1a1a2e]">ยังไม่มีตั๋ว</p>
+            <p className="text-sm text-[rgba(30,30,60,0.4)] mt-1">ผู้จัดทัวร์จะเพิ่มตั๋วก่อนเดินทาง</p>
+            <p className="text-sm text-[rgba(30,30,60,0.4)] mt-0.5">หรือคุณสามารถเพิ่มตั๋วส่วนตัวได้เอง</p>
           </div>
         )}
       </div>
 
-      {/* Document detail modal */}
-      {selectedDoc && (
-        <DocumentModal doc={selectedDoc} onClose={() => setSelectedDoc(null)} />
-      )}
+      {selectedDoc && <DocumentModal doc={selectedDoc} onClose={() => setSelectedDoc(null)} />}
 
       <BottomNav activeTab="documents" tourId={tourId} isChina={tour.isChina} />
     </div>
