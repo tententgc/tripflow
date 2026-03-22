@@ -1,3 +1,4 @@
+import { revalidateWebCache } from '@/lib/revalidate-web'
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
 
@@ -79,6 +80,7 @@ export async function PATCH(
       })
     }
 
+    revalidateWebCache(id)
     return NextResponse.json(tour)
   } catch (error) {
     console.error('Tour PATCH error:', error)

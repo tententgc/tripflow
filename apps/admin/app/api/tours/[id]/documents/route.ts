@@ -1,3 +1,4 @@
+import { revalidateWebCache } from '@/lib/revalidate-web'
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
 
@@ -57,6 +58,7 @@ export async function POST(
       tourId: id,
     }).catch(() => {})
 
+    revalidateWebCache(id)
     return NextResponse.json(doc, { status: 201 })
   } catch (error) {
     console.error('Document POST error:', error)

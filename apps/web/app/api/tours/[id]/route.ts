@@ -92,7 +92,7 @@ export async function GET(
 
     if (fields === 'basic') {
       // Thundering herd protected — 1000 users requesting same tour = 1 DB query
-      const tour = await cachedFetch(`tour:${id}:basic`, () => fetchBasicTour(id), 30_000)
+      const tour = await cachedFetch(`tour:${id}:basic`, () => fetchBasicTour(id), 15_000)
 
       if (!tour || tour.status === 'DRAFT' || tour.status === 'CANCELLED') {
         return NextResponse.json({ error: 'Tour not found' }, { status: 404 })
@@ -101,7 +101,7 @@ export async function GET(
     }
 
     // Full mode — thundering herd protected
-    const tour = await cachedFetch(`tour:${id}:full`, () => fetchFullTour(id), 30_000)
+    const tour = await cachedFetch(`tour:${id}:full`, () => fetchFullTour(id), 15_000)
 
     if (!tour) {
       return NextResponse.json({ error: 'Tour not found' }, { status: 404 })

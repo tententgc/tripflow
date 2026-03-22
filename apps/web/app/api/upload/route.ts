@@ -13,7 +13,8 @@ async function getAdminClient() {
   })
 }
 
-async function ensureBucket(admin: ReturnType<typeof createSupabaseClient>) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureBucket(admin: any) {
   const { data } = await admin.storage.getBucket('tripflow-media')
   if (!data) {
     await admin.storage.createBucket('tripflow-media', {
