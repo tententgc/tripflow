@@ -1,3 +1,4 @@
+import { revalidateWebCache } from '@/lib/revalidate-web'
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
 
@@ -34,6 +35,7 @@ export async function POST(
 
     logActivity({ actorName: 'Admin', action: 'day.add', entity: 'TourDay', entityId: day.id, description: `เพิ่มวันที่ ${day.dayNumber}`, tourId: id }).catch(() => {})
 
+    revalidateWebCache(id)
     return NextResponse.json(day, { status: 201 })
   } catch (error) {
     console.error('Day POST error:', error)

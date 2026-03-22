@@ -7,8 +7,10 @@ export const fetcher = (url: string) => fetch(url).then(r => {
 
 export function useApi<T>(url: string | null, config?: SWRConfiguration) {
   return useSWR<T>(url, fetcher, {
-    revalidateOnFocus: false,
-    dedupingInterval: 10000,
+    revalidateOnFocus: true,       // refetch when user comes back to tab
+    revalidateOnReconnect: true,   // refetch when network reconnects
+    dedupingInterval: 5000,        // 5s dedup (was 10s)
+    refreshInterval: 0,            // no polling by default
     ...config,
   })
 }
