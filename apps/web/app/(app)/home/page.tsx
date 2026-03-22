@@ -63,8 +63,9 @@ export default async function HomePage() {
   const tours = tourMembers.map((tm) => tm.tour)
 
   const now = new Date()
-  const upcoming = tours.filter(t => new Date(t.endDate) >= now)
-  const past = tours.filter(t => new Date(t.endDate) < now)
+  // Active/Published tours = upcoming, Completed = past
+  const upcoming = tours.filter(t => t.status === 'PUBLISHED' || t.status === 'ACTIVE')
+  const past = tours.filter(t => t.status === 'COMPLETED')
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20">
