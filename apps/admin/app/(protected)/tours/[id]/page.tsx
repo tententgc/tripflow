@@ -121,9 +121,9 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-50">
                       <div className="flex gap-1">
-                        {day.mealBreakfast && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded-full">เช้า</span>}
-                        {day.mealLunch && <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 rounded-full">กลางวัน</span>}
-                        {day.mealDinner && <span className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded-full">เย็น</span>}
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${day.mealBreakfast ? 'bg-orange-50 text-orange-600' : 'bg-gray-50 text-gray-300 line-through'}`}>เช้า</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${day.mealLunch ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-300 line-through'}`}>กลางวัน</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${day.mealDinner ? 'bg-violet-50 text-violet-600' : 'bg-gray-50 text-gray-300 line-through'}`}>เย็น</span>
                       </div>
                       <p className="text-[10px] text-gray-400 font-medium">{day.activities.length} กิจกรรม{day.accommodation ? ' · ที่พัก' : ''}</p>
                     </div>
