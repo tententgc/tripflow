@@ -108,7 +108,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-6 pb-32 max-w-4xl mx-auto">
+      <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-6 pb-32 max-w-4xl mx-auto page-content">
         {/* Profile hero — centered */}
         <div className="flex flex-col items-center mb-8">
           <div className="relative p-[2.5px] rounded-full bg-gradient-to-br from-indigo-400 via-violet-400 to-purple-400 shadow-lg shadow-indigo-200/30">

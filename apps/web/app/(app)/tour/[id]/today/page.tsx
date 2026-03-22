@@ -237,17 +237,23 @@ export default function TodayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 pb-24 relative overflow-hidden">
+      {/* Background blobs */}
+      <div className="fixed top-[-40px] right-[-30px] w-[280px] h-[280px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #a5b4fc 0%, transparent 70%)', opacity: 0.2, filter: 'blur(50px)' }} />
+      <div className="fixed top-[35%] left-[-50px] w-[240px] h-[240px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #c4b5fd 0%, transparent 70%)', opacity: 0.25, filter: 'blur(50px)' }} />
+      <div className="fixed bottom-[-50px] right-[-30px] w-[320px] h-[320px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)', opacity: 0.15, filter: 'blur(60px)' }} />
+      <div className="fixed bottom-[20%] left-[20%] w-[200px] h-[200px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #ddd6fe 0%, transparent 70%)', opacity: 0.3, filter: 'blur(45px)' }} />
+
       <TopBar
         title={currentDay.title}
         subtitle={`${countryFlags[currentDay.country ?? ''] ?? '🌍'} ${currentDay.city ?? ''} · ${new Date(currentDay.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
         backHref="/home"
       />
 
-      <div className="px-4 pt-4 space-y-4">
+      <div className="relative z-10 px-4 pt-4 space-y-4 page-content">
         {/* Tour info + countdown — merged */}
         {isBeforeTrip ? (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden animate-slide-up delay-1">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden animate-slide-up delay-1">
             {/* Tour title bar — indigo accent */}
             <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
               <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
@@ -299,7 +305,7 @@ export default function TodayPage() {
           </div>
         ) : (
           /* During trip — just tour info */
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 overflow-hidden animate-slide-up delay-1">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden animate-slide-up delay-1">
             <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
               <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
               <span className="text-white/80 text-[11px] font-medium bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 border border-white/10">
@@ -322,7 +328,10 @@ export default function TodayPage() {
 
             {tour.flights.length > 0 && (
               <div className="space-y-3 animate-slide-up delay-3">
-                <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">เที่ยวบิน ({tour.flights.length})</p>
+                <div className="flex items-center gap-2 px-1">
+                  <div className="w-1.5 h-4 rounded-full bg-indigo-500" />
+                  <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider">เที่ยวบิน ({tour.flights.length})</p>
+                </div>
                 {tour.flights.map((f) => {
                     const depart = new Date(f.departAt)
                     const arrive = new Date(f.arriveAt)
@@ -338,7 +347,7 @@ export default function TodayPage() {
                     const departUtc = getUtcOffset(f.departTz)
                     const arriveUtc = getUtcOffset(f.arriveTz)
                     return (
-                      <div key={f.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-100/80 p-5 hover:shadow-md transition-shadow duration-300">
+                      <div key={f.id} className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 p-5 hover:shadow-md transition-shadow duration-300">
                         {/* Airline + flight no */}
                         <div className="flex items-center gap-3 mb-4">
                           {f.airlineIata ? (
@@ -386,7 +395,7 @@ export default function TodayPage() {
                         </div>
 
                         {/* Info */}
-                        <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100/80 text-[11px] text-gray-400">
+                        <div className="flex items-center gap-3 mt-4 pt-3 border-t border-indigo-100/30 text-[11px] text-gray-400">
                           <span>{depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
                           {f.terminal && <><span>·</span><span>Terminal {f.terminal}</span></>}
                           {f.gate && <><span>·</span><span>Gate {f.gate}</span></>}
@@ -403,7 +412,10 @@ export default function TodayPage() {
         {/* Guide + contacts */}
         {(guide || tour.contacts.length > 0) && (
           <div className="space-y-3 animate-slide-up delay-4">
-            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">ผู้ติดต่อ ({tour.contacts.length})</p>
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-1.5 h-4 rounded-full bg-emerald-500" />
+              <p className="text-xs text-emerald-600 font-bold uppercase tracking-wider">ผู้ติดต่อ ({tour.contacts.length})</p>
+            </div>
             {tour.contacts.map((c) => {
               const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : c.type === 'EMERGENCY' ? '🚨' : c.type === 'AIRLINE' ? '✈️' : c.type === 'BUS_OPERATOR' ? '🚌' : c.type === 'RESTAURANT' ? '🍽️' : c.type === 'INSURANCE' ? '🛡️' : '👤'
               const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : c.type === 'EMERGENCY' ? 'ฉุกเฉิน' : c.type === 'AIRLINE' ? 'สายการบิน' : c.type === 'BUS_OPERATOR' ? 'รถบัส' : c.type === 'RESTAURANT' ? 'ร้านอาหาร' : c.type === 'INSURANCE' ? 'ประกัน' : 'ติดต่อ'
@@ -431,7 +443,7 @@ export default function TodayPage() {
                 : 'from-gray-100 to-gray-200 text-gray-600'
 
               return (
-                <div key={c.id} className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 flex items-center gap-3 border border-gray-100/60 hover:border-indigo-200/60 transition-all duration-200">
+                <div key={c.id} className="bg-white/50 backdrop-blur-md rounded-2xl p-4 flex items-center gap-3 border border-indigo-100/40 hover:border-indigo-200/60 transition-all duration-200">
                   {/* Avatar */}
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradientBg} flex items-center justify-center flex-shrink-0`}>
                     <span className="text-lg">{typeIcon}</span>
@@ -499,8 +511,8 @@ export default function TodayPage() {
 
         {/* Transports — only during trip */}
         {!isBeforeTrip && currentDay.transports.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden">
+            <div className="px-4 py-3 border-b border-indigo-100/30 bg-gradient-to-r from-indigo-50/50 to-violet-50/30">
               <h3 className="font-semibold text-indigo-700 text-sm">การเดินทางวันนี้</h3>
             </div>
             <div className="divide-y divide-gray-50">
@@ -534,13 +546,16 @@ export default function TodayPage() {
         {/* Before trip: Preparation checklist / During trip: Today's activities */}
         {isBeforeTrip && checklists.length > 0 ? (
           <div className="space-y-3 animate-slide-up delay-5">
-            <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">เตรียมตัวก่อนออกเดินทาง</p>
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-1.5 h-4 rounded-full bg-violet-500" />
+              <p className="text-xs text-violet-600 font-bold uppercase tracking-wider">เตรียมตัวก่อนออกเดินทาง</p>
+            </div>
             {checklists.map(cl => {
               const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
               const totalCount = cl.items.length
               const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
               return (
-                <div key={cl.id} className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 overflow-hidden">
+                <div key={cl.id} className="bg-white/50 backdrop-blur-md rounded-2xl border border-indigo-100/40 overflow-hidden">
                   <div className="px-5 py-3.5 border-b border-gray-100/60 flex items-center justify-between">
                     <h3 className="font-semibold text-gray-900 text-sm">
                       {cl.emoji && <span className="mr-1.5">{cl.emoji}</span>}
@@ -591,8 +606,8 @@ export default function TodayPage() {
             })}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden">
+            <div className="px-4 py-3 border-b border-indigo-100/30 bg-gradient-to-r from-indigo-50/50 to-violet-50/30">
               <h3 className="font-semibold text-indigo-700 text-sm">กำหนดการวันนี้ ({currentDay.activities.length})</h3>
             </div>
             {currentDay.activities.length === 0 ? (

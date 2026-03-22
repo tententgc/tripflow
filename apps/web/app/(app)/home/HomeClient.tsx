@@ -92,7 +92,7 @@ export default function HomeClient({ initialData }: Props) {
         </div>
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full">
+      <div className="relative z-10 px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full page-content">
         {/* Quick stats */}
         <div className="flex gap-3 mb-6">
           {active.length > 0 && (
