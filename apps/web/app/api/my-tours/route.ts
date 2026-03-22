@@ -20,7 +20,7 @@ export async function GET() {
           primaryCountry: true, cities: true, startDate: true, endDate: true,
           isChina: true, status: true,
           _count: { select: { members: true } },
-          days: { select: { id: true } },
+          days: { select: { id: true, mealBreakfast: true, mealLunch: true, mealDinner: true } },
         },
       },
     },

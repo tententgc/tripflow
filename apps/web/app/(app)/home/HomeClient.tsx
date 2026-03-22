@@ -15,7 +15,9 @@ const countryFlags: Record<string, string> = {
 type TourItem = {
   id: string; title: string; coverImageUrl: string | null; countries: string[]
   primaryCountry: string; cities: string[]; startDate: string; endDate: string
-  isChina: boolean; status: string; days: { id: string }[]; _count: { members: number }
+  isChina: boolean; status: string
+  days: { id: string; mealBreakfast: boolean; mealLunch: boolean; mealDinner: boolean }[]
+  _count: { members: number }
 }
 
 type HomeData = {
@@ -183,6 +185,22 @@ function TourCard({ tour, variant }: { tour: TourItem; variant: 'active' | 'upco
           <p className={`font-semibold text-sm leading-snug line-clamp-2 flex-1 transition-colors ${
             variant === 'cancelled' ? 'text-red-700/70 line-through' : 'text-gray-900 group-hover:text-indigo-600'
           }`}>{tour.title}</p>
+
+          {/* Meal summary */}
+          {!isHistory && daysCount > 0 && (() => {
+            const b = tour.days.filter(d => d.mealBreakfast).length
+            const l = tour.days.filter(d => d.mealLunch).length
+            const d = tour.days.filter(d => d.mealDinner).length
+            if (b === 0 && l === 0 && d === 0) return null
+            return (
+              <div className="flex gap-1.5 mt-2 flex-wrap">
+                {b > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-orange-50 text-orange-500 rounded-md font-medium">เช้า {b} มื้อ</span>}
+                {l > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-500 rounded-md font-medium">กลางวัน {l} มื้อ</span>}
+                {d > 0 && <span className="text-[10px] px-1.5 py-0.5 bg-violet-50 text-violet-500 rounded-md font-medium">เย็น {d} มื้อ</span>}
+              </div>
+            )
+          })()}
+
           <div className="mt-3 pt-3 border-t border-gray-100/60 flex items-center justify-between gap-2">
             <p className="text-gray-400 text-xs truncate">{tour.cities.slice(0, 2).join(' · ')} · {daysCount} วัน</p>
             <span className={`text-[11px] font-semibold shrink-0 ${
