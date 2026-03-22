@@ -2,6 +2,39 @@
 
 import { useState } from 'react'
 
+const allCountries = [
+  { iso2: 'CN', nameTh: 'จีน', emoji: '🇨🇳' }, { iso2: 'JP', nameTh: 'ญี่ปุ่น', emoji: '🇯🇵' },
+  { iso2: 'KR', nameTh: 'เกาหลีใต้', emoji: '🇰🇷' }, { iso2: 'TW', nameTh: 'ไต้หวัน', emoji: '🇹🇼' },
+  { iso2: 'HK', nameTh: 'ฮ่องกง', emoji: '🇭🇰' }, { iso2: 'MO', nameTh: 'มาเก๊า', emoji: '🇲🇴' },
+  { iso2: 'VN', nameTh: 'เวียดนาม', emoji: '🇻🇳' }, { iso2: 'SG', nameTh: 'สิงคโปร์', emoji: '🇸🇬' },
+  { iso2: 'MY', nameTh: 'มาเลเซีย', emoji: '🇲🇾' }, { iso2: 'ID', nameTh: 'อินโดนีเซีย', emoji: '🇮🇩' },
+  { iso2: 'PH', nameTh: 'ฟิลิปปินส์', emoji: '🇵🇭' }, { iso2: 'MM', nameTh: 'เมียนมา', emoji: '🇲🇲' },
+  { iso2: 'LA', nameTh: 'ลาว', emoji: '🇱🇦' }, { iso2: 'KH', nameTh: 'กัมพูชา', emoji: '🇰🇭' },
+  { iso2: 'IN', nameTh: 'อินเดีย', emoji: '🇮🇳' }, { iso2: 'NP', nameTh: 'เนปาล', emoji: '🇳🇵' },
+  { iso2: 'LK', nameTh: 'ศรีลังกา', emoji: '🇱🇰' }, { iso2: 'MV', nameTh: 'มัลดีฟส์', emoji: '🇲🇻' },
+  { iso2: 'BT', nameTh: 'ภูฏาน', emoji: '🇧🇹' }, { iso2: 'AE', nameTh: 'UAE', emoji: '🇦🇪' },
+  { iso2: 'SA', nameTh: 'ซาอุดีอาระเบีย', emoji: '🇸🇦' }, { iso2: 'QA', nameTh: 'กาตาร์', emoji: '🇶🇦' },
+  { iso2: 'TR', nameTh: 'ตุรกี', emoji: '🇹🇷' }, { iso2: 'GE', nameTh: 'จอร์เจีย', emoji: '🇬🇪' },
+  { iso2: 'JO', nameTh: 'จอร์แดน', emoji: '🇯🇴' }, { iso2: 'IL', nameTh: 'อิสราเอล', emoji: '🇮🇱' },
+  { iso2: 'FR', nameTh: 'ฝรั่งเศส', emoji: '🇫🇷' }, { iso2: 'IT', nameTh: 'อิตาลี', emoji: '🇮🇹' },
+  { iso2: 'GB', nameTh: 'อังกฤษ', emoji: '🇬🇧' }, { iso2: 'DE', nameTh: 'เยอรมนี', emoji: '🇩🇪' },
+  { iso2: 'ES', nameTh: 'สเปน', emoji: '🇪🇸' }, { iso2: 'PT', nameTh: 'โปรตุเกส', emoji: '🇵🇹' },
+  { iso2: 'NL', nameTh: 'เนเธอร์แลนด์', emoji: '🇳🇱' }, { iso2: 'CH', nameTh: 'สวิตเซอร์แลนด์', emoji: '🇨🇭' },
+  { iso2: 'AT', nameTh: 'ออสเตรีย', emoji: '🇦🇹' }, { iso2: 'SE', nameTh: 'สวีเดน', emoji: '🇸🇪' },
+  { iso2: 'NO', nameTh: 'นอร์เวย์', emoji: '🇳🇴' }, { iso2: 'DK', nameTh: 'เดนมาร์ก', emoji: '🇩🇰' },
+  { iso2: 'FI', nameTh: 'ฟินแลนด์', emoji: '🇫🇮' }, { iso2: 'IS', nameTh: 'ไอซ์แลนด์', emoji: '🇮🇸' },
+  { iso2: 'CZ', nameTh: 'เช็ก', emoji: '🇨🇿' }, { iso2: 'PL', nameTh: 'โปแลนด์', emoji: '🇵🇱' },
+  { iso2: 'HU', nameTh: 'ฮังการี', emoji: '🇭🇺' }, { iso2: 'HR', nameTh: 'โครเอเชีย', emoji: '🇭🇷' },
+  { iso2: 'GR', nameTh: 'กรีซ', emoji: '🇬🇷' }, { iso2: 'RU', nameTh: 'รัสเซีย', emoji: '🇷🇺' },
+  { iso2: 'US', nameTh: 'อเมริกา', emoji: '🇺🇸' }, { iso2: 'CA', nameTh: 'แคนาดา', emoji: '🇨🇦' },
+  { iso2: 'MX', nameTh: 'เม็กซิโก', emoji: '🇲🇽' }, { iso2: 'BR', nameTh: 'บราซิล', emoji: '🇧🇷' },
+  { iso2: 'AU', nameTh: 'ออสเตรเลีย', emoji: '🇦🇺' }, { iso2: 'NZ', nameTh: 'นิวซีแลนด์', emoji: '🇳🇿' },
+  { iso2: 'EG', nameTh: 'อียิปต์', emoji: '🇪🇬' }, { iso2: 'MA', nameTh: 'โมร็อกโก', emoji: '🇲🇦' },
+  { iso2: 'ZA', nameTh: 'แอฟริกาใต้', emoji: '🇿🇦' }, { iso2: 'KE', nameTh: 'เคนยา', emoji: '🇰🇪' },
+]
+
+const countryMap = Object.fromEntries(allCountries.map(c => [c.iso2, c]))
+
 const commonCurrencies = [
   { code: 'THB', label: '🇹🇭 THB — บาท' },
   { code: 'CNY', label: '🇨🇳 CNY — หยวน' },
@@ -211,27 +244,53 @@ export default function TourInfoEditor({ tour }: { tour: TourInfo }) {
               placeholder="รายละเอียดทัวร์"
             />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ประเทศ (ISO2, คั่นด้วย ,)</label>
-              <input
-                type="text"
-                value={form.countries}
-                onChange={e => setForm(p => ({ ...p, countries: e.target.value }))}
-                className={inputCls}
-                placeholder="JP, KR"
-              />
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">ประเทศ</label>
+            {/* Selected tags */}
+            <div className="flex flex-wrap gap-1 mb-2">
+              {form.countries.split(',').map(c => c.trim()).filter(Boolean).map(code => {
+                const c = countryMap[code]
+                return (
+                  <button key={code} type="button"
+                    onClick={() => setForm(p => ({ ...p, countries: p.countries.split(',').map(x => x.trim()).filter(x => x !== code).join(', ') }))}
+                    className="inline-flex items-center gap-1 text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-medium hover:bg-red-50 hover:text-red-600 transition-colors">
+                    {c?.emoji ?? '🌍'} {c?.nameTh ?? code} ×
+                  </button>
+                )
+              })}
             </div>
-            <div>
-              <label className="text-xs text-gray-500 mb-0.5 block">ประเทศหลัก</label>
-              <input
-                type="text"
-                value={form.primaryCountry}
-                onChange={e => setForm(p => ({ ...p, primaryCountry: e.target.value }))}
-                className={inputCls}
-                placeholder="JP"
-              />
-            </div>
+            {/* Dropdown */}
+            <select
+              value=""
+              onChange={e => {
+                const code = e.target.value
+                if (!code) return
+                const current = form.countries.split(',').map(c => c.trim()).filter(Boolean)
+                if (!current.includes(code)) {
+                  const updated = [...current, code].join(', ')
+                  setForm(p => ({ ...p, countries: updated, primaryCountry: current.length === 0 ? code : p.primaryCountry }))
+                }
+              }}
+              className={inputCls}
+            >
+              <option value="">+ เพิ่มประเทศ...</option>
+              {allCountries.map(c => (
+                <option key={c.iso2} value={c.iso2}>{c.emoji} {c.nameTh} ({c.iso2})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-0.5 block">ประเทศหลัก</label>
+            <select
+              value={form.primaryCountry}
+              onChange={e => setForm(p => ({ ...p, primaryCountry: e.target.value }))}
+              className={inputCls}
+            >
+              {form.countries.split(',').map(c => c.trim()).filter(Boolean).map(code => {
+                const c = countryMap[code]
+                return <option key={code} value={code}>{c?.emoji ?? '🌍'} {c?.nameTh ?? code}</option>
+              })}
+            </select>
           </div>
           <div>
             <label className="text-xs text-gray-500 mb-0.5 block">เมือง (คั่นด้วย ,)</label>

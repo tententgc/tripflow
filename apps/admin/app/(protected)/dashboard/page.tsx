@@ -8,8 +8,8 @@ export const metadata: Metadata = { title: 'แดชบอร์ด — TripFlo
 export const revalidate = 300
 
 const countryFlags: Record<string, string> = {
-  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷',
-  IT: '🇮🇹', GB: '🇬🇧', SG: '🇸🇬', AU: '🇦🇺', DE: '🇩🇪',
+  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷', VN: '🇻🇳',
+  IT: '🇮🇹', GB: '🇬🇧', SG: '🇸🇬', AU: '🇦🇺', DE: '🇩🇪', MY: '🇲🇾', ID: '🇮🇩', PH: '🇵🇭', MM: '🇲🇲', LA: '🇱🇦', KH: '🇰🇭', TW: '🇹🇼', HK: '🇭🇰', IN: '🇮🇳', AE: '🇦🇪', TR: '🇹🇷', ES: '🇪🇸', NL: '🇳🇱', CH: '🇨🇭', US: '🇺🇸', CA: '🇨🇦', NZ: '🇳🇿', BR: '🇧🇷', EG: '🇪🇬', ZA: '🇿🇦',
 }
 
 const statusDot: Record<string, string> = {
