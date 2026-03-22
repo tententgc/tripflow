@@ -155,34 +155,13 @@ export default function LandingPage() {
           from { opacity:0; transform:translateY(18px); }
           to   { opacity:1; transform:translateY(0); }
         }
-        /* slow aura color cycle — indigo → violet → purple → back */
-        @keyframes auraShift {
-          0%   { box-shadow: 0 0 28px 6px rgba(99,102,241,.55),  0 0 60px 12px rgba(99,102,241,.2); }
-          33%  { box-shadow: 0 0 28px 6px rgba(139,92,246,.55),  0 0 60px 12px rgba(139,92,246,.2); }
-          66%  { box-shadow: 0 0 28px 6px rgba(168,85,247,.55),  0 0 60px 12px rgba(168,85,247,.2); }
-          100% { box-shadow: 0 0 28px 6px rgba(99,102,241,.55),  0 0 60px 12px rgba(99,102,241,.2); }
-        }
-        @keyframes auraShiftWide {
-          0%   { box-shadow: 0 0 50px 15px rgba(99,102,241,.3),  0 0 100px 30px rgba(99,102,241,.1); }
-          33%  { box-shadow: 0 0 50px 15px rgba(139,92,246,.3),  0 0 100px 30px rgba(139,92,246,.1); }
-          66%  { box-shadow: 0 0 50px 15px rgba(192,132,252,.3), 0 0 100px 30px rgba(192,132,252,.1); }
-          100% { box-shadow: 0 0 50px 15px rgba(99,102,241,.3),  0 0 100px 30px rgba(99,102,241,.1); }
-        }
-        @keyframes borderCycle {
-          0%,100% { border-color: rgba(99,102,241,.35); box-shadow: 0 0 12px rgba(99,102,241,.2); }
-          50%      { border-color: rgba(192,132,252,.55); box-shadow: 0 0 12px rgba(192,132,252,.25); }
-        }
         @keyframes orb1 {
-          0%,100% { opacity:.18; transform: scale(1)   translateY(0); }
-          50%      { opacity:.28; transform: scale(1.1) translateY(-20px); }
+          0%,100% { opacity:.5; transform: scale(1) translateY(0); }
+          50%      { opacity:.7; transform: scale(1.05) translateY(-10px); }
         }
         @keyframes orb2 {
-          0%,100% { opacity:.12; transform: scale(1)    translateX(0); }
-          50%      { opacity:.2;  transform: scale(1.08) translateX(20px); }
-        }
-        @keyframes orb3 {
-          0%,100% { opacity:.08; }
-          50%      { opacity:.16; }
+          0%,100% { opacity:.3; transform: scale(1) translateX(0); }
+          50%      { opacity:.5; transform: scale(1.05) translateX(10px); }
         }
 
         .anim-1 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 0ms; }
@@ -190,189 +169,104 @@ export default function LandingPage() {
         .anim-3 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 200ms; }
         .anim-4 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 300ms; }
         .anim-5 { animation: fadeUp .7s cubic-bezier(.22,1,.36,1) both 400ms; }
-        /* aura glow on CTA button — slow color cycle */
-        .cta-glow { animation: auraShift 5s ease infinite; }
 
-        .noise { position:absolute; inset:0; pointer-events:none; opacity:.45;
-          background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
-        }
-        .dot-grid {
-          background-image: radial-gradient(circle, #ffffff0f 1px, transparent 1px);
-          background-size: 28px 28px;
-        }
-
-        /* ── Gradient text ── */
-        .gradient-text {
-          background: linear-gradient(135deg, #fff 0%, #e0d7ff 40%, #c4b5fd 70%, #a78bfa 100%);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          background-clip: text;
-        }
-        .gradient-text-sub {
-          background: linear-gradient(90deg, #818cf8, #a78bfa, #c084fc);
+        .gradient-text-light {
+          background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 40%, #6366f1 70%, #8b5cf6 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
 
-        /* ── Logo ── */
-        .logo-icon {
-          background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-        }
-
-        /* ── Primary button — static gradient, aura changes color slowly ── */
         .btn-primary {
           background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
-          transition: transform 200ms ease, filter 200ms ease;
+          transition: transform 200ms ease, box-shadow 200ms ease;
           position: relative;
         }
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          filter: brightness(1.1);
-        }
-        .btn-primary:active { transform:translateY(0); filter:brightness(.95); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,.3); }
+        .btn-primary:active { transform:translateY(0); }
 
-        /* ── Ghost button — glass ── */
-        .btn-ghost-dark {
-          border: 1px solid rgba(255,255,255,.1);
-          color: rgba(255,255,255,.6);
-          backdrop-filter: blur(8px);
-          background: rgba(255,255,255,.03);
-          transition: border-color 150ms, color 150ms, background 150ms, box-shadow 150ms;
+        .btn-ghost {
+          border: 1px solid #e0e7ff;
+          color: #6366f1;
+          background: white;
+          transition: border-color 150ms, background 150ms, box-shadow 150ms;
         }
-        .btn-ghost-dark:hover {
-          border-color: rgba(168,85,247,.35);
-          color: #fff;
-          background: rgba(139,92,246,.08);
-          box-shadow: 0 0 0 1px rgba(168,85,247,.12);
-        }
+        .btn-ghost:hover { border-color: #a5b4fc; background: #eef2ff; box-shadow: 0 4px 12px rgba(99,102,241,.08); }
 
-        /* ── Language toggle ── */
-        .lang-btn {
-          font-size:12px; font-weight:600; letter-spacing:.04em;
-          padding:4px 10px; border-radius:6px;
-          transition: background 150ms, color 150ms;
-        }
-        .lang-btn.active {
-          background: linear-gradient(135deg,#6366f1,#8b5cf6);
-          color:#fff;
-        }
-        .lang-btn:not(.active) { color:rgba(255,255,255,.35); }
-        .lang-btn:not(.active):hover { color:rgba(255,255,255,.8); background:rgba(255,255,255,.07); }
-
-        /* ── Feature cards — glass ── */
-        .card-dark {
-          background: rgba(255,255,255,.03);
+        .card-glass {
+          background: rgba(255,255,255,.6);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(255,255,255,.06);
+          border: 1px solid rgba(224,231,255,.6);
           transition: background 200ms, border-color 200ms, transform 200ms, box-shadow 200ms;
           position: relative; overflow: hidden;
-          cursor: pointer;
         }
-        .card-dark::before {
-          content:''; position:absolute; inset:0; opacity:0;
-          background: linear-gradient(135deg, rgba(99,102,241,.06), rgba(168,85,247,.04));
-          transition: opacity 200ms;
-        }
-        .card-dark:hover {
+        .card-glass:hover {
           transform: translateY(-2px);
-          background: rgba(255,255,255,.05);
-          border-color: rgba(139,92,246,.3);
-          box-shadow: 0 8px 32px rgba(99,102,241,.12), 0 0 0 1px rgba(139,92,246,.15);
-        }
-        .card-dark:hover::before { opacity:1; }
-
-        /* ── Feature badge inside card ── */
-        .feature-badge {
-          background: linear-gradient(90deg, #6366f1, #a855f7);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-          background-clip: text;
-          font-size:10px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+          background: rgba(255,255,255,.8);
+          border-color: #a5b4fc;
+          box-shadow: 0 8px 32px rgba(99,102,241,.08);
         }
 
-        /* ── Section badge pill — glass ── */
-        .section-badge {
+        .section-badge-light {
           display:inline-flex; align-items:center; gap:6px;
           padding:5px 14px; border-radius:999px;
-          background: rgba(139,92,246,.08);
-          backdrop-filter: blur(8px);
-          border:1px solid rgba(139,92,246,.18);
-          animation: borderCycle 4s ease infinite;
-          color:#c4b5fd; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+          background: rgba(99,102,241,.06);
+          border:1px solid rgba(99,102,241,.15);
+          color:#6366f1; font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
         }
 
-        /* ── Nav link ── */
-        .nav-link { color:rgba(255,255,255,.45); font-size:14px; transition:color 150ms; }
-        .nav-link:hover { color:#fff; }
+        .lang-btn {
+          font-size:12px; font-weight:600; padding:4px 10px; border-radius:6px;
+          transition: background 150ms, color 150ms;
+        }
+        .lang-btn.active { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; }
+        .lang-btn:not(.active) { color:#94a3b8; }
+        .lang-btn:not(.active):hover { color:#4338ca; background:rgba(99,102,241,.06); }
 
-        /* ── Metrics value ── */
+        .dest-pill {
+          background: rgba(255,255,255,.7); backdrop-filter: blur(6px);
+          border:1px solid #e0e7ff; color: #6366f1;
+          transition: background 150ms, border-color 150ms, box-shadow 150ms;
+        }
+        .dest-pill:hover { background: #eef2ff; border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,.1); }
+
+        .step-box {
+          width:40px; height:40px; border-radius:12px;
+          background: rgba(99,102,241,.06);
+          border:1px solid rgba(99,102,241,.15);
+          display:flex; align-items:center; justify-content:center;
+          font-size:12px; font-weight:700; color:#6366f1;
+          transition: all 200ms;
+        }
+        .step-wrap:hover .step-box {
+          background: #6366f1; color: white;
+          box-shadow: 0 4px 16px rgba(99,102,241,.25);
+        }
+
+        .service-row { transition: background 150ms; }
+        .service-row:hover { background: rgba(99,102,241,.03); }
+
+        .pill-light {
+          background: rgba(255,255,255,.6); backdrop-filter: blur(8px);
+          border: 1px solid #e0e7ff;
+          transition: background 150ms, border-color 150ms;
+        }
+        .pill-light:hover { background: #eef2ff; border-color: #a5b4fc; }
+
+        .divider { border:none; border-top:1px solid #e0e7ff; margin:0; }
+
         .metric-value {
-          background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+          background: linear-gradient(135deg, #4338ca 0%, #6366f1 50%, #8b5cf6 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-
-        /* ── China table ── */
-        .service-row { transition: background 150ms; cursor: pointer; }
-        .service-row:hover { background: rgba(139,92,246,.04); }
-
-        /* ── Pills — glass ── */
-        .pill-dark {
-          background: rgba(255,255,255,.03);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(255,255,255,.06);
-          transition: background 150ms, border-color 150ms, box-shadow 150ms;
-          cursor: pointer;
-        }
-        .pill-dark:hover {
-          background: rgba(139,92,246,.06);
-          border-color: rgba(139,92,246,.2);
-          box-shadow: 0 0 16px rgba(139,92,246,.1);
-        }
-
-        /* ── Dest pills — glass ── */
-        .dest-pill {
-          background: rgba(255,255,255,.04); backdrop-filter: blur(6px);
-          border:1px solid rgba(255,255,255,.06);
-          color: rgba(255,255,255,.4);
-          transition: background 150ms, border-color 150ms, color 150ms;
-          cursor: pointer;
-        }
-        .dest-pill:hover {
-          background: rgba(139,92,246,.08);
-          border-color: rgba(168,85,247,.25);
-          color: #e9d5ff;
-        }
-
-        /* ── Step box — glass ── */
-        .step-box {
-          width:40px; height:40px; border-radius:12px;
-          background: rgba(255,255,255,.03);
-          backdrop-filter: blur(8px);
-          border:1px solid rgba(255,255,255,.08);
-          display:flex; align-items:center; justify-content:center;
-          font-size:12px; font-weight:700; color:rgba(255,255,255,.3);
-          transition: border-color 200ms, color 200ms, box-shadow 200ms, background 200ms;
-        }
-        .step-wrap:hover .step-box {
-          background: rgba(139,92,246,.1);
-          border-color: rgba(168,85,247,.35);
-          color: #c4b5fd;
-          box-shadow: 0 0 0 4px rgba(139,92,246,.08), 0 0 20px rgba(139,92,246,.12);
-        }
-
-        /* ── CTA section bg ── */
-        .cta-glow-bg {
-          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,.18) 0%, transparent 70%);
-        }
-
-        .divider { border:none; border-top:1px solid rgba(255,255,255,.07); margin:0; }
       `}</style>
 
-      <div className="min-h-screen bg-[#080c14] text-white antialiased">
+      <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 text-gray-900 antialiased">
 
         {/* ── NAV ───────────────────────────────────────────── */}
         <header className="fixed top-0 left-0 right-0 z-50"
-                style={{ background:'rgba(8,12,20,.6)', backdropFilter:'blur(24px) saturate(1.4)',
-                         borderBottom:'1px solid rgba(255,255,255,.06)' }}>
+                style={{ background:'rgba(255,255,255,.7)', backdropFilter:'blur(24px) saturate(1.4)',
+                         borderBottom:'1px solid rgba(224,231,255,.5)' }}>
           <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
 
             {/* Logo */}
@@ -388,19 +282,19 @@ export default function LandingPage() {
                   <path d="M380 120L256 300" stroke="white" strokeWidth="6" opacity="0.3" strokeDasharray="12 8"/>
                 </svg>
               </div>
-              <span className="font-semibold tracking-tight text-white">TripFlow</span>
+              <span className="font-semibold tracking-tight text-gray-900">TripFlow</span>
             </div>
 
             {/* Center nav */}
             <nav className="hidden sm:flex items-center gap-6">
-              <a href="#features" className="nav-link opacity-100 hover:opacity-100">{t.nav.features}</a>
-              <a href="#china" className="nav-link opacity-100 hover:opacity-100">{t.nav.china}</a>
+              <a href="#features" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors opacity-100 hover:opacity-100">{t.nav.features}</a>
+              <a href="#china" className="text-sm text-gray-500 hover:text-indigo-600 transition-colors opacity-100 hover:opacity-100">{t.nav.china}</a>
             </nav>
 
             {/* Right: lang toggle + sign in */}
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-0.5 p-0.5 rounded-lg"
-                   style={{ background:'rgba(255,255,255,.06)', border:'1px solid rgba(255,255,255,.1)' }}>
+                   style={{ background:'rgba(99,102,241,.04)', border:'1px solid rgba(99,102,241,.12)' }}>
                 <button onClick={() => setLang('th')} className={`lang-btn ${lang === 'th' ? 'active' : ''}`}>TH</button>
                 <button onClick={() => setLang('en')} className={`lang-btn ${lang === 'en' ? 'active' : ''}`}>EN</button>
               </div>
@@ -414,26 +308,21 @@ export default function LandingPage() {
 
         {/* ── HERO ──────────────────────────────────────────── */}
         <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20 overflow-hidden">
-          <div className="noise" />
-          <div className="absolute inset-0 dot-grid" />
-          {/* animated aura orbs */}
-          <div className="absolute top-[-60px] left-1/2 -translate-x-1/2 w-[720px] h-[400px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(79,70,229,.28) 0%, rgba(147,51,234,.14) 45%, transparent 70%)',
-                        animation:'orb1 9s ease-in-out infinite' }} />
-          <div className="absolute top-[25%] left-[-8%] w-[380px] h-[380px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(139,92,246,.18) 0%, transparent 68%)',
-                        filter:'blur(35px)', animation:'orb2 12s ease-in-out infinite' }} />
-          <div className="absolute top-[15%] right-[-8%] w-[340px] h-[340px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(192,132,252,.14) 0%, transparent 68%)',
-                        filter:'blur(35px)', animation:'orb3 8s ease-in-out infinite' }} />
-          <div className="absolute bottom-[5%] left-1/2 -translate-x-1/2 w-[500px] h-[180px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(99,102,241,.12) 0%, transparent 70%)',
-                        filter:'blur(30px)', animation:'orb2 15s ease-in-out infinite reverse' }} />
+          {/* Soft orbs */}
+          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full pointer-events-none"
+               style={{ background:'radial-gradient(ellipse, rgba(99,102,241,.12) 0%, rgba(139,92,246,.06) 45%, transparent 70%)',
+                        animation:'orb1 12s ease-in-out infinite' }} />
+          <div className="absolute top-[30%] left-[-5%] w-[300px] h-[300px] rounded-full pointer-events-none"
+               style={{ background:'radial-gradient(ellipse, rgba(139,92,246,.08) 0%, transparent 68%)',
+                        filter:'blur(40px)', animation:'orb2 14s ease-in-out infinite' }} />
+          <div className="absolute top-[20%] right-[-5%] w-[280px] h-[280px] rounded-full pointer-events-none"
+               style={{ background:'radial-gradient(ellipse, rgba(192,132,252,.06) 0%, transparent 68%)',
+                        filter:'blur(40px)', animation:'orb2 10s ease-in-out infinite reverse' }} />
 
           <div className="relative z-10 text-center max-w-3xl mx-auto">
             {/* Hero logo */}
             <div className="anim-1 mb-6 flex justify-center">
-              <div className="w-20 h-20 rounded-[22px] overflow-hidden" style={{ boxShadow:'0 0 40px rgba(99,102,241,.3), 0 0 80px rgba(139,92,246,.15)' }}>
+              <div className="w-20 h-20 rounded-[22px] overflow-hidden" style={{ boxShadow:'0 8px 32px rgba(99,102,241,.2)' }}>
                 <svg width="80" height="80" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs><linearGradient id="heroBg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse"><stop stopColor="#6366F1"/><stop offset="1" stopColor="#7C3AED"/></linearGradient></defs>
                   <rect width="512" height="512" rx="112" fill="url(#heroBg)"/>
@@ -446,21 +335,20 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="anim-2 section-badge mb-8">
-              <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full" />
+            <div className="anim-2 section-badge-light mb-8">
+              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
               {t.hero.badge}
             </div>
 
-            <h1 className="anim-3 gradient-text text-5xl sm:text-6xl lg:text-[68px] font-bold tracking-tight leading-[1.07] mb-6"
+            <h1 className="anim-3 gradient-text-light text-5xl sm:text-6xl lg:text-[68px] font-bold tracking-tight leading-[1.07] mb-6"
                 style={{ whiteSpace:'pre-line' }}>
               {t.hero.h1}
             </h1>
 
-            <p className="anim-4 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10"
-               style={{ color:'rgba(255,255,255,.5)' }}>
+            <p className="anim-4 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10 text-gray-500">
               {t.hero.sub.split('—').map((part, i) => i === 0
                 ? <span key={i}>{part}—</span>
-                : <span key={i} style={{ color:'rgba(255,255,255,.85)' }}>{part}</span>
+                : <span key={i} className="text-gray-800 font-medium">{part}</span>
               )}
             </p>
 
@@ -470,7 +358,7 @@ export default function LandingPage() {
                 {t.hero.cta1}
               </a>
               <a href="#features"
-                 className="btn-ghost-dark opacity-100 hover:opacity-100 px-7 py-3.5 font-medium rounded-xl text-base">
+                 className="btn-ghost opacity-100 hover:opacity-100 px-7 py-3.5 font-medium rounded-xl text-base">
                 {t.hero.cta2}
               </a>
             </div>
@@ -485,20 +373,19 @@ export default function LandingPage() {
 
           {/* Scroll indicator */}
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-               style={{ opacity:.3 }}>
-            <div className="w-px h-10 bg-white rounded-full" style={{ animation:'fadeUp .8s ease infinite alternate' }} />
+               style={{ opacity:.2 }}>
+            <div className="w-px h-10 bg-indigo-400 rounded-full" style={{ animation:'fadeUp .8s ease infinite alternate' }} />
           </div>
         </section>
 
         {/* ── METRICS ───────────────────────────────────────── */}
         <hr className="divider" />
-        <section style={{ background:'rgba(255,255,255,.02)' }}>
-          <div className="max-w-4xl mx-auto px-6 py-10 grid grid-cols-3 divide-x"
-               style={{ borderColor:'rgba(255,255,255,.07)' }}>
+        <section style={{ background:'rgba(255,255,255,.4)' }}>
+          <div className="max-w-4xl mx-auto px-6 py-10 grid grid-cols-3 divide-x divide-indigo-100">
             {t.metrics.map((s) => (
               <div key={s.label} className="text-center px-6">
                 <div className="metric-value text-3xl font-bold tabular-nums">{s.value}</div>
-                <div className="text-sm mt-1" style={{ color:'rgba(255,255,255,.35)' }}>{s.label}</div>
+                <div className="text-sm mt-1 text-gray-400">{s.label}</div>
               </div>
             ))}
           </div>
@@ -509,18 +396,18 @@ export default function LandingPage() {
         <section id="features" className="py-28 px-6">
           <div className="max-w-5xl mx-auto">
             <FadeIn className="text-center mb-14">
-              <div className="section-badge mb-5">{t.features.badge}</div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">{t.features.h2}</h2>
-              <p style={{ color:'rgba(255,255,255,.4)' }} className="text-lg max-w-lg mx-auto">{t.features.sub}</p>
+              <div className="section-badge-light mb-5">{t.features.badge}</div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">{t.features.h2}</h2>
+              <p className="text-lg max-w-lg mx-auto text-gray-400">{t.features.sub}</p>
             </FadeIn>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {t.featureList.map((f, i) => (
                 <FadeIn key={f.title} delay={i * 55}>
-                  <div className="card-dark rounded-2xl p-6 h-full">
-                    <div className="feature-badge mb-4">✦ Feature</div>
-                    <h3 className="font-semibold text-white mb-2">{f.title}</h3>
-                    <p className="text-sm leading-relaxed" style={{ color:'rgba(255,255,255,.4)' }}>{f.desc}</p>
+                  <div className="card-glass rounded-2xl p-6 h-full">
+                    <div className="text-[10px] font-bold text-indigo-500 tracking-widest uppercase mb-4">✦ Feature</div>
+                    <h3 className="font-semibold text-gray-900 mb-2">{f.title}</h3>
+                    <p className="text-sm leading-relaxed text-gray-500">{f.desc}</p>
                   </div>
                 </FadeIn>
               ))}
@@ -533,27 +420,26 @@ export default function LandingPage() {
         {/* ── CHINA MODE ────────────────────────────────────── */}
         <section id="china" className="py-28 px-6 relative overflow-hidden">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[250px] pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(220,38,38,.08) 0%, transparent 70%)' }} />
+               style={{ background:'radial-gradient(ellipse, rgba(220,38,38,.04) 0%, transparent 70%)' }} />
 
           <div className="relative z-10 max-w-4xl mx-auto">
             <FadeIn className="text-center mb-14">
-              <div className="section-badge mb-5"
-                   style={{ background:'rgba(220,38,38,.1)', borderColor:'rgba(220,38,38,.2)', color:'#fca5a5' }}>
-                <span className="w-1.5 h-1.5 bg-red-400 rounded-full" style={{ animation:'pulse-ring 2s ease infinite' }} />
+              <div className="section-badge-light mb-5" style={{ background:'rgba(220,38,38,.06)', borderColor:'rgba(220,38,38,.15)', color:'#dc2626' }}>
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
                 {t.china.badge}
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">{t.china.h2}</h2>
-              <p className="text-lg max-w-xl mx-auto" style={{ color:'rgba(255,255,255,.4)' }}>{t.china.sub}</p>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">{t.china.h2}</h2>
+              <p className="text-lg max-w-xl mx-auto text-gray-400">{t.china.sub}</p>
             </FadeIn>
 
             <FadeIn>
-              <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(255,255,255,.06)', background:'rgba(255,255,255,.02)', backdropFilter:'blur(12px)' }}>
+              <div className="rounded-2xl overflow-hidden" style={{ border:'1px solid rgba(224,231,255,.6)', background:'rgba(255,255,255,.5)', backdropFilter:'blur(12px)' }}>
                 <div className="grid grid-cols-3 px-6 py-3"
-                     style={{ borderBottom:'1px solid rgba(255,255,255,.07)', background:'rgba(255,255,255,.02)' }}>
+                     style={{ borderBottom:'1px solid rgba(224,231,255,.5)', background:'rgba(99,102,241,.03)' }}>
                   {t.china.tableHead.map((h, i) => (
                     <span key={h} className={`text-[11px] font-semibold uppercase tracking-widest ${
-                      i === 2 ? 'text-center text-red-400' : i === 1 ? 'text-center' : ''
-                    }`} style={{ color: i !== 2 ? 'rgba(255,255,255,.3)' : undefined }}>{h}</span>
+                      i === 2 ? 'text-center text-red-500' : i === 1 ? 'text-center text-gray-400' : 'text-gray-400'
+                    }`}>{h}</span>
                   ))}
                 </div>
                 {services.map((s, i) => (
@@ -561,14 +447,14 @@ export default function LandingPage() {
                        className={`service-row grid grid-cols-3 px-6 py-4 items-center ${
                          i < services.length - 1 ? 'border-b' : ''
                        }`}
-                       style={{ borderColor:'rgba(255,255,255,.05)' }}>
-                    <span className="text-sm font-medium" style={{ color:'rgba(255,255,255,.5)' }}>
+                       style={{ borderColor:'rgba(224,231,255,.4)' }}>
+                    <span className="text-sm font-medium text-gray-600">
                       {lang === 'th' ? s.category.th : s.category.en}
                     </span>
-                    <span className="text-center text-sm line-through" style={{ color:'rgba(255,255,255,.2)', textDecorationColor:'rgba(255,255,255,.15)' }}>
+                    <span className="text-center text-sm line-through text-gray-300">
                       {s.global}
                     </span>
-                    <span className="text-center text-sm font-semibold text-green-400">{s.china}</span>
+                    <span className="text-center text-sm font-semibold text-emerald-600">{s.china}</span>
                   </div>
                 ))}
               </div>
@@ -577,9 +463,9 @@ export default function LandingPage() {
             <FadeIn delay={80}>
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {t.china.pills.map((p, i) => (
-                  <div key={i} className="pill-dark flex items-center gap-3 px-4 py-3.5 rounded-xl">
-                    <span className="text-green-400 text-base">{['📡','🔌','⚙️'][i]}</span>
-                    <span className="text-sm font-medium" style={{ color:'rgba(255,255,255,.7)' }}>{p}</span>
+                  <div key={i} className="pill-light flex items-center gap-3 px-4 py-3.5 rounded-xl">
+                    <span className="text-emerald-500 text-base">{['📡','🔌','⚙️'][i]}</span>
+                    <span className="text-sm font-medium text-gray-700">{p}</span>
                   </div>
                 ))}
               </div>
@@ -593,21 +479,21 @@ export default function LandingPage() {
         <section className="py-28 px-6">
           <div className="max-w-4xl mx-auto">
             <FadeIn className="text-center mb-16">
-              <div className="section-badge mb-5">{t.how.badge}</div>
-              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white"
+              <div className="section-badge-light mb-5">{t.how.badge}</div>
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900"
                   style={{ whiteSpace:'pre-line' }}>{t.how.h2}</h2>
             </FadeIn>
 
             <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-10">
               <div className="hidden sm:block absolute top-5 left-[calc(16.5%+20px)] right-[calc(16.5%+20px)] h-px"
-                   style={{ background:'linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent)' }} />
+                   style={{ background:'linear-gradient(90deg, transparent, rgba(99,102,241,.15), transparent)' }} />
 
               {t.how.steps.map((s) => (
                 <FadeIn key={s.n}>
                   <div className="step-wrap flex flex-col items-start sm:items-center sm:text-center cursor-pointer">
                     <div className="step-box mb-5">{s.n}</div>
-                    <h3 className="font-semibold text-white mb-2">{s.title}</h3>
-                    <p className="text-sm leading-relaxed" style={{ color:'rgba(255,255,255,.4)' }}>{s.desc}</p>
+                    <h3 className="font-semibold text-gray-900 mb-2">{s.title}</h3>
+                    <p className="text-sm leading-relaxed text-gray-500">{s.desc}</p>
                   </div>
                 </FadeIn>
               ))}
@@ -619,24 +505,19 @@ export default function LandingPage() {
 
         {/* ── CTA ───────────────────────────────────────────── */}
         <section className="py-28 px-6 relative overflow-hidden">
-          <div className="cta-glow-bg absolute inset-0 pointer-events-none" />
-          <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(99,102,241,.25) 0%, rgba(147,51,234,.12) 50%, transparent 70%)',
-                        animation:'orb1 10s ease-in-out infinite' }} />
-          <div className="absolute bottom-[-60px] left-1/4 w-[300px] h-[200px] rounded-full pointer-events-none"
-               style={{ background:'radial-gradient(ellipse, rgba(139,92,246,.15) 0%, transparent 70%)',
-                        filter:'blur(30px)', animation:'orb3 13s ease-in-out infinite' }} />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[250px] rounded-full pointer-events-none"
+               style={{ background:'radial-gradient(ellipse, rgba(99,102,241,.08) 0%, transparent 70%)' }} />
           <FadeIn className="relative z-10 max-w-lg mx-auto text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">{t.cta.h2}</h2>
-            <p className="text-lg mb-10" style={{ color:'rgba(255,255,255,.4)' }}>{t.cta.sub}</p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-4">{t.cta.h2}</h2>
+            <p className="text-lg mb-10 text-gray-400">{t.cta.sub}</p>
             <a href="/login"
-               className="btn-primary cta-glow opacity-100 hover:opacity-100 inline-block px-9 py-4 text-white font-semibold text-base rounded-xl mb-5">
+               className="btn-primary opacity-100 hover:opacity-100 inline-block px-9 py-4 text-white font-semibold text-base rounded-xl mb-5">
               {t.cta.btn}
             </a>
-            <p className="text-sm" style={{ color:'rgba(255,255,255,.3)' }}>
+            <p className="text-sm text-gray-400">
               {t.cta.sub2}{' '}
               <a href="/login"
-                 className="gradient-text-sub underline underline-offset-2 opacity-100 hover:opacity-80 transition-opacity">
+                 className="text-indigo-600 underline underline-offset-2 opacity-100 hover:opacity-80 transition-opacity font-medium">
                 {t.cta.sub2link}
               </a>
             </p>
@@ -645,7 +526,7 @@ export default function LandingPage() {
 
         {/* ── FOOTER ────────────────────────────────────────── */}
         <hr className="divider" />
-        <footer className="px-6 py-7" style={{ background:'rgba(255,255,255,.01)' }}>
+        <footer className="px-6 py-7 bg-white/40">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md overflow-hidden">
@@ -659,16 +540,13 @@ export default function LandingPage() {
                   <path d="M380 120L256 300" stroke="white" strokeWidth="6" opacity="0.3" strokeDasharray="12 8"/>
                 </svg>
               </div>
-              <span className="text-sm font-semibold text-white">TripFlow</span>
+              <span className="text-sm font-semibold text-gray-900">TripFlow</span>
             </div>
-            <p className="text-sm" style={{ color:'rgba(255,255,255,.25)' }}>
+            <p className="text-sm text-gray-400">
               © 2026 TripFlow · {t.footer}
             </p>
             <a href="/login"
-               className="text-sm opacity-100 hover:opacity-100 transition-colors"
-               style={{ color:'rgba(255,255,255,.3)' }}
-               onMouseEnter={e => (e.currentTarget.style.color='rgba(255,255,255,.8)')}
-               onMouseLeave={e => (e.currentTarget.style.color='rgba(255,255,255,.3)')}>
+               className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors opacity-100 hover:opacity-100 font-medium">
               {t.nav.signin} →
             </a>
           </div>
