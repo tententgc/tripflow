@@ -187,7 +187,7 @@ export default function CalculatorPage() {
             ) : (
               <>
                 <p className="text-emerald-700 text-4xl font-bold tracking-tight">
-                  {cur?.symbol}{formatNum(result)}
+                  {direction === 'thb-to-dest' ? cur?.symbol : '฿'}{formatNum(result)}
                 </p>
                 <p className="text-gray-400 text-xs mt-2">
                   1 {direction === 'thb-to-dest' ? 'THB' : destCurrency} = {formatNum(direction === 'thb-to-dest' ? rate : 1 / rate)} {direction === 'thb-to-dest' ? destCurrency : 'THB'}
