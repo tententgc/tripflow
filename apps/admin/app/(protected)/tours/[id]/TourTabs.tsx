@@ -53,19 +53,22 @@ export default function TourTabs({
 
   return (
     <div>
-      {/* Tab bar — minimal glass */}
-      <div className="flex gap-1 p-1 mb-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
+      {/* Tab bar — minimal glass, scrollable on mobile */}
+      <div className="flex gap-1 p-1 mb-6 bg-white/40 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-x-auto scrollbar-hide">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActive(tab.id as TabId)}
-            className={`flex-1 py-2 text-sm font-medium whitespace-nowrap rounded-xl transition-all duration-200 ${
+            className={`flex-1 min-w-0 sm:min-w-0 py-2 px-2 sm:px-0 text-xs sm:text-sm font-medium whitespace-nowrap rounded-xl transition-all duration-200 ${
               active === tab.id
                 ? 'text-indigo-700 bg-white/80 shadow-sm backdrop-blur-sm'
                 : 'text-gray-400 hover:text-gray-600 hover:bg-white/40'
             }`}
           >
-            <span className="inline-flex items-center gap-1.5">{tab.icon} {tab.label}</span>
+            <span className="inline-flex items-center justify-center gap-1 sm:gap-1.5">
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
+            </span>
           </button>
         ))}
       </div>
