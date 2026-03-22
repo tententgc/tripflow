@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
-import { useApi } from '@/lib/swr'
+import { useApi, useApiStatic } from '@/lib/swr'
 
 const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }> = {
   CNY: { name: 'หยวนจีน',      symbol: '¥',  flag: '🇨🇳' },
@@ -24,7 +24,7 @@ export default function CalculatorPage() {
   const tourId = params.id as string
 
   const { data: tourData } = useApi<{ isChina: boolean; destCurrency: string | null }>(`/api/tours/${tourId}?fields=basic`)
-  const { data: ratesData, isLoading: loadingRates } = useApi<{ rates: Record<string, number> }>(
+  const { data: ratesData, isLoading: loadingRates } = useApiStatic<{ rates: Record<string, number> }>(
     'https://api.exchangerate-api.com/v4/latest/THB',
     { dedupingInterval: 60000 }
   )
