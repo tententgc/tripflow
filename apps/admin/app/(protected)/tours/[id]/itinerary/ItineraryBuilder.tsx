@@ -343,6 +343,8 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
     checkIn: '', checkOut: '', confirmationNo: '',
     wifiName: '', wifiPassword: '', roomType: '', imageUrl: '', notes: '',
   })
+  const [editingDayHeader, setEditingDayHeader] = useState<string | null>(null)
+  const [dayHeaderForm, setDayHeaderForm] = useState({ title: '', city: '' })
   const [savingAccom, setSavingAccom] = useState(false)
   const [uploadingAccomImg, setUploadingAccomImg] = useState(false)
   const accomImgRef = useRef<HTMLInputElement>(null)
@@ -487,6 +489,16 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
     setDays((prev) => prev.map((d) => d.id === dayId ? { ...d, [field]: value } : d))
   }
 
+  async function saveDayHeader(dayId: string) {
+    await fetch(`/api/tours/${tour.id}/days/${dayId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: dayHeaderForm.title, city: dayHeaderForm.city || null }),
+    })
+    setDays(prev => prev.map(d => d.id === dayId ? { ...d, title: dayHeaderForm.title, city: dayHeaderForm.city || null } : d))
+    setEditingDayHeader(null)
+  }
+
   return (
     <div className="space-y-4">
       {days.length === 0 ? (
@@ -498,13 +510,52 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
       ) : (
         days.map((day) => (
           <div key={day.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            {/* Day header */}
+            {/* Day header — click to edit */}
             <div className="p-4 border-b border-gray-100">
-              <p className="font-semibold text-gray-900">วันที่ {day.dayNumber} — {day.title}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
-                {new Date(day.date).toLocaleDateString('th-TH')}
-                {day.city && ` · ${day.city}`}
-              </p>
+              {editingDayHeader === day.id ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <span className="text-sm font-semibold text-gray-400 py-1">วันที่ {day.dayNumber} —</span>
+                    <input
+                      type="text"
+                      value={dayHeaderForm.title}
+                      onChange={e => setDayHeaderForm(p => ({ ...p, title: e.target.value }))}
+                      className="flex-1 px-2 py-1 border border-indigo-300 rounded-lg text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      autoFocus
+                      onKeyDown={e => { if (e.key === 'Enter') saveDayHeader(day.id); if (e.key === 'Escape') setEditingDayHeader(null) }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400">{new Date(day.date).toLocaleDateString('th-TH')} ·</span>
+                    <input
+                      type="text"
+                      value={dayHeaderForm.city}
+                      onChange={e => setDayHeaderForm(p => ({ ...p, city: e.target.value }))}
+                      className="flex-1 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      placeholder="เมือง"
+                      onKeyDown={e => { if (e.key === 'Enter') saveDayHeader(day.id) }}
+                    />
+                    <button onClick={() => saveDayHeader(day.id)} className="px-3 py-1 bg-indigo-600 text-white rounded-lg text-xs font-medium">บันทึก</button>
+                    <button onClick={() => setEditingDayHeader(null)} className="px-2 py-1 text-xs text-gray-400 hover:text-gray-600">ยกเลิก</button>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  onClick={() => { setEditingDayHeader(day.id); setDayHeaderForm({ title: day.title, city: day.city ?? '' }) }}
+                  className="cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-gray-900">วันที่ {day.dayNumber} — {day.title}</p>
+                    <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-indigo-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
+                    </svg>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {new Date(day.date).toLocaleDateString('th-TH')}
+                    {day.city && ` · ${day.city}`}
+                  </p>
+                </div>
+              )}
               <div className="flex gap-2 mt-2">
                 {([
                   { key: 'mealBreakfast' as const, label: 'เช้า', emoji: '🍳' },
