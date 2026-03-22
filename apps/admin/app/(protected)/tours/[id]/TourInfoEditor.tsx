@@ -209,7 +209,7 @@ export default function TourInfoEditor({ tour }: { tour: TourInfo }) {
 
   if (editing) {
     return (
-      <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-gray-900 text-sm">ข้อมูลทัวร์</h3>
         </div>
@@ -414,12 +414,12 @@ export default function TourInfoEditor({ tour }: { tour: TourInfo }) {
   ]
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
         <h3 className="font-bold text-gray-900 text-sm">รายละเอียด</h3>
         <button
           onClick={() => setEditing(true)}
-          className="text-xs text-indigo-600 font-medium hover:underline"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-all"
         >
           แก้ไข
         </button>

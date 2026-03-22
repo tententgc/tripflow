@@ -97,101 +97,88 @@ function QRCanvas({ data }: { data: string }) {
   return <canvas ref={ref} className="rounded-xl" />
 }
 
-function DocumentDetail({ doc, onBack }: { doc: Document; onBack: () => void }) {
+function DocumentModal({ doc, onClose }: { doc: Document; onClose: () => void }) {
   const cfg = typeConfig[doc.type] ?? typeConfig['OTHER']!
+  const hasFile = !!doc.fileUrl
+  const hasQr = !!doc.qrData
+  const fileIsPdf = hasFile && isPdf(doc.fileUrl)
+  const fileIsImage = hasFile && !fileIsPdf
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20">
-      {/* Header — glass */}
-      <div className="relative">
-        <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500" />
-        <div className="bg-white/70 backdrop-blur-xl border-b border-gray-200/50 px-4 pt-safe-top">
-          <div className="py-4">
-            <button onClick={onBack} className="text-indigo-600 text-sm mb-3 active:opacity-70 font-medium flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-              กลับ
-            </button>
-            <div className="flex items-start justify-between">
-              <div>
-                <span className={`text-[11px] font-semibold uppercase tracking-wider ${cfg.color}`}>
-                  {cfg.label}
-                </span>
-                <h2 className="text-xl font-bold text-gray-900 mt-0.5">{doc.title}</h2>
-                {doc.titleEn && <p className="text-sm text-gray-400 mt-0.5">{doc.titleEn}</p>}
+    <div className="fixed inset-0 z-[100]">
+      {/* Backdrop — frosted dark */}
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
+
+      {/* Modal — centered */}
+      <div className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
+        <div className="relative w-full max-w-md pointer-events-auto bg-white/80 backdrop-blur-2xl rounded-3xl shadow-[0_8px_60px_-12px_rgba(0,0,0,0.25)] border border-white/50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+          {/* Close button — floating */}
+          <button onClick={onClose}
+            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-black/10 backdrop-blur-sm text-white/80 hover:bg-black/20 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+
+          {/* Document preview area */}
+          <div className="relative bg-gradient-to-b from-gray-900/5 to-gray-100/50">
+            {fileIsImage && (
+              <div className="flex items-center justify-center p-6 min-h-[240px]">
+                <img src={doc.fileUrl!} alt={doc.title} className="max-w-full max-h-[50vh] object-contain rounded-2xl shadow-lg ring-1 ring-black/5" />
               </div>
-              <div className={`w-10 h-10 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
-                {getIcon(doc.type)}
+            )}
+            {fileIsPdf && (
+              <iframe src={`${doc.fileUrl}#toolbar=0&navpanes=0`} className="w-full border-0" style={{ height: '50vh' }} title={doc.title} />
+            )}
+            {hasQr && !hasFile && (
+              <div className="flex flex-col items-center justify-center p-8 min-h-[200px]">
+                <div className="bg-white rounded-2xl p-4 shadow-lg">
+                  <QRCanvas data={doc.qrData!} />
+                </div>
+                <p className="text-xs text-gray-400 mt-3">แสดง QR Code นี้ที่จุดตรวจ</p>
               </div>
-            </div>
-            {doc.description && <p className="text-sm text-gray-500 mt-2">{doc.description}</p>}
-            {doc.isPersonal && (
-              <span className="inline-block mt-2 text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-md font-medium">
-                ตั๋วส่วนตัว
-              </span>
+            )}
+            {!hasFile && !hasQr && (
+              <div className="flex flex-col items-center justify-center p-12 min-h-[160px]">
+                <div className={`w-16 h-16 rounded-2xl ${cfg.bg} ${cfg.border} border flex items-center justify-center ${cfg.color} mb-3`}>
+                  <div className="scale-150">{getIcon(doc.type)}</div>
+                </div>
+                <p className="text-sm text-gray-400">ยังไม่มีไฟล์แนบ</p>
+              </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-4 pt-4 max-w-3xl mx-auto space-y-3">
-        {/* PDF viewer */}
-        {doc.fileUrl && isPdf(doc.fileUrl) && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
-            <iframe
-              src={`${doc.fileUrl}#toolbar=0&navpanes=0`}
-              className="w-full border-0"
-              style={{ height: 'min(70vh, 600px)' }}
-              title={doc.title}
-            />
-          </div>
-        )}
-
-        {/* Image viewer */}
-        {doc.fileUrl && !isPdf(doc.fileUrl) && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 overflow-hidden">
-            <img
-              src={doc.fileUrl}
-              alt={doc.title}
-              className="w-full object-contain"
-              style={{ maxHeight: '70vh' }}
-            />
-          </div>
-        )}
-
-        {/* QR Code */}
-        {doc.qrData && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 p-6 flex flex-col items-center">
-            <QRCanvas data={doc.qrData} />
-            <p className="text-xs text-gray-400 mt-3 text-center">แสดง QR Code นี้ที่จุดตรวจ</p>
-          </div>
-        )}
-
-        {/* No content */}
-        {!doc.fileUrl && !doc.qrData && (
-          <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60 p-12 text-center">
-            <div className="w-12 h-12 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-              </svg>
+          {/* Info section */}
+          <div className="px-5 py-4 space-y-2">
+            {/* Type badge + personal */}
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] px-2 py-0.5 ${cfg.bg} ${cfg.color} ${cfg.border} border rounded-full font-semibold`}>{cfg.label}</span>
+              {doc.isPersonal && (
+                <span className="text-[10px] px-2 py-0.5 bg-indigo-50 text-indigo-500 border border-indigo-100 rounded-full font-semibold">ส่วนตัว</span>
+              )}
+              {fileIsPdf && <span className="text-[10px] text-gray-400">PDF</span>}
             </div>
-            <p className="text-sm text-gray-400">ยังไม่มีไฟล์แนบ</p>
-          </div>
-        )}
 
-        {/* Open in new tab */}
-        {doc.fileUrl && (
-          <a
-            href={doc.fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block py-3 bg-white/80 backdrop-blur-xl rounded-2xl text-center text-sm text-indigo-600 font-medium border border-indigo-100/40 active:bg-indigo-50/50 transition-colors"
-          >
-            เปิดไฟล์เต็มจอ
-          </a>
-        )}
+            {/* Title */}
+            <h2 className="text-lg font-bold text-gray-900 leading-tight">{doc.title}</h2>
+            {doc.titleEn && <p className="text-sm text-gray-400 -mt-1">{doc.titleEn}</p>}
+
+            {/* Description */}
+            {doc.description && <p className="text-sm text-gray-500 leading-relaxed">{doc.description}</p>}
+          </div>
+
+          {/* Action buttons */}
+          {hasFile && (
+            <div className="px-5 pb-5 pt-1">
+              <a href={doc.fileUrl!} target="_blank" rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-indigo-600 text-white rounded-2xl text-sm font-semibold active:scale-[0.98] transition-all shadow-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+                เปิดไฟล์เต็มจอ
+              </a>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -207,52 +194,46 @@ function DocCard({ doc, onClick, onDelete }: {
   return (
     <div
       onClick={onClick}
-      className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 p-4 flex items-center gap-3 cursor-pointer active:scale-[0.99] transition-all"
-      style={{ minHeight: '64px' }}
+      className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm p-4 flex items-center gap-3 cursor-pointer active:scale-[0.98] hover:bg-white/70 hover:shadow-md transition-all"
     >
-      {/* Thumbnail */}
-      {doc.fileUrl && !isPdf(doc.fileUrl) ? (
-        <div className="w-12 h-14 rounded-xl overflow-hidden flex-shrink-0 ring-1 ring-indigo-100/40">
-          <img src={doc.fileUrl} alt="" className="w-full h-full object-cover" />
-        </div>
-      ) : (
-        <div className={`w-12 h-14 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
-          {getIcon(doc.type)}
-        </div>
-      )}
+      {/* Thumbnail — always emoji */}
+      <div className={`w-11 h-11 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0 ${cfg.color}`}>
+        {getIcon(doc.type)}
+      </div>
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900 truncate">{doc.title}</p>
         <div className="flex items-center gap-1.5 mt-0.5">
-          <span className={`text-[10px] px-1.5 py-0.5 ${cfg.bg} ${cfg.color} ${cfg.border} border rounded-md font-medium`}>
+          <span className={`text-[10px] px-1.5 py-0.5 ${cfg.bg} ${cfg.color} rounded-full font-semibold`}>
             {cfg.label}
           </span>
           {doc.fileUrl && isPdf(doc.fileUrl) && (
             <span className="text-[10px] text-gray-400">PDF</span>
           )}
           {doc.isPersonal && (
-            <span className="text-[10px] text-indigo-500 font-medium">ส่วนตัว</span>
+            <span className="text-[10px] px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-full font-semibold">ส่วนตัว</span>
           )}
         </div>
         {doc.description && (
-          <p className="text-xs text-gray-400 mt-0.5 truncate">{doc.description}</p>
+          <p className="text-[11px] text-gray-400 mt-0.5 truncate">{doc.description}</p>
         )}
       </div>
 
-      {onDelete ? (
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete() }}
-          className="text-gray-300 hover:text-red-500 flex-shrink-0 p-1 transition-colors"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-          </svg>
-        </button>
-      ) : (
-        <svg className="w-4 h-4 text-indigo-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="flex items-center gap-1 flex-shrink-0">
+        {onDelete && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            className="w-8 h-8 flex items-center justify-center rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+            </svg>
+          </button>
+        )}
+        <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
         </svg>
-      )}
+      </div>
     </div>
   )
 }
@@ -350,17 +331,6 @@ export default function DocumentsPage() {
 
   if (!tour) return null
 
-  // Detail view
-  if (selectedDoc) {
-    return (
-      <>
-        <DocumentDetail doc={selectedDoc} onBack={() => setSelectedDoc(null)} />
-        <div className="h-20" />
-        <BottomNav activeTab="documents" tourId={tourId} isChina={tour.isChina} />
-      </>
-    )
-  }
-
   const groupDocs = docs.filter(d => !d.isPersonal)
   const myDocs = docs.filter(d => d.isPersonal && d.userId === userId)
 
@@ -406,7 +376,7 @@ export default function DocumentsPage() {
 
           {/* Add ticket form */}
           {adding ? (
-            <div className="bg-white/80 backdrop-blur-xl rounded-2xl border border-indigo-100/40 p-4 space-y-3">
+            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm p-4 space-y-3">
               <h3 className="text-sm font-semibold text-gray-900">เพิ่มตั๋วของฉัน</h3>
 
               {/* File upload */}
@@ -421,7 +391,7 @@ export default function DocumentsPage() {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="w-full py-8 border-2 border-dashed border-indigo-200/50 rounded-xl flex flex-col items-center gap-2 active:bg-indigo-50/30 transition-colors"
+                className="w-full py-8 border-2 border-dashed border-indigo-200/40 rounded-2xl flex flex-col items-center gap-2 bg-white/30 backdrop-blur-sm active:bg-white/50 transition-colors"
               >
                 {uploading ? (
                   <>
@@ -473,13 +443,13 @@ export default function DocumentsPage() {
                 <button
                   onClick={addDocument}
                   disabled={saving || !formTitle.trim() || !formFileUrl}
-                  className="flex-1 py-2.5 bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] transition-all"
+                  className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 active:scale-[0.98] hover:bg-indigo-700 transition-all shadow-sm"
                 >
                   {saving ? 'กำลังบันทึก...' : 'เพิ่มตั๋ว'}
                 </button>
                 <button
                   onClick={() => { setAdding(false); setFormTitle(''); setFormFileUrl('') }}
-                  className="px-4 py-2.5 border border-gray-200/60 text-gray-500 rounded-xl text-sm bg-white/50 backdrop-blur-sm"
+                  className="px-4 py-2.5 border border-white/60 text-gray-500 rounded-xl text-sm bg-white/40 backdrop-blur-sm hover:bg-white/60 transition-all"
                 >
                   ยกเลิก
                 </button>
@@ -488,7 +458,7 @@ export default function DocumentsPage() {
           ) : (
             <button
               onClick={() => setAdding(true)}
-              className="w-full py-3 bg-white/80 backdrop-blur-xl border-2 border-dashed border-indigo-200/40 text-indigo-500 rounded-2xl text-sm font-medium active:bg-indigo-50/50 transition-colors"
+              className="w-full py-3 bg-white/30 backdrop-blur-sm border-2 border-dashed border-indigo-200/40 text-indigo-500 rounded-2xl text-sm font-medium active:bg-white/50 hover:bg-white/50 hover:border-indigo-300/50 transition-all"
             >
               + เพิ่มตั๋วของฉัน
             </button>
@@ -497,7 +467,7 @@ export default function DocumentsPage() {
 
         {/* Empty state */}
         {docs.length === 0 && !adding && (
-          <div className="flex flex-col items-center justify-center py-16 bg-white/80 backdrop-blur-xl rounded-2xl border border-gray-100/60">
+          <div className="flex flex-col items-center justify-center py-16 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 shadow-sm">
             <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-3">
               <svg className="w-7 h-7 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
@@ -509,6 +479,11 @@ export default function DocumentsPage() {
           </div>
         )}
       </div>
+
+      {/* Document detail modal */}
+      {selectedDoc && (
+        <DocumentModal doc={selectedDoc} onClose={() => setSelectedDoc(null)} />
+      )}
 
       <BottomNav activeTab="documents" tourId={tourId} isChina={tour.isChina} />
     </div>

@@ -51,7 +51,7 @@ export default function CoverImageEditor({ tourId, currentUrl }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+    <div className="bg-white/50 backdrop-blur-md rounded-2xl p-4 border border-white/60 shadow-sm">
       <h3 className="font-semibold text-gray-900 text-sm mb-3">🖼️ รูปปกทัวร์</h3>
 
       {/* Preview */}
