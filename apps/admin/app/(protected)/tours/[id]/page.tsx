@@ -9,6 +9,7 @@ import ContactsManager from './ContactsManager'
 import TourInfoEditor from './TourInfoEditor'
 import ChecklistsManager from './ChecklistsManager'
 import DocumentsManager from './DocumentsManager'
+import AnnouncementsManager from './AnnouncementsManager'
 import HotelsManager from './HotelsManager'
 import TourTabs from './TourTabs'
 import Image from 'next/image'
@@ -39,7 +40,7 @@ async function fetchTourData(id: string) {
   })
   if (!tourCore) return null
 
-  const [days, members, flights, contacts, checklists, documents, memberCount] = await Promise.all([
+  const [days, members, flights, contacts, checklists, documents, announcements, memberCount] = await Promise.all([
     db.tourDay.findMany({
       where: { tourId: id },
       include: { activities: { orderBy: { order: 'asc' } }, accommodation: true },
@@ -56,10 +57,14 @@ async function fetchTourData(id: string) {
       include: { items: { orderBy: { order: 'asc' } } },
     }),
     db.tourDocument.findMany({ where: { tourId: id } }),
+    db.tourAnnouncement.findMany({
+      where: { tourId: id },
+      orderBy: [{ isPinned: 'desc' }, { order: 'asc' }],
+    }),
     db.tourMember.count({ where: { tourId: id } }),
   ])
 
-  return { ...tourCore, days, members, flights, contacts, checklists, documents, _count: { members: memberCount } }
+  return { ...tourCore, days, members, flights, contacts, checklists, documents, announcements, _count: { members: memberCount } }
 }
 
 export default async function TourDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -314,6 +319,23 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
     </div>
   )
 
+  const announcementsContent = (
+    <div className="max-w-3xl">
+      <AnnouncementsManager
+        tourId={tour.id}
+        initialAnnouncements={tour.announcements.map(a => ({
+          id: a.id,
+          title: a.title,
+          content: a.content,
+          imageUrls: a.imageUrls,
+          order: a.order,
+          isPinned: a.isPinned,
+          createdAt: typeof a.createdAt === 'string' ? a.createdAt : new Date(a.createdAt).toISOString(),
+        }))}
+      />
+    </div>
+  )
+
   const totalActivities = tour.days.reduce((s, d) => s + d.activities.length, 0)
 
   return (
@@ -377,6 +399,7 @@ export default async function TourDetailPage({ params }: { params: Promise<{ id:
         contactsContent={contactsContent}
         checklistsContent={checklistsContent}
         documentsContent={documentsContent}
+        announcementsContent={announcementsContent}
       />
     </div>
   )
