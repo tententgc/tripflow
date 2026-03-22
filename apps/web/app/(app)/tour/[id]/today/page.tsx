@@ -253,51 +253,53 @@ export default function TodayPage() {
       <div className="relative z-10 px-4 pt-4 space-y-4 page-content">
         {/* Tour info + countdown — merged */}
         {isBeforeTrip ? (
-          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden animate-slide-up delay-1">
-            {/* Tour title bar — indigo accent */}
-            <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
-              <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
-              <span className="text-white/80 text-[11px] font-medium bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 border border-white/10">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-200/40 overflow-hidden animate-slide-up delay-1">
+            {/* Tour title — glass strip, not solid gradient */}
+            <div className="px-5 py-4 flex items-center justify-between border-b border-indigo-100/30">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/40">
+                  <span className="text-lg">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 text-sm truncate">{tour.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
+                    <span>{new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+                    <span>·</span>
+                    <span>{tour.days[0]?.city ?? ''}</span>
+                    <span>·</span>
+                    <span>{tour.members.length} คน</span>
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg flex-shrink-0 ml-2 border border-indigo-100">
                 เตรียมตัวเดินทาง
               </span>
             </div>
 
             {/* Countdown */}
             <div className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-indigo-500 tracking-wide">ออกเดินทางอีก</p>
-                  <div className="mt-2 flex items-baseline gap-1.5">
-                    <span className="text-5xl font-black tracking-tight text-gray-900" style={{ fontFeatureSettings: '"tnum"' }}>
-                      {daysUntilTrip}
-                    </span>
-                    <span className="text-base font-medium text-gray-300">วัน</span>
-                  </div>
-                </div>
-                <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-2xl flex-shrink-0">
-                  {countryFlags[tour.countries[0] ?? ''] ?? '🌍'}
-                </div>
+              <p className="text-[11px] font-semibold text-indigo-400 uppercase tracking-wider">ออกเดินทางอีก</p>
+              <div className="mt-2 flex items-end gap-2">
+                <span className="text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600" style={{ fontFeatureSettings: '"tnum"' }}>
+                  {daysUntilTrip}
+                </span>
+                <span className="text-lg font-medium text-gray-300 pb-1.5">วัน</span>
               </div>
 
-              {/* Info row */}
-              <div className="flex items-center gap-3 mt-3 text-xs text-gray-400">
-                <span>{new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-                <span>·</span>
-                <span>{tour.days[0]?.city ?? ''}</span>
-                <span>·</span>
-                <span>{tour.members.length} คน</span>
-              </div>
-
-              {/* Progress */}
+              {/* Progress — animated */}
               {(() => {
                 const totalDays = Math.max(1, Math.ceil((tripStart.getTime() - new Date(Date.now() - 30 * 86400000).getTime()) / 86400000))
                 const elapsed = totalDays - daysUntilTrip
                 const pct = Math.min(100, Math.max(5, (elapsed / totalDays) * 100))
                 return (
                   <div className="mt-4">
-                    <div className="h-1.5 bg-indigo-100 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000" style={{ width: `${pct}%` }} />
+                    <div className="h-2 bg-indigo-50 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 transition-all duration-[2000ms] ease-out"
+                        style={{ width: `${pct}%`, animation: 'progressGrow 1.5s cubic-bezier(0.22,1,0.36,1) both' }}
+                      />
                     </div>
+                    <style>{`@keyframes progressGrow { from { width: 0%; } to { width: ${pct}%; } }`}</style>
                   </div>
                 )
               })()}
@@ -305,19 +307,27 @@ export default function TodayPage() {
           </div>
         ) : (
           /* During trip — just tour info */
-          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-100/40 overflow-hidden animate-slide-up delay-1">
-            <div className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 px-5 py-3.5 flex items-center justify-between">
-              <p className="text-white font-semibold text-[14px] truncate">{tour.title}</p>
-              <span className="text-white/80 text-[11px] font-medium bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full flex-shrink-0 ml-2 border border-white/10">
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-sm border border-indigo-200/40 overflow-hidden animate-slide-up delay-1">
+            <div className="px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-200/40">
+                  <span className="text-lg">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 text-sm truncate">{tour.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
+                    <span>{tour.days[0]?.city ?? ''}</span>
+                    <span>·</span>
+                    <span>{tour.days.length} วัน</span>
+                    <span>·</span>
+                    <span>{tour.members.length} คน</span>
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0 ml-2 border border-emerald-100 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 วันที่ {currentDay.dayNumber}/{tour.days.length}
               </span>
-            </div>
-            <div className="px-5 py-3 flex items-center gap-3 text-xs text-gray-400">
-              <span>{countryFlags[tour.countries[0] ?? ''] ?? '🌍'} {tour.days[0]?.city ?? ''}</span>
-              <span>·</span>
-              <span>{tour.days.length} วัน</span>
-              <span>·</span>
-              <span>{tour.members.length} คน</span>
             </div>
           </div>
         )}
