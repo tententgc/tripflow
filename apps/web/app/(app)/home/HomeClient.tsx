@@ -43,9 +43,17 @@ export default function HomeClient({ initialData }: Props) {
   const history = tours.filter(t => t.status === 'COMPLETED' || t.status === 'CANCELLED')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-violet-50/30 to-purple-50/40">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 relative overflow-hidden">
+      {/* Background blobs */}
+      <div className="fixed top-[-50px] right-[-30px] w-[300px] h-[300px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #a5b4fc 0%, transparent 70%)', opacity: 0.24, filter: 'blur(50px)' }} />
+      <div className="fixed top-[28%] left-[-60px] w-[260px] h-[260px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #c4b5fd 0%, transparent 70%)', opacity: 0.3, filter: 'blur(50px)' }} />
+      <div className="fixed top-[48%] right-[5%] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)', opacity: 0.14, filter: 'blur(45px)' }} />
+      <div className="fixed bottom-[-60px] right-[-40px] w-[370px] h-[370px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #8b5cf6 0%, #a855f7 40%, transparent 70%)', opacity: 0.2, filter: 'blur(60px)' }} />
+      <div className="fixed bottom-[15%] left-[9%] w-[220px] h-[220px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', opacity: 0.16, filter: 'blur(45px)' }} />
+      <div className="fixed bottom-[-20px] left-[35%] w-[300px] h-[190px] rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, #ddd6fe 0%, transparent 70%)', opacity: 0.36, filter: 'blur(50px)' }} />
+
       {/* Header — glass with subtle glow */}
-      <div className="relative">
+      <div className="relative z-10">
         <div className="bg-white/70 backdrop-blur-2xl border-b border-indigo-100/30 px-4 pt-safe-top relative overflow-hidden">
           {/* Subtle glow orbs at bottom border */}
           <div className="absolute bottom-0 left-1/4 w-48 h-8 bg-indigo-200/15 rounded-full blur-2xl" />
@@ -84,7 +92,7 @@ export default function HomeClient({ initialData }: Props) {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full">
+      <div className="relative z-10 px-4 sm:px-6 pt-6 pb-8 max-w-5xl mx-auto w-full">
         {/* Quick stats */}
         <div className="flex gap-3 mb-6">
           {active.length > 0 && (

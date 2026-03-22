@@ -259,6 +259,23 @@ button[class*="rounded-full"]:not(:disabled):hover {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* ── Page transition ── */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px) scale(0.995); filter: blur(4px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(-6px) scale(0.995); }
+}
+
+.page-transition-enter {
+  animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-transition-exit {
+  animation: pageExit 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
 @font-face {
   font-family: 'Noto Sans Thai';
   font-style: normal;
