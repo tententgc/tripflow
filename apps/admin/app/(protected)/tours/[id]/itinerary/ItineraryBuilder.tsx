@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 
 interface Activity {
   id: string
@@ -347,6 +347,52 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
   const [uploadingAccomImg, setUploadingAccomImg] = useState(false)
   const accomImgRef = useRef<HTMLInputElement>(null)
 
+  // Drag and drop state
+  const [dragItem, setDragItem] = useState<{ dayId: string; actIndex: number } | null>(null)
+  const [dragOverItem, setDragOverItem] = useState<{ dayId: string; actIndex: number } | null>(null)
+
+  const handleDragStart = useCallback((dayId: string, actIndex: number) => {
+    setDragItem({ dayId, actIndex })
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent, dayId: string, actIndex: number) => {
+    e.preventDefault()
+    setDragOverItem({ dayId, actIndex })
+  }, [])
+
+  const handleDrop = useCallback(async (dayId: string) => {
+    if (!dragItem || !dragOverItem || dragItem.dayId !== dayId || dragItem.actIndex === dragOverItem.actIndex) {
+      setDragItem(null)
+      setDragOverItem(null)
+      return
+    }
+
+    // Reorder locally
+    setDays(prev => prev.map(d => {
+      if (d.id !== dayId) return d
+      const acts = [...d.activities]
+      const [moved] = acts.splice(dragItem.actIndex, 1)
+      if (moved) acts.splice(dragOverItem.actIndex, 0, moved)
+      return { ...d, activities: acts.map((a, i) => ({ ...a, order: i })) }
+    }))
+
+    // Save to server
+    const day = days.find(d => d.id === dayId)
+    if (day) {
+      const acts = [...day.activities]
+      const [moved] = acts.splice(dragItem.actIndex, 1)
+      if (moved) acts.splice(dragOverItem.actIndex, 0, moved)
+      fetch(`/api/tours/${tour.id}/days/${dayId}/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activityIds: acts.map(a => a.id) }),
+      }).catch(() => {})
+    }
+
+    setDragItem(null)
+    setDragOverItem(null)
+  }, [dragItem, dragOverItem, days, tour.id])
+
   async function uploadAccomImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -484,8 +530,20 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                 <p className="text-xs text-gray-400 text-center py-2">ยังไม่มีกิจกรรม</p>
               ) : (
                 <div className="space-y-2 mb-3">
-                  {day.activities.map((act) => (
-                    <div key={act.id}>
+                  {day.activities.map((act, actIndex) => (
+                    <div
+                      key={act.id}
+                      draggable={editingActivity !== act.id}
+                      onDragStart={() => handleDragStart(day.id, actIndex)}
+                      onDragOver={(e) => handleDragOver(e, day.id, actIndex)}
+                      onDrop={() => handleDrop(day.id)}
+                      onDragEnd={() => { setDragItem(null); setDragOverItem(null) }}
+                      className={`transition-all ${
+                        dragOverItem?.dayId === day.id && dragOverItem?.actIndex === actIndex
+                          ? 'border-t-2 border-indigo-400 pt-1'
+                          : ''
+                      }`}
+                    >
                       {editingActivity === act.id ? (
                         <ActivityForm
                           initial={{
@@ -522,8 +580,12 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                       ) : (
                         <button
                           onClick={() => { setEditingActivity(act.id); setAddingActivity(null) }}
-                          className="w-full flex items-center gap-3 p-2 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left group"
+                          className="w-full flex items-center gap-3 p-2 bg-gray-50 hover:bg-blue-50 rounded-xl transition-colors text-left group cursor-grab active:cursor-grabbing"
                         >
+                          {/* Drag handle */}
+                          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-8a2 2 0 10-.001-4.001A2 2 0 0013 6zm0 2a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
+                          </svg>
                           {(act.imageUrls ?? []).length > 0 ? (
                             <div className="relative flex-shrink-0">
                               <img src={act.imageUrls[0]} alt="" className="w-12 h-10 rounded-lg object-cover" />
