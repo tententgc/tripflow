@@ -114,7 +114,7 @@ interface TourData {
     accommodation: Accommodation | null
   }>
   flights: Flight[]
-  contacts: Array<{ id: string; name: string; phone: string | null; wechat: string | null; line: string | null; type: string }>
+  contacts: Array<{ id: string; name: string; nameLocal: string | null; phone: string | null; wechat: string | null; line: string | null; whatsapp: string | null; type: string; notes: string | null }>
   members: Array<{ user: { name: string } }>
 }
 
@@ -405,8 +405,23 @@ export default function TodayPage() {
           <div className="space-y-3 animate-slide-up delay-4">
             <p className="text-xs text-indigo-600 font-bold uppercase tracking-wider px-1">ผู้ติดต่อ ({tour.contacts.length})</p>
             {tour.contacts.map((c) => {
-              const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : '👤'
-              const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : 'ติดต่อ'
+              const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : c.type === 'EMERGENCY' ? '🚨' : c.type === 'AIRLINE' ? '✈️' : c.type === 'BUS_OPERATOR' ? '🚌' : c.type === 'RESTAURANT' ? '🍽️' : c.type === 'INSURANCE' ? '🛡️' : '👤'
+              const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : c.type === 'EMERGENCY' ? 'ฉุกเฉิน' : c.type === 'AIRLINE' ? 'สายการบิน' : c.type === 'BUS_OPERATOR' ? 'รถบัส' : c.type === 'RESTAURANT' ? 'ร้านอาหาร' : c.type === 'INSURANCE' ? 'ประกัน' : 'ติดต่อ'
+              // Language badges based on type
+              const languages: string[] = []
+              if (c.type === 'THAI_GUIDE') languages.push('🇹🇭 ไทย')
+              if (c.type === 'LOCAL_GUIDE') languages.push('🌐 ท้องถิ่น')
+              // Parse notes for language info (e.g. "พูดไทยได้" "speaks Thai")
+              if (c.notes) {
+                const n = c.notes.toLowerCase()
+                if (n.includes('ไทย') || n.includes('thai')) languages.push('🇹🇭 ไทย')
+                if (n.includes('อังกฤษ') || n.includes('english') || n.includes('eng')) languages.push('🇬🇧 อังกฤษ')
+                if (n.includes('จีน') || n.includes('chinese') || n.includes('中文')) languages.push('🇨🇳 จีน')
+                if (n.includes('ญี่ปุ่น') || n.includes('japanese') || n.includes('日本語')) languages.push('🇯🇵 ญี่ปุ่น')
+                if (n.includes('เกาหลี') || n.includes('korean') || n.includes('한국어')) languages.push('🇰🇷 เกาหลี')
+              }
+              // Deduplicate
+              const uniqueLangs = [...new Set(languages)]
               const gradientBg = c.type === 'THAI_GUIDE'
                 ? 'from-indigo-100 to-violet-100 text-indigo-600'
                 : c.type === 'LOCAL_GUIDE'
@@ -426,6 +441,18 @@ export default function TodayPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-gray-900 truncate">{c.name}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{typeLabel}{c.phone && ` · ${c.phone}`}</p>
+                    {uniqueLangs.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {uniqueLangs.map(lang => (
+                          <span key={lang} className="text-[10px] px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded-full font-medium border border-amber-100/60">
+                            {lang}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {c.notes && !uniqueLangs.length && (
+                      <p className="text-[10px] text-gray-400 mt-0.5 truncate">{c.notes}</p>
+                    )}
                   </div>
 
                   {/* Action buttons — right side */}
@@ -439,7 +466,7 @@ export default function TodayPage() {
                         <span>โทร</span>
                       </a>
                     )}
-                    {tour.isChina && c.wechat && (
+                    {c.wechat && (
                       <button
                         onClick={() => navigator.clipboard.writeText(c.wechat!)}
                         className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-emerald-100"
@@ -447,12 +474,20 @@ export default function TodayPage() {
                         <span className="font-black">微信</span>
                       </button>
                     )}
-                    {!tour.isChina && c.line && (
+                    {c.line && (
                       <a
                         href={`line://ti/p/~${c.line}`}
-                        className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-emerald-100"
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-green-100"
                       >
                         <span className="font-black">LINE</span>
+                      </a>
+                    )}
+                    {c.whatsapp && (
+                      <a
+                        href={`https://wa.me/${c.whatsapp.replace(/[^0-9+]/g, '')}`}
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-teal-50 text-teal-600 rounded-xl text-xs font-semibold active:scale-95 transition-transform border border-teal-100"
+                      >
+                        <span className="font-black">WA</span>
                       </a>
                     )}
                   </div>
