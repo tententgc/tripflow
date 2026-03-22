@@ -1,11 +1,55 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
 import { useApi } from '@/lib/swr'
+
+// ── Weather types & helpers ──
+interface WeatherDay {
+  date: string
+  maxTemp: number
+  minTemp: number
+  icon: string
+  desc: string
+}
+
+const weatherIcons: Record<string, string> = {
+  'Clear': '☀️', 'Sunny': '☀️', 'Partly cloudy': '⛅', 'Cloudy': '☁️', 'Overcast': '☁️',
+  'Mist': '🌫️', 'Fog': '🌫️', 'Light rain': '🌦️', 'Rain': '🌧️', 'Heavy rain': '🌧️',
+  'Light drizzle': '🌦️', 'Patchy rain possible': '🌦️', 'Moderate rain': '🌧️',
+  'Thundery outbreaks possible': '⛈️', 'Snow': '🌨️', 'Light snow': '🌨️',
+  'Patchy light rain with thunder': '⛈️', 'Moderate or heavy rain with thunder': '⛈️',
+}
+function getWeatherIcon(desc: string): string {
+  return weatherIcons[desc] ?? (desc.includes('rain') || desc.includes('Rain') ? '🌧️' : desc.includes('cloud') || desc.includes('Cloud') ? '☁️' : '🌤️')
+}
+
+function useWeather(city: string | null) {
+  const [days, setDays] = useState<WeatherDay[]>([])
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    if (!city) return
+    setLoading(true)
+    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
+      .then(r => r.json())
+      .then((data: { weather?: Array<{ date: string; maxtempC: string; mintempC: string; hourly: Array<{ weatherDesc: Array<{ value: string }> }> }> }) => {
+        const w = data.weather ?? []
+        setDays(w.map(d => ({
+          date: d.date,
+          maxTemp: parseInt(d.maxtempC),
+          minTemp: parseInt(d.mintempC),
+          icon: getWeatherIcon(d.hourly?.[4]?.weatherDesc?.[0]?.value ?? ''),
+          desc: d.hourly?.[4]?.weatherDesc?.[0]?.value ?? '',
+        })))
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [city])
+  return { days, loading }
+}
 
 interface Activity {
   id: string
@@ -226,6 +270,7 @@ export default function TodayPage() {
   }) ?? tour.days[0]
 
   const guide = tour.contacts.find((c) => c.type === 'THAI_GUIDE' || c.type === 'LOCAL_GUIDE')
+  const { days: weatherDays, loading: weatherLoading } = useWeather(currentDay?.city ?? tour.days[0]?.city ?? null)
 
   if (!currentDay) {
     return (
@@ -329,6 +374,41 @@ export default function TodayPage() {
                 วันที่ {currentDay.dayNumber}/{tour.days.length}
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Weather forecast */}
+        {weatherDays.length > 0 && (
+          <div className="animate-slide-up delay-2">
+            <div className="flex items-center gap-2 px-1 mb-3">
+              <div className="w-1.5 h-4 rounded-full bg-amber-500" />
+              <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">พยากรณ์อากาศ · {currentDay?.city ?? ''}</p>
+            </div>
+            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm overflow-hidden">
+              <div className="grid grid-cols-3 divide-x divide-amber-100/30">
+                {weatherDays.slice(0, 3).map((w, i) => {
+                  const dayLabel = i === 0 ? 'วันนี้' : i === 1 ? 'พรุ่งนี้' : new Date(w.date).toLocaleDateString('th-TH', { weekday: 'short' })
+                  return (
+                    <div key={w.date} className={`p-4 text-center ${i === 0 ? 'bg-amber-50/30' : ''}`}>
+                      <p className={`text-[11px] font-semibold mb-2 ${i === 0 ? 'text-amber-600' : 'text-gray-400'}`}>{dayLabel}</p>
+                      <p className="text-3xl mb-1">{w.icon}</p>
+                      <p className="text-xs text-gray-500 mb-2 truncate">{w.desc}</p>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span className="text-sm font-bold text-gray-900">{w.maxTemp}°</span>
+                        <span className="text-xs text-gray-300">/</span>
+                        <span className="text-sm text-gray-400">{w.minTemp}°</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+        {weatherLoading && (
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm p-6 flex items-center justify-center gap-2 animate-slide-up delay-2">
+            <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-gray-400">กำลังโหลดพยากรณ์อากาศ...</span>
           </div>
         )}
 
