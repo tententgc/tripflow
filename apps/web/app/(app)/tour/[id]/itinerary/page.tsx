@@ -106,12 +106,14 @@ export default function ItineraryPage() {
                 </div>
 
                 {/* Meals */}
+                {(day.mealBreakfast || day.mealLunch || day.mealDinner) && (
                 <div className="flex items-center gap-1.5 mt-3 pl-2 flex-wrap">
                   <span className="text-[10px] text-gray-400 font-medium mr-0.5">มื้ออาหาร :</span>
-                  <span className={`text-[11px] px-2 py-1 rounded-lg font-medium border ${day.mealBreakfast ? 'bg-orange-50/80 text-orange-600 border-orange-100/50' : 'bg-gray-50/50 text-gray-300 border-gray-100/40 line-through'}`}>เช้า</span>
-                  <span className={`text-[11px] px-2 py-1 rounded-lg font-medium border ${day.mealLunch ? 'bg-green-50/80 text-green-600 border-green-100/50' : 'bg-gray-50/50 text-gray-300 border-gray-100/40 line-through'}`}>กลางวัน</span>
-                  <span className={`text-[11px] px-2 py-1 rounded-lg font-medium border ${day.mealDinner ? 'bg-violet-50/80 text-violet-600 border-violet-100/50' : 'bg-gray-50/50 text-gray-300 border-gray-100/40 line-through'}`}>เย็น</span>
+                  {day.mealBreakfast && <span className="text-[11px] px-2 py-1 rounded-lg font-medium border bg-orange-50/80 text-orange-600 border-orange-100/50">เช้า</span>}
+                  {day.mealLunch && <span className="text-[11px] px-2 py-1 rounded-lg font-medium border bg-green-50/80 text-green-600 border-green-100/50">กลางวัน</span>}
+                  {day.mealDinner && <span className="text-[11px] px-2 py-1 rounded-lg font-medium border bg-violet-50/80 text-violet-600 border-violet-100/50">เย็น</span>}
                 </div>
+                )}
 
                 {/* Accommodation */}
                 {day.accommodation && (
