@@ -5,9 +5,27 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 export const runtime = 'nodejs'
 export const maxDuration = 30
 
+async function getAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  return createSupabaseClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+async function ensureBucket(admin: ReturnType<typeof createSupabaseClient>) {
+  const { data } = await admin.storage.getBucket('tripflow-media')
+  if (!data) {
+    await admin.storage.createBucket('tripflow-media', {
+      public: true,
+      fileSizeLimit: 10 * 1024 * 1024,
+      allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'],
+    })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Auth check — lightweight JWT decode + cached DB lookup
     const user = await getAuthUserLight()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -20,15 +38,11 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
-    const folder = ext === 'pdf' ? 'documents' : 'receipts'
+    const folder = ext === 'pdf' ? 'documents' : 'images'
     const path = `${folder}/${user.id}/${Date.now()}.${ext}`
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-    const admin = createSupabaseClient(supabaseUrl, supabaseKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
+    const admin = await getAdminClient()
+    await ensureBucket(admin)
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -40,22 +54,7 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('Storage upload error:', error.message)
-      // Try updating bucket to allow PDF
-      if (error.message?.includes('mime') || error.message?.includes('not supported')) {
-        await admin.storage.updateBucket('tripflow-media', {
-          public: true,
-          fileSizeLimit: 10 * 1024 * 1024,
-          allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'],
-        })
-        const { error: retryError } = await admin.storage
-          .from('tripflow-media')
-          .upload(path, buffer, { contentType, upsert: true })
-        if (retryError) {
-          return NextResponse.json({ error: retryError.message }, { status: 500 })
-        }
-      } else {
-        return NextResponse.json({ error: error.message }, { status: 500 })
-      }
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     const { data } = admin.storage.from('tripflow-media').getPublicUrl(path)
