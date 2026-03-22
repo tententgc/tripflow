@@ -260,20 +260,24 @@ button[class*="rounded-full"]:not(:disabled):hover {
 }
 
 /* ── Page transition ── */
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(8px) scale(0.995); filter: blur(4px); }
-  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+/* Opacity-only fade: no transform/filter = fixed elements stay fixed */
+@keyframes pageFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
-@keyframes pageExit {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to { opacity: 0; transform: translateY(-6px) scale(0.995); }
+/* Slide-up for non-fixed content areas */
+@keyframes contentSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.page-transition-enter {
-  animation: pageEnter 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Fade entire page (safe for fixed children) */
+[data-page] {
+  animation: pageFadeIn 0.3s ease-out both;
 }
-.page-transition-exit {
-  animation: pageExit 0.2s cubic-bezier(0.4, 0, 1, 1) both;
+/* Slide-up content sections (add .page-content to scrollable wrappers) */
+.page-content {
+  animation: contentSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @font-face {

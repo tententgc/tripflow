@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { PageTransition } from '@/components/layout/PageTransition'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -13,5 +12,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     redirect('/login')
   }
 
-  return <PageTransition>{children}</PageTransition>
+  return <div data-page>{children}</div>
 }
