@@ -54,14 +54,36 @@ const PAYMENT_TYPES = [
 ]
 
 const CURRENCIES: Record<string, { symbol: string; flag: string; name: string }> = {
-  THB: { symbol: '฿',   flag: '🇹🇭', name: 'บาท' },
-  CNY: { symbol: '¥',   flag: '🇨🇳', name: 'หยวน' },
-  JPY: { symbol: '¥',   flag: '🇯🇵', name: 'เยน' },
-  KRW: { symbol: '₩',   flag: '🇰🇷', name: 'วอน' },
-  EUR: { symbol: '€',   flag: '🇪🇺', name: 'ยูโร' },
-  USD: { symbol: '$',   flag: '🇺🇸', name: 'ดอลลาร์' },
-  SGD: { symbol: 'S$',  flag: '🇸🇬', name: 'ดอลลาร์สิงคโปร์' },
-  HKD: { symbol: 'HK$', flag: '🇭🇰', name: 'ดอลลาร์ฮ่องกง' },
+  THB: { symbol: '฿',    flag: '🇹🇭', name: 'บาท' },
+  // เอเชีย
+  CNY: { symbol: '¥',    flag: '🇨🇳', name: 'หยวน' },
+  JPY: { symbol: '¥',    flag: '🇯🇵', name: 'เยน' },
+  KRW: { symbol: '₩',    flag: '🇰🇷', name: 'วอน' },
+  VND: { symbol: '₫',    flag: '🇻🇳', name: 'ด่อง' },
+  SGD: { symbol: 'S$',   flag: '🇸🇬', name: 'ดอลลาร์สิงคโปร์' },
+  MYR: { symbol: 'RM',   flag: '🇲🇾', name: 'ริงกิต' },
+  IDR: { symbol: 'Rp',   flag: '🇮🇩', name: 'รูเปียห์' },
+  TWD: { symbol: 'NT$',  flag: '🇹🇼', name: 'ดอลลาร์ไต้หวัน' },
+  HKD: { symbol: 'HK$',  flag: '🇭🇰', name: 'ดอลลาร์ฮ่องกง' },
+  INR: { symbol: '₹',    flag: '🇮🇳', name: 'รูปีอินเดีย' },
+  MMK: { symbol: 'K',    flag: '🇲🇲', name: 'จ๊าต' },
+  LAK: { symbol: '₭',    flag: '🇱🇦', name: 'กีบ' },
+  KHR: { symbol: '៛',    flag: '🇰🇭', name: 'เรียล' },
+  PHP: { symbol: '₱',    flag: '🇵🇭', name: 'เปโซ' },
+  // ยุโรป
+  EUR: { symbol: '€',    flag: '🇪🇺', name: 'ยูโร' },
+  GBP: { symbol: '£',    flag: '🇬🇧', name: 'ปอนด์' },
+  CHF: { symbol: 'CHF',  flag: '🇨🇭', name: 'ฟรังก์สวิส' },
+  TRY: { symbol: '₺',    flag: '🇹🇷', name: 'ลีรา' },
+  RUB: { symbol: '₽',    flag: '🇷🇺', name: 'รูเบิล' },
+  // อเมริกา + โอเชียเนีย
+  USD: { symbol: '$',    flag: '🇺🇸', name: 'ดอลลาร์' },
+  AUD: { symbol: 'A$',   flag: '🇦🇺', name: 'ดอลลาร์ออสเตรเลีย' },
+  NZD: { symbol: 'NZ$',  flag: '🇳🇿', name: 'ดอลลาร์นิวซีแลนด์' },
+  CAD: { symbol: 'C$',   flag: '🇨🇦', name: 'ดอลลาร์แคนาดา' },
+  // ตะวันออกกลาง
+  AED: { symbol: 'د.إ',  flag: '🇦🇪', name: 'เดอร์แฮม' },
+  SAR: { symbol: '﷼',    flag: '🇸🇦', name: 'ริยาล' },
 }
 
 const CATEGORIES = [

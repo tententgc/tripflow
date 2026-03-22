@@ -7,16 +7,47 @@ import { TopBar } from '@/components/layout/TopBar'
 import { useApi, useApiStatic } from '@/lib/swr'
 
 const CURRENCIES: Record<string, { name: string; symbol: string; flag: string }> = {
-  CNY: { name: 'หยวนจีน',      symbol: '¥',  flag: '🇨🇳' },
-  JPY: { name: 'เยนญี่ปุ่น',    symbol: '¥',  flag: '🇯🇵' },
-  KRW: { name: 'วอนเกาหลี',    symbol: '₩',  flag: '🇰🇷' },
-  EUR: { name: 'ยูโร',          symbol: '€',  flag: '🇪🇺' },
-  USD: { name: 'ดอลลาร์สหรัฐ', symbol: '$',  flag: '🇺🇸' },
-  GBP: { name: 'ปอนด์อังกฤษ',  symbol: '£',  flag: '🇬🇧' },
-  SGD: { name: 'ดอลลาร์สิงคโปร์', symbol: '$', flag: '🇸🇬' },
-  HKD: { name: 'ดอลลาร์ฮ่องกง', symbol: '$',  flag: '🇭🇰' },
-  AUD: { name: 'ดอลลาร์ออสเตรเลีย', symbol: '$', flag: '🇦🇺' },
-  TWD: { name: 'ดอลลาร์ไต้หวัน', symbol: 'NT$', flag: '🇹🇼' },
+  // เอเชีย
+  CNY: { name: 'หยวนจีน',           symbol: '¥',    flag: '🇨🇳' },
+  JPY: { name: 'เยนญี่ปุ่น',         symbol: '¥',    flag: '🇯🇵' },
+  KRW: { name: 'วอนเกาหลี',         symbol: '₩',    flag: '🇰🇷' },
+  VND: { name: 'ด่องเวียดนาม',       symbol: '₫',    flag: '🇻🇳' },
+  SGD: { name: 'ดอลลาร์สิงคโปร์',    symbol: 'S$',   flag: '🇸🇬' },
+  MYR: { name: 'ริงกิตมาเลเซีย',     symbol: 'RM',   flag: '🇲🇾' },
+  IDR: { name: 'รูเปียห์อินโดนีเซีย', symbol: 'Rp',   flag: '🇮🇩' },
+  PHP: { name: 'เปโซฟิลิปปินส์',     symbol: '₱',    flag: '🇵🇭' },
+  INR: { name: 'รูปีอินเดีย',        symbol: '₹',    flag: '🇮🇳' },
+  TWD: { name: 'ดอลลาร์ไต้หวัน',     symbol: 'NT$',  flag: '🇹🇼' },
+  HKD: { name: 'ดอลลาร์ฮ่องกง',      symbol: 'HK$',  flag: '🇭🇰' },
+  MMK: { name: 'จ๊าตพม่า',           symbol: 'K',    flag: '🇲🇲' },
+  LAK: { name: 'กีบลาว',             symbol: '₭',    flag: '🇱🇦' },
+  KHR: { name: 'เรียลกัมพูชา',       symbol: '៛',    flag: '🇰🇭' },
+  BDT: { name: 'ตากาบังคลาเทศ',      symbol: '৳',    flag: '🇧🇩' },
+  NPR: { name: 'รูปีเนปาล',          symbol: 'Rs',   flag: '🇳🇵' },
+  LKR: { name: 'รูปีศรีลังกา',       symbol: 'Rs',   flag: '🇱🇰' },
+  // ยุโรป
+  EUR: { name: 'ยูโร',               symbol: '€',    flag: '🇪🇺' },
+  GBP: { name: 'ปอนด์อังกฤษ',        symbol: '£',    flag: '🇬🇧' },
+  CHF: { name: 'ฟรังก์สวิส',          symbol: 'CHF',  flag: '🇨🇭' },
+  SEK: { name: 'โครนาสวีเดน',         symbol: 'kr',   flag: '🇸🇪' },
+  NOK: { name: 'โครนนอร์เวย์',        symbol: 'kr',   flag: '🇳🇴' },
+  DKK: { name: 'โครนเดนมาร์ก',        symbol: 'kr',   flag: '🇩🇰' },
+  CZK: { name: 'โครูนาเช็ก',          symbol: 'Kč',   flag: '🇨🇿' },
+  PLN: { name: 'ซลอตีโปแลนด์',        symbol: 'zł',   flag: '🇵🇱' },
+  HUF: { name: 'ฟอรินต์ฮังการี',      symbol: 'Ft',   flag: '🇭🇺' },
+  TRY: { name: 'ลีราตุรกี',           symbol: '₺',    flag: '🇹🇷' },
+  RUB: { name: 'รูเบิลรัสเซีย',       symbol: '₽',    flag: '🇷🇺' },
+  // อเมริกา + โอเชียเนีย
+  USD: { name: 'ดอลลาร์สหรัฐ',       symbol: '$',    flag: '🇺🇸' },
+  CAD: { name: 'ดอลลาร์แคนาดา',      symbol: 'C$',   flag: '🇨🇦' },
+  AUD: { name: 'ดอลลาร์ออสเตรเลีย',  symbol: 'A$',   flag: '🇦🇺' },
+  NZD: { name: 'ดอลลาร์นิวซีแลนด์',  symbol: 'NZ$',  flag: '🇳🇿' },
+  // ตะวันออกกลาง + แอฟริกา
+  AED: { name: 'เดอร์แฮม UAE',       symbol: 'د.إ',  flag: '🇦🇪' },
+  SAR: { name: 'ริยาลซาอุดีอาระเบีย', symbol: '﷼',    flag: '🇸🇦' },
+  QAR: { name: 'ริยาลกาตาร์',        symbol: '﷼',    flag: '🇶🇦' },
+  EGP: { name: 'ปอนด์อียิปต์',        symbol: 'E£',   flag: '🇪🇬' },
+  ZAR: { name: 'แรนด์แอฟริกาใต้',     symbol: 'R',    flag: '🇿🇦' },
 }
 
 export default function CalculatorPage() {
