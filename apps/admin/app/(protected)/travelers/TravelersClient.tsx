@@ -33,8 +33,8 @@ interface Traveler {
 }
 
 const countryFlags: Record<string, string> = {
-  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷',
-  IT: '🇮🇹', GB: '🇬🇧', SG: '🇸🇬', AU: '🇦🇺', DE: '🇩🇪',
+  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷', VN: '🇻🇳',
+  IT: '🇮🇹', GB: '🇬🇧', SG: '🇸🇬', AU: '🇦🇺', DE: '🇩🇪', MY: '🇲🇾', ID: '🇮🇩', PH: '🇵🇭', MM: '🇲🇲', LA: '🇱🇦', KH: '🇰🇭', TW: '🇹🇼', HK: '🇭🇰', IN: '🇮🇳', AE: '🇦🇪', TR: '🇹🇷', ES: '🇪🇸', NL: '🇳🇱', CH: '🇨🇭', US: '🇺🇸', CA: '🇨🇦', NZ: '🇳🇿', BR: '🇧🇷', EG: '🇪🇬', ZA: '🇿🇦',
 }
 
 function passportExpiringSoon(expiry: string | Date | null) {

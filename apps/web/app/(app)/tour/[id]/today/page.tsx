@@ -119,7 +119,7 @@ interface TourData {
 }
 
 const countryFlags: Record<string, string> = {
-  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷',
+  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷', VN: '🇻🇳',
 }
 
 const categoryIcons: Record<string, string> = {
