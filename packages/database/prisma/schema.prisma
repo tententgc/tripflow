@@ -100,6 +100,7 @@ model Tour {
   expenses        Expense[]
   notifications   Notification[]
   documents       TourDocument[]
+  announcements   TourAnnouncement[]
   emergencyInfo   EmergencyInfo?
   chatMessages    ChatMessage[]
   usefulPhrases   UsefulPhrase[]                   // Thai→destination language phrases
@@ -478,6 +479,24 @@ model TourDocument {
 
   @@index([tourId])
   @@index([tourId, isPersonal])
+}
+
+// ── ANNOUNCEMENTS ─────────────────────────────────────
+
+model TourAnnouncement {
+  id        String   @id @default(cuid())
+  tourId    String
+  title     String
+  content   String
+  imageUrls String[]
+  order     Int      @default(0)
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tour      Tour @relation(fields: [tourId], references: [id])
+
+  @@index([tourId])
 }
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────

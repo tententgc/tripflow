@@ -27,28 +27,48 @@ function getWeatherIcon(desc: string): string {
   return weatherIcons[desc] ?? (desc.includes('rain') || desc.includes('Rain') ? '🌧️' : desc.includes('cloud') || desc.includes('Cloud') ? '☁️' : '🌤️')
 }
 
-function useWeather(city: string | null) {
+function useWeather(city: string | null, tripStartDate: string | null) {
   const [days, setDays] = useState<WeatherDay[]>([])
   const [loading, setLoading] = useState(false)
+  const [tooFarAhead, setTooFarAhead] = useState(false)
+
   useEffect(() => {
-    if (!city) return
+    if (!city || !tripStartDate) return
+
+    // wttr.in gives 3 days from today — check if trip overlaps
+    const today = new Date(); today.setHours(0, 0, 0, 0)
+    const start = new Date(tripStartDate); start.setHours(0, 0, 0, 0)
+    const daysUntil = Math.ceil((start.getTime() - today.getTime()) / 86400000)
+
+    if (daysUntil > 3) {
+      setTooFarAhead(true)
+      setDays([])
+      return
+    }
+
+    setTooFarAhead(false)
     setLoading(true)
     fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
       .then(r => r.json())
       .then((data: { weather?: Array<{ date: string; maxtempC: string; mintempC: string; hourly: Array<{ weatherDesc: Array<{ value: string }> }> }> }) => {
         const w = data.weather ?? []
-        setDays(w.map(d => ({
-          date: d.date,
-          maxTemp: parseInt(d.maxtempC),
-          minTemp: parseInt(d.mintempC),
-          icon: getWeatherIcon(d.hourly?.[4]?.weatherDesc?.[0]?.value ?? ''),
-          desc: d.hourly?.[4]?.weatherDesc?.[0]?.value ?? '',
-        })))
+        // Only keep days that fall on or after trip start
+        const startTs = start.getTime()
+        setDays(w
+          .map(d => ({
+            date: d.date,
+            maxTemp: parseInt(d.maxtempC),
+            minTemp: parseInt(d.mintempC),
+            icon: getWeatherIcon(d.hourly?.[4]?.weatherDesc?.[0]?.value ?? ''),
+            desc: d.hourly?.[4]?.weatherDesc?.[0]?.value ?? '',
+          }))
+          .filter(d => new Date(d.date).getTime() >= startTs)
+        )
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [city])
-  return { days, loading }
+  }, [city, tripStartDate])
+  return { days, loading, tooFarAhead }
 }
 
 interface Activity {
@@ -135,6 +155,16 @@ interface ChecklistData {
   items: ChecklistItemData[]
 }
 
+interface Announcement {
+  id: string
+  title: string
+  content: string
+  imageUrls: string[]
+  order: number
+  isPinned: boolean
+  createdAt: string
+}
+
 interface TourData {
   id: string
   title: string
@@ -189,9 +219,11 @@ export default function TodayPage() {
   const tourId = params.id as string
   const { data: tour, isLoading: loadingTour } = useApi<TourData>(`/api/tours/${tourId}`)
   const { data: checklistsRaw, mutate: mutateChecklists } = useApi<ChecklistData[]>(`/api/tours/${tourId}/checklist`)
+  const { data: announcementsRaw } = useApi<Announcement[]>(`/api/tours/${tourId}/announcements`)
   const { data: me } = useApi<{ id: string }>('/api/auth/me')
   const loading = loadingTour
   const checklists = Array.isArray(checklistsRaw) ? checklistsRaw : []
+  const announcements = Array.isArray(announcementsRaw) ? announcementsRaw : []
   const userId = me?.id ?? null
 
   const toggleCheck = useCallback(async (itemId: string, currentlyChecked: boolean) => {
@@ -220,6 +252,11 @@ export default function TodayPage() {
       body: JSON.stringify({ itemId, userId, checked: !currentlyChecked }),
     })
   }, [userId, tourId, mutateChecklists])
+
+  // Weather hook — must be before any early returns
+  const weatherCity = tour?.days?.[0]?.city ?? null
+  const weatherStartDate = tour?.startDate ?? null
+  const { days: weatherDays, loading: weatherLoading, tooFarAhead: weatherTooFar } = useWeather(weatherCity, weatherStartDate)
 
   if (loading) {
     return (
@@ -270,8 +307,6 @@ export default function TodayPage() {
   }) ?? tour.days[0]
 
   const guide = tour.contacts.find((c) => c.type === 'THAI_GUIDE' || c.type === 'LOCAL_GUIDE')
-  const { days: weatherDays, loading: weatherLoading } = useWeather(currentDay?.city ?? tour.days[0]?.city ?? null)
-
   if (!currentDay) {
     return (
       <div className="min-h-screen bg-gray-50 pb-24">
@@ -378,21 +413,48 @@ export default function TodayPage() {
         )}
 
         {/* Weather forecast */}
-        {weatherDays.length > 0 && (
-          <div className="animate-slide-up delay-2">
-            <div className="flex items-center gap-2 px-1 mb-3">
-              <div className="w-1.5 h-4 rounded-full bg-amber-500" />
-              <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">พยากรณ์อากาศ · {currentDay?.city ?? ''}</p>
+        <div className="animate-slide-up delay-2">
+          <div className="flex items-center gap-2 px-1 mb-3">
+            <div className="w-1.5 h-4 rounded-full bg-amber-500" />
+            <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">พยากรณ์อากาศ · {tour.days[0]?.city ?? ''}</p>
+          </div>
+
+          {weatherLoading ? (
+            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm p-6 flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-xs text-gray-400">กำลังโหลดพยากรณ์อากาศ...</span>
             </div>
+          ) : weatherTooFar ? (
+            <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm p-5 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center flex-shrink-0 text-xl">🌤️</div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">พยากรณ์จะพร้อมเมื่อใกล้วันเดินทาง</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  ข้อมูลจะแสดงใน 3 วันก่อนวันที่ {new Date(tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
+                </p>
+              </div>
+            </div>
+          ) : weatherDays.length > 0 ? (
             <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-3 divide-x divide-amber-100/30">
+              <div className={`grid divide-x divide-amber-100/30 ${weatherDays.length === 1 ? 'grid-cols-1' : weatherDays.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                 {weatherDays.slice(0, 3).map((w, i) => {
-                  const dayLabel = i === 0 ? 'วันนี้' : i === 1 ? 'พรุ่งนี้' : new Date(w.date).toLocaleDateString('th-TH', { weekday: 'short' })
+                  // Match to tour day
+                  const matchDay = tour.days.find(d => {
+                    const dd = new Date(d.date); dd.setHours(0, 0, 0, 0)
+                    const wd = new Date(w.date); wd.setHours(0, 0, 0, 0)
+                    return dd.getTime() === wd.getTime()
+                  })
+                  const dayLabel = matchDay
+                    ? `วันที่ ${matchDay.dayNumber}`
+                    : new Date(w.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric' })
+                  const dateStr = new Date(w.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+
                   return (
                     <div key={w.date} className={`p-4 text-center ${i === 0 ? 'bg-amber-50/30' : ''}`}>
-                      <p className={`text-[11px] font-semibold mb-2 ${i === 0 ? 'text-amber-600' : 'text-gray-400'}`}>{dayLabel}</p>
-                      <p className="text-3xl mb-1">{w.icon}</p>
-                      <p className="text-xs text-gray-500 mb-2 truncate">{w.desc}</p>
+                      <p className={`text-[11px] font-bold mb-0.5 ${i === 0 ? 'text-amber-600' : 'text-gray-500'}`}>{dayLabel}</p>
+                      <p className="text-[10px] text-gray-400 mb-2">{dateStr}</p>
+                      <p className="text-3xl mb-1.5">{w.icon}</p>
+                      <p className="text-[11px] text-gray-500 mb-2 truncate">{w.desc}</p>
                       <div className="flex items-center justify-center gap-1.5">
                         <span className="text-sm font-bold text-gray-900">{w.maxTemp}°</span>
                         <span className="text-xs text-gray-300">/</span>
@@ -403,14 +465,8 @@ export default function TodayPage() {
                 })}
               </div>
             </div>
-          </div>
-        )}
-        {weatherLoading && (
-          <div className="bg-white/50 backdrop-blur-md rounded-2xl border border-amber-200/30 shadow-sm p-6 flex items-center justify-center gap-2 animate-slide-up delay-2">
-            <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-gray-400">กำลังโหลดพยากรณ์อากาศ...</span>
-          </div>
-        )}
+          ) : null}
+        </div>
 
         {/* Pre-trip: flights */}
         {isBeforeTrip && (
@@ -630,6 +686,76 @@ export default function TodayPage() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Announcements from tour operator */}
+        {announcements.length > 0 && (
+          <div className="space-y-3 animate-slide-up delay-4">
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-1.5 h-4 rounded-full bg-amber-500" />
+              <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">
+                <span className="inline-flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 01-1.44-4.282m3.102.069a18.03 18.03 0 01-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 018.835 2.535M10.34 6.66a23.847 23.847 0 008.835-2.535m0 0A23.74 23.74 0 0018.795 3m.38 1.125a23.91 23.91 0 011.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 001.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 010 3.46" />
+                  </svg>
+                  ประกาศจากผู้จัดทัวร์
+                </span>
+              </p>
+            </div>
+            {announcements.map(a => (
+              <div
+                key={a.id}
+                className={`bg-white/50 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden ${
+                  a.isPinned
+                    ? 'border-2 border-amber-200/60'
+                    : 'border border-indigo-100/40'
+                }`}
+              >
+                {a.isPinned && <div className="h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />}
+                <div className="p-4">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        {a.isPinned && (
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5 flex-shrink-0">
+                            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            ปักหมุด
+                          </span>
+                        )}
+                        <h3 className="text-sm font-bold text-gray-900 truncate">{a.title}</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 whitespace-pre-line">{a.content}</p>
+
+                      {/* Image gallery — horizontal scroll */}
+                      {a.imageUrls.length > 0 && (
+                        <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-1 px-1">
+                          {a.imageUrls.map((url, i) => (
+                            <img
+                              key={i}
+                              src={url}
+                              alt=""
+                              className="w-28 h-20 rounded-xl object-cover flex-shrink-0 border border-gray-100"
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      <p className="text-[10px] text-gray-400 mt-2">
+                        {new Date(a.createdAt).toLocaleDateString('th-TH', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
