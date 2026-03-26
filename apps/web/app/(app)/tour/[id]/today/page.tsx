@@ -1,1299 +1,424 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef, forwardRef } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
+import { createPortal } from 'react-dom'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopBar } from '@/components/layout/TopBar'
 import { useApi } from '@/lib/swr'
 
-// ── Weather types & helpers ──
-interface WeatherDay {
-  date: string
-  maxTemp: number
-  minTemp: number
-  icon: string
-  desc: string
-}
-
-const weatherIcons: Record<string, string> = {
-  'Clear': '☀️', 'Sunny': '☀️', 'Partly cloudy': '⛅', 'Cloudy': '☁️', 'Overcast': '☁️',
-  'Mist': '🌫️', 'Fog': '🌫️', 'Light rain': '🌦️', 'Rain': '🌧️', 'Heavy rain': '🌧️',
-  'Light drizzle': '🌦️', 'Patchy rain possible': '🌦️', 'Moderate rain': '🌧️',
-  'Thundery outbreaks possible': '⛈️', 'Snow': '🌨️', 'Light snow': '🌨️',
-  'Patchy light rain with thunder': '⛈️', 'Moderate or heavy rain with thunder': '⛈️',
-}
-function getWeatherIcon(desc: string): string {
-  return weatherIcons[desc] ?? (desc.includes('rain') || desc.includes('Rain') ? '🌧️' : desc.includes('cloud') || desc.includes('Cloud') ? '☁️' : '🌤️')
-}
-
-function useWeather(city: string | null, tripStartDate: string | null) {
-  const [days, setDays] = useState<WeatherDay[]>([])
-  const [loading, setLoading] = useState(false)
-  const [tooFarAhead, setTooFarAhead] = useState(false)
-
-  useEffect(() => {
-    if (!city || !tripStartDate) return
-
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    const start = new Date(tripStartDate); start.setHours(0, 0, 0, 0)
-    const daysUntil = Math.ceil((start.getTime() - today.getTime()) / 86400000)
-
-    if (daysUntil > 3) {
-      setTooFarAhead(true)
-      setDays([])
-      return
-    }
-
-    setTooFarAhead(false)
-    setLoading(true)
-    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`)
-      .then(r => r.json())
-      .then((data: { weather?: Array<{ date: string; maxtempC: string; mintempC: string; hourly: Array<{ weatherDesc: Array<{ value: string }> }> }> }) => {
-        const w = data.weather ?? []
-        const startTs = start.getTime()
-        setDays(w
-          .map(d => ({
-            date: d.date,
-            maxTemp: parseInt(d.maxtempC),
-            minTemp: parseInt(d.mintempC),
-            icon: getWeatherIcon(d.hourly?.[4]?.weatherDesc?.[0]?.value ?? ''),
-            desc: d.hourly?.[4]?.weatherDesc?.[0]?.value ?? '',
-          }))
-          .filter(d => new Date(d.date).getTime() >= startTs)
-        )
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [city, tripStartDate])
-  return { days, loading, tooFarAhead }
-}
-
-// ── Animated counter hook ──
-function useCountUp(target: number, duration = 800) {
-  const [value, setValue] = useState(0)
-  const ref = useRef<number | null>(null)
-
-  useEffect(() => {
-    if (target <= 0) { setValue(0); return }
-    const start = performance.now()
-    const animate = (now: number) => {
-      const elapsed = now - start
-      const progress = Math.min(elapsed / duration, 1)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setValue(Math.round(eased * target))
-      if (progress < 1) ref.current = requestAnimationFrame(animate)
-    }
-    ref.current = requestAnimationFrame(animate)
-    return () => { if (ref.current) cancelAnimationFrame(ref.current) }
-  }, [target, duration])
-
-  return value
-}
-
-interface Activity {
-  id: string
-  time: string | null
-  title: string
-  titleEn: string | null
-  titleLocal: string | null
-  description: string | null
-  category: string
-  locationName: string | null
-  address: string | null
-  addressLocal: string | null
-  durationMins: number | null
-  cost: number | null
-  costCurrency: string | null
-  costTHB: number | null
-  tips: string | null
-  imageUrls: string[]
-}
-
-interface Transport {
-  id: string
-  type: string
-  from: string
-  fromLocal: string | null
-  to: string
-  toLocal: string | null
-  departTime: string | null
-  arriveTime: string | null
-  duration: string | null
-  lineName: string | null
-  lineNameLocal: string | null
-  notes: string | null
-}
-
-interface Accommodation {
-  name: string
-  nameLocal: string | null
-  phone: string | null
-  checkIn: string | null
-  checkOut: string | null
-  wifiName: string | null
-  wifiPassword: string | null
-  imageUrl: string | null
-}
-
-interface Flight {
-  id: string
-  flightNo: string
-  airline: string
-  airlineIata: string | null
-  fromAirport: string
-  fromIata: string
-  toAirport: string
-  toIata: string
-  departAt: string
-  arriveAt: string
-  departTz: string
-  arriveTz: string
-  terminal: string | null
-  gate: string | null
-}
-
-interface ChecklistCheck {
-  id: string
-  userId: string
-}
-
-interface ChecklistItemData {
-  id: string
-  label: string
-  labelEn: string | null
-  isImportant: boolean
-  order: number
-  checks: ChecklistCheck[]
-}
-
-interface ChecklistData {
-  id: string
-  title: string
-  emoji: string | null
-  type: string
-  items: ChecklistItemData[]
-}
-
-interface Announcement {
-  id: string
-  title: string
-  content: string
-  imageUrls: string[]
-  order: number
-  isPinned: boolean
-  createdAt: string
-}
-
+/* ═══ Types ═══ */
+interface Activity { id: string; time: string | null; title: string; titleEn: string | null; titleLocal: string | null; description: string | null; category: string; locationName: string | null; address: string | null; addressLocal: string | null; durationMins: number | null; cost: number | null; costCurrency: string | null; costTHB: number | null; tips: string | null; imageUrls: string[] }
+interface Transport { id: string; type: string; from: string; fromLocal: string | null; to: string; toLocal: string | null; departTime: string | null; arriveTime: string | null; duration: string | null; lineName: string | null; lineNameLocal: string | null; notes: string | null }
+interface Accommodation { name: string; nameLocal: string | null; phone: string | null; checkIn: string | null; checkOut: string | null; wifiName: string | null; wifiPassword: string | null; imageUrl: string | null }
+interface Flight { id: string; flightNo: string; airline: string; airlineIata: string | null; fromAirport: string; fromIata: string; toAirport: string; toIata: string; departAt: string; arriveAt: string; departTz: string; arriveTz: string; terminal: string | null; gate: string | null }
+interface Announcement { id: string; title: string; content: string; imageUrls: string[]; order: number; isPinned: boolean; createdAt: string }
 interface TourData {
-  id: string
-  title: string
-  startDate: string
-  endDate: string
-  isChina: boolean
-  countries: string[]
-  days: Array<{
-    id: string
-    dayNumber: number
-    date: string
-    title: string
-    city: string | null
-    country: string | null
-    summary: string | null
-    mealBreakfast: boolean
-    mealLunch: boolean
-    mealDinner: boolean
-    activities: Activity[]
-    transports: Transport[]
-    accommodation: Accommodation | null
-  }>
+  id: string; title: string; startDate: string; endDate: string; isChina: boolean; countries: string[]; primaryCountry: string
+  days: Array<{ id: string; dayNumber: number; date: string; title: string; city: string | null; country: string | null; summary: string | null; mealBreakfast: boolean; mealLunch: boolean; mealDinner: boolean; activities: Activity[]; transports: Transport[]; accommodation: Accommodation | null }>
   flights: Flight[]
   contacts: Array<{ id: string; name: string; nameLocal: string | null; phone: string | null; wechat: string | null; line: string | null; whatsapp: string | null; type: string; notes: string | null }>
   members: Array<{ user: { name: string } }>
 }
+interface WeatherDay { date: string; maxTemp: number; minTemp: number; icon: string; desc: string }
 
-const countryFlags: Record<string, string> = {
-  CN: '🇨🇳', JP: '🇯🇵', KR: '🇰🇷', TH: '🇹🇭', FR: '🇫🇷', VN: '🇻🇳',
+/* ═══ Constants ═══ */
+const F: Record<string, string> = { CN:'🇨🇳', JP:'🇯🇵', KR:'🇰🇷', TH:'🇹🇭', FR:'🇫🇷', VN:'🇻🇳', IT:'🇮🇹', GB:'🇬🇧', DE:'🇩🇪', SG:'🇸🇬', AU:'🇦🇺', US:'🇺🇸', MY:'🇲🇾', TW:'🇹🇼', HK:'🇭🇰', AE:'🇦🇪', ES:'🇪🇸', CH:'🇨🇭' }
+const CN: Record<string, string> = { CN:'จีน', JP:'ญี่ปุ่น', KR:'เกาหลีใต้', FR:'ฝรั่งเศส', VN:'เวียดนาม', IT:'อิตาลี', GB:'สหราชอาณาจักร', DE:'เยอรมนี', SG:'สิงคโปร์', AU:'ออสเตรเลีย', US:'สหรัฐอเมริกา', MY:'มาเลเซีย', AE:'UAE', ES:'สเปน', CH:'สวิตเซอร์แลนด์' }
+const CC: Record<string, string> = { CN:'ปักกิ่ง', JP:'โตเกียว', KR:'โซล', FR:'ปารีส', VN:'ฮานอย', IT:'โรม', GB:'ลอนดอน', DE:'เบอร์ลิน', SG:'สิงคโปร์', AU:'แคนเบอร์รา', US:'วอชิงตัน', MY:'กัวลาลัมเปอร์', AE:'อาบูดาบี', ES:'มาดริด', CH:'เบิร์น' }
+const CU: Record<string, string> = { CN:'CNY (หยวน)', JP:'JPY (เยน)', KR:'KRW (วอน)', FR:'EUR (ยูโร)', VN:'VND (ด่อง)', IT:'EUR (ยูโร)', GB:'GBP (ปอนด์)', DE:'EUR (ยูโร)', SG:'SGD', AU:'AUD', US:'USD', MY:'MYR', AE:'AED', ES:'EUR (ยูโร)', CH:'CHF (ฟรังก์)' }
+const TZ: Record<string, string> = { CN:'UTC+8', JP:'UTC+9', KR:'UTC+9', FR:'UTC+1', VN:'UTC+7', IT:'UTC+1', GB:'UTC+0', DE:'UTC+1', SG:'UTC+8', AU:'UTC+11', US:'UTC-5', MY:'UTC+8', AE:'UTC+4', ES:'UTC+1', CH:'UTC+1' }
+const CL: Record<string, string> = { CN:'จีน (普通话)', JP:'ญี่ปุ่น (日本語)', KR:'เกาหลี (한국어)', FR:'ฝรั่งเศส', VN:'เวียดนาม', IT:'อิตาลี', GB:'อังกฤษ', DE:'เยอรมัน', SG:'อังกฤษ/จีน', AU:'อังกฤษ', US:'อังกฤษ', MY:'มาเลย์/อังกฤษ', AE:'อาหรับ/อังกฤษ', ES:'สเปน', CH:'เยอรมัน/ฝรั่งเศส' }
+const CE: Record<string, string> = { CN:'110/120', JP:'110/119', KR:'112/119', FR:'112', VN:'113/115', IT:'112', GB:'999', DE:'112', SG:'999', AU:'000', US:'911', MY:'999', AE:'999', ES:'112', CH:'112' }
+const catI: Record<string, string> = { SIGHTSEEING:'🏛️', FOOD:'🍜', TRANSPORT:'🚌', ACCOMMODATION:'🏨', SHOPPING:'🛍️', TEMPLE:'⛩️', NATURE:'🌿', NIGHTLIFE:'🌃', PHOTOGRAPHY:'📷', OTHER:'📍' }
+const catC: Record<string, string> = { SIGHTSEEING:'#2563eb', FOOD:'#ea580c', TRANSPORT:'#6b7280', ACCOMMODATION:'#7c3aed', SHOPPING:'#db2777', TEMPLE:'#ca8a04', NATURE:'#16a34a', NIGHTLIFE:'#9333ea' }
+const trI: Record<string, string> = { FLIGHT:'✈️', TRAIN:'🚂', HIGHSPEED_TRAIN:'🚄', SUBWAY:'🚇', BUS:'🚌', TAXI:'🚕', FERRY:'⛴️', CABLE_CAR:'🚡', WALK:'🚶', OTHER:'🚗' }
+const wI: Record<string, string> = { Clear:'☀️', Sunny:'☀️', 'Partly cloudy':'⛅', Cloudy:'☁️', Overcast:'☁️', Mist:'🌫️', Fog:'🌫️', 'Light rain':'🌦️', Rain:'🌧️', 'Heavy rain':'🌧️', 'Light drizzle':'🌦️', 'Patchy rain possible':'🌦️', 'Moderate rain':'🌧️', Snow:'🌨️' }
+function gw(d: string) { return wI[d] ?? (d.includes('rain') ? '🌧️' : d.includes('cloud') ? '☁️' : '🌤️') }
+
+/* ═══ Hooks ═══ */
+function useCountUp(target: number, dur = 800) {
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    if (target <= 0) { setV(0); return }
+    let cancelled = false
+    const t0 = performance.now()
+    const tick = (now: number) => { if (cancelled) return; const p = Math.min((now - t0) / dur, 1); setV(Math.round(target * (1 - Math.pow(1 - p, 3)))); if (p < 1) requestAnimationFrame(tick) }
+    requestAnimationFrame(tick); return () => { cancelled = true }
+  }, [target, dur]); return v
+}
+function useInView(th = 0.1) { const ref = useRef<HTMLDivElement>(null); const [v, setV] = useState(false); useEffect(() => { const el = ref.current; if (!el) return; const o = new IntersectionObserver(([e]) => { if (e?.isIntersecting) { setV(true); o.disconnect() } }, { threshold: th }); o.observe(el); return () => o.disconnect() }, [th]); return { ref, v } }
+function useWeather(city: string | null, start: string | null) {
+  const [days, setDays] = useState<WeatherDay[]>([]); const [loading, setLoading] = useState(false); const [far, setFar] = useState(false)
+  useEffect(() => {
+    if (!city || !start) return; const td = new Date(); td.setHours(0,0,0,0); const sd = new Date(start); sd.setHours(0,0,0,0)
+    if (Math.ceil((sd.getTime() - td.getTime()) / 86400000) > 3) { setFar(true); setDays([]); return }
+    setFar(false); setLoading(true)
+    fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`).then(r => r.json()).then((d: { weather?: Array<{ date: string; maxtempC: string; mintempC: string; hourly: Array<{ weatherDesc: Array<{ value: string }> }> }> }) => {
+      setDays((d.weather ?? []).map(x => ({ date: x.date, maxTemp: parseInt(x.maxtempC), minTemp: parseInt(x.mintempC), icon: gw(x.hourly?.[4]?.weatherDesc?.[0]?.value ?? ''), desc: x.hourly?.[4]?.weatherDesc?.[0]?.value ?? '' })).filter(x => new Date(x.date).getTime() >= sd.getTime()))
+    }).catch(() => {}).finally(() => setLoading(false))
+  }, [city, start]); return { days, loading, far }
 }
 
-const categoryIcons: Record<string, string> = {
-  SIGHTSEEING: '🏛️', FOOD: '🍜', TRANSPORT: '🚌',
-  ACCOMMODATION: '🏨', SHOPPING: '🛍️', TEMPLE: '⛩️',
-  NATURE: '🌿', NIGHTLIFE: '🌃', PHOTOGRAPHY: '📷', OTHER: '📍',
+/* ═══ UI Primitives ═══ */
+function Reveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, v } = useInView(0.08)
+  return <div ref={ref} className={className} style={{ opacity: v ? 1 : 0, transform: v ? 'translateY(0)' : 'translateY(28px)', transition: `all 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}ms` }}>{children}</div>
+}
+function Card({ children, className = '', accent }: { children: React.ReactNode; className?: string; accent?: string }) {
+  const ac: Record<string, string> = { indigo: 'from-indigo-500 to-violet-500', emerald: 'from-emerald-500 to-teal-500', amber: 'from-amber-500 to-orange-500', violet: 'from-violet-500 to-purple-500' }
+  return (
+    <div className={`bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-200 ${className}`}>
+      {accent && <div className={`h-1 bg-gradient-to-r ${ac[accent] ?? ''}`} />}
+      {children}
+    </div>
+  )
+}
+function Sec({ children, color = 'indigo' }: { children: React.ReactNode; color?: string }) {
+  const dc: Record<string, string> = { indigo:'bg-indigo-600', emerald:'bg-emerald-600', amber:'bg-amber-500', violet:'bg-violet-600', red:'bg-red-500' }
+  const lc: Record<string, string> = { indigo:'from-indigo-300', emerald:'from-emerald-300', amber:'from-amber-300', violet:'from-violet-300', red:'from-red-300' }
+  return (
+    <div className="flex items-center gap-3 mb-4">
+      <div className={`w-2.5 h-2.5 rounded-full ${dc[color] ?? 'bg-gray-500'} shadow-md`} />
+      <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wider">{children}</h2>
+      <div className={`flex-1 h-0.5 bg-gradient-to-r ${lc[color] ?? 'from-gray-300'} to-transparent rounded-full`} />
+    </div>
+  )
 }
 
-const categoryColors: Record<string, string> = {
-  SIGHTSEEING: 'bg-blue-500', FOOD: 'bg-orange-500',
-  TRANSPORT: 'bg-gray-400', ACCOMMODATION: 'bg-violet-500',
-  SHOPPING: 'bg-pink-500', TEMPLE: 'bg-yellow-500',
-  NATURE: 'bg-green-500', NIGHTLIFE: 'bg-purple-500',
-}
-
-const transportIcons: Record<string, string> = {
-  FLIGHT: '✈️', TRAIN: '🚂', HIGHSPEED_TRAIN: '🚄', SUBWAY: '🚇',
-  BUS: '🚌', TAXI: '🚕', FERRY: '⛴️', CABLE_CAR: '🚡', WALK: '🚶', OTHER: '🚗',
-}
-
-// ── Light glassmorphism design tokens ──
-const glassCard = [
-  'rounded-2xl',
-  'border',
-  'border-t-white/85 border-l-white/85',
-  'border-b-[rgba(180,180,200,0.3)] border-r-[rgba(180,180,200,0.3)]',
-  'shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_32px_rgba(100,80,160,0.08),0_2px_8px_rgba(0,0,0,0.04)]',
-].join(' ')
-const glassBg = 'bg-[rgba(255,255,255,0.6)] backdrop-blur-[20px] backdrop-saturate-[160%]'
-const sectionDivider = 'mx-6 h-px bg-[rgba(0,0,0,0.06)]'
-const primaryText = 'text-[#1a1a2e]'
-const secondaryText = 'text-[rgba(30,30,60,0.45)]'
-const headerText = 'text-[#3d3a5c]'
-const accentGlow = '[text-shadow:0_0_12px_rgba(100,60,240,0.15)]'
-const flightNumColor = 'text-[#5b3fde]'
-
+/* ═══ Main ═══ */
 export default function TodayPage() {
-  const params = useParams()
-  const tourId = params.id as string
-  const { data: tour, isLoading: loadingTour } = useApi<TourData>(`/api/tours/${tourId}`)
-  const { data: checklistsRaw, mutate: mutateChecklists } = useApi<ChecklistData[]>(`/api/tours/${tourId}/checklist`)
-  const { data: announcementsRaw } = useApi<Announcement[]>(`/api/tours/${tourId}/announcements`)
-  const { data: me } = useApi<{ id: string }>('/api/auth/me')
-  const loading = loadingTour
-  const checklists = Array.isArray(checklistsRaw) ? checklistsRaw : []
-  const announcements = Array.isArray(announcementsRaw) ? announcementsRaw : []
-  const userId = me?.id ?? null
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const { id: tourId } = useParams() as { id: string }
+  const { data: tour, isLoading } = useApi<TourData>(`/api/tours/${tourId}`)
+  const { data: annRaw } = useApi<Announcement[]>(`/api/tours/${tourId}/announcements`)
+  const anns = Array.isArray(annRaw) ? annRaw : []
+  const [lb, setLb] = useState<string | null>(null)
+  const wCity = tour?.days?.[0]?.city ?? null, wStart = tour?.startDate ?? null
+  const { days: wDays, loading: wLoad, far: wFar } = useWeather(wCity, wStart)
 
-  const toggleCheck = useCallback(async (itemId: string, currentlyChecked: boolean) => {
-    if (!userId) return
-    mutateChecklists(
-      (prev) => prev?.map(cl => ({
-        ...cl,
-        items: cl.items.map(item =>
-          item.id === itemId
-            ? {
-                ...item,
-                checks: currentlyChecked
-                  ? item.checks.filter(c => c.userId !== userId)
-                  : [...item.checks, { id: 'temp', userId }],
-              }
-            : item
-        ),
-      })),
-      false,
-    )
+  if (isLoading) return <div className="min-h-screen bg-gray-50 animate-pulse"><div className="bg-white border-b-2 border-gray-200 px-4 py-4"><div className="h-5 w-48 bg-gray-200 rounded" /></div><div className="p-5 space-y-4"><div className="h-36 bg-white rounded-2xl border border-gray-200" /><div className="h-48 bg-white rounded-2xl border border-gray-200" /></div></div>
+  if (!tour) return <div className="min-h-screen flex items-center justify-center bg-gray-50"><p className="text-gray-500">ไม่พบทริปนี้</p></div>
 
-    await fetch(`/api/tours/${tourId}/checklist`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId, userId, checked: !currentlyChecked }),
-    })
-  }, [userId, tourId, mutateChecklists])
-
-  const weatherCity = tour?.days?.[0]?.city ?? null
-  const weatherStartDate = tour?.startDate ?? null
-  const { days: weatherDays, loading: weatherLoading, tooFarAhead: weatherTooFar } = useWeather(weatherCity, weatherStartDate)
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f0f2f8] animate-pulse">
-        <div className="bg-[rgba(255,255,255,0.6)] backdrop-blur-[20px] px-4 pt-safe-top pb-5">
-          <div className="flex items-center gap-3 pt-4">
-            <div className="w-8 h-8 rounded-full bg-[rgba(100,80,160,0.08)]" />
-            <div className="flex-1">
-              <div className="h-4 w-40 bg-[rgba(100,80,160,0.1)] rounded mb-1" />
-              <div className="h-3 w-28 bg-[rgba(100,80,160,0.06)] rounded" />
-            </div>
-            <div className="w-9 h-9 rounded-full bg-[rgba(100,80,160,0.08)]" />
-          </div>
-        </div>
-        <div className="px-4 pt-5 space-y-5">
-          <div className={`${glassBg} ${glassCard} h-16`} />
-          <div className={`${glassBg} ${glassCard} h-48`} />
-          <div className={`${glassBg} ${glassCard} h-56`} />
-        </div>
-      </div>
-    )
-  }
-
-  if (!tour) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-        <p className={secondaryText}>ไม่พบทริปนี้</p>
-      </div>
-    )
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const tripStart = new Date(tour.startDate)
-  tripStart.setHours(0, 0, 0, 0)
-  const tripEnd = new Date(tour.endDate)
-  tripEnd.setHours(0, 0, 0, 0)
-  const isBeforeTrip = today < tripStart
-  const daysUntilTrip = isBeforeTrip ? Math.ceil((tripStart.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) : 0
-
-  const currentDay = tour.days.find((d) => {
-    const dayDate = new Date(d.date)
-    dayDate.setHours(0, 0, 0, 0)
-    return dayDate.getTime() === today.getTime()
-  }) ?? tour.days[0]
-
-  const guide = tour.contacts.find((c) => c.type === 'THAI_GUIDE' || c.type === 'LOCAL_GUIDE')
-  if (!currentDay) {
-    return (
-      <div className="min-h-screen bg-[#f0f2f8] pb-24">
-        <TopBar title={tour.title} subtitle="ยังไม่มีกำหนดการ" backHref="/home" />
-        <BottomNav activeTab="today" tourId={tourId} isChina={tour.isChina} />
-      </div>
-    )
-  }
+  const now = new Date(); now.setHours(0,0,0,0)
+  const ts = new Date(tour.startDate); ts.setHours(0,0,0,0)
+  const pre = now < ts
+  const du = pre ? Math.ceil((ts.getTime() - now.getTime()) / 86400000) : 0
+  const cd = tour.days.find(d => { const x = new Date(d.date); x.setHours(0,0,0,0); return x.getTime() === now.getTime() }) ?? tour.days[0]
+  if (!cd) return <div className="min-h-screen bg-gray-50 pb-24"><TopBar title={tour.title} subtitle="ยังไม่มีกำหนดการ" backHref="/home" /><BottomNav activeTab="today" tourId={tourId} isChina={tour.isChina} /></div>
+  const td = tour.days.length, tn = Math.max(0, td - 1), pc = tour.primaryCountry
 
   return (
-    <div className="min-h-screen bg-[#f0f2f8] pb-24 relative overflow-hidden">
-      {/* Global styles */}
-      <style>{`
-        @keyframes gradientDrift {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -20px) scale(1.05); }
-          66% { transform: translate(-20px, 15px) scale(0.95); }
-        }
-        @keyframes staggerIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes progressGlow {
-          from { width: 0%; }
-        }
-        @keyframes drawPath {
-          from { stroke-dashoffset: 1; }
-          to { stroke-dashoffset: 0; }
-        }
-        .stagger-1 { animation: staggerIn 0.5s ease-out 0.08s both; }
-        .stagger-2 { animation: staggerIn 0.5s ease-out 0.16s both; }
-        .stagger-3 { animation: staggerIn 0.5s ease-out 0.24s both; }
-        .stagger-4 { animation: staggerIn 0.5s ease-out 0.32s both; }
-        .stagger-5 { animation: staggerIn 0.5s ease-out 0.40s both; }
-        .stagger-6 { animation: staggerIn 0.5s ease-out 0.48s both; }
-        .stagger-7 { animation: staggerIn 0.5s ease-out 0.56s both; }
-        .flight-path { stroke-dasharray: 1; animation: drawPath 0.6s ease-out 0.4s both; }
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-indigo-50/20 pb-24">
+      <style>{`@keyframes shimmer { 0% { background-position: -200% 0 } 100% { background-position: 200% 0 } }`}</style>
+      <TopBar title={cd.title} subtitle={`${F[cd.country ?? ''] ?? '🌍'} ${cd.city ?? ''} · ${new Date(cd.date).toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' })}`} backHref="/home" />
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        /* Desktop 2-column grid */
-        @media (min-width: 900px) {
-          .today-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            max-width: 1100px;
-            margin-left: auto;
-            margin-right: auto;
-            padding-left: 32px;
-            padding-right: 32px;
-            align-items: start;
-          }
-          .today-grid-left,
-          .today-grid-right {
-            min-width: 0;
-          }
-          /* Hide mobile-only single-column sections on desktop */
-          .mobile-only { display: none; }
-        }
-        @media (max-width: 899px) {
-          /* On mobile, left/right cols just stack normally */
-          .today-grid-left,
-          .today-grid-right {
-            /* no special styling */
-          }
-          /* Hide desktop-only grid wrapper behavior — let it be a plain div */
-          .desktop-only { display: none; }
-        }
-      `}</style>
+          {/* ═ LEFT ═ */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* 1 Countdown */}
+            <Reveal><CountdownCard tour={tour} pre={pre} du={du} cd={cd} td={td} tn={tn} /></Reveal>
+            {/* 2 Flights */}
+            {tour.flights.length > 0 && <Reveal delay={80}><Sec color="violet">เที่ยวบิน ({tour.flights.length})</Sec><div className="space-y-4">{tour.flights.map(f => <FlightCard key={f.id} flight={f} />)}</div></Reveal>}
+            {/* 3 Weather */}
+            <Reveal delay={160}><Sec color="amber">พยากรณ์อากาศ · {cd.city ?? ''}</Sec><WeatherCard ld={wLoad} far={wFar} days={wDays} tour={tour} /></Reveal>
+            {/* 4 Announcements */}
+            {anns.length > 0 && <Reveal delay={240}><AnnRotator anns={anns} onImg={setLb} tourId={tourId} /></Reveal>}
+          </div>
 
-      {/* Ambient background — soft warm-cool drifting gradient (larger on desktop to fill sides) */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] min-[900px]:w-[900px] min-[900px]:h-[900px] rounded-full opacity-60"
-          style={{
-            background: 'radial-gradient(circle, #ede9f6 0%, transparent 70%)',
-            animation: 'gradientDrift 20s ease-in-out infinite',
-          }}
-        />
-        <div
-          className="absolute bottom-[-10%] left-[-15%] w-[550px] h-[550px] min-[900px]:w-[850px] min-[900px]:h-[850px] rounded-full opacity-50"
-          style={{
-            background: 'radial-gradient(circle, #e8eaf2 0%, transparent 70%)',
-            animation: 'gradientDrift 20s ease-in-out infinite reverse',
-          }}
-        />
-        <div
-          className="absolute top-[35%] left-[40%] w-[400px] h-[400px] min-[900px]:w-[700px] min-[900px]:h-[700px] rounded-full opacity-40"
-          style={{
-            background: 'radial-gradient(circle, #f0ecf8 0%, transparent 70%)',
-            animation: 'gradientDrift 25s ease-in-out infinite 5s',
-          }}
-        />
-        {/* Extra desktop-only gradient on the right side */}
-        <div
-          className="hidden min-[900px]:block absolute top-[10%] right-[5%] w-[500px] h-[500px] rounded-full opacity-35"
-          style={{
-            background: 'radial-gradient(circle, #e4e0f0 0%, transparent 70%)',
-            animation: 'gradientDrift 22s ease-in-out infinite 3s',
-          }}
-        />
+          {/* ═ RIGHT ═ */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* 5 Country */}
+            <Reveal delay={100}><Sec color="emerald">ข้อมูลประเทศ</Sec><CountryCard c={pc} china={tour.isChina} /></Reveal>
+            {/* 6 Contacts */}
+            {tour.contacts.length > 0 && <Reveal delay={140}><Sec color="indigo">ผู้ติดต่อ ({tour.contacts.length})</Sec><ContactsCard contacts={tour.contacts} /></Reveal>}
+            {/* 7 Plan */}
+            <Reveal delay={200}><PlanSection tour={tour} pre={pre} cd={cd} tourId={tourId} td={td} tn={tn} /></Reveal>
+          </div>
+        </div>
       </div>
-
-      <TopBar
-        title={currentDay.title}
-        subtitle={`${countryFlags[currentDay.country ?? ''] ?? '🌍'} ${currentDay.city ?? ''} · ${new Date(currentDay.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`}
-        backHref="/home"
-      />
-
-      <div className="relative z-10 px-4 min-[900px]:px-0 pt-5 page-content today-grid">
-        {/* ══ LEFT COLUMN: Trip overview ══ */}
-        <div className="today-grid-left space-y-5">
-          {/* Tour info + countdown */}
-          {isBeforeTrip ? (
-            <PreTripCountdown
-              tour={tour}
-              currentDay={currentDay}
-              daysUntilTrip={daysUntilTrip}
-              tripStart={tripStart}
-            />
-          ) : (
-            <div className={`${glassBg} ${glassCard} overflow-hidden stagger-1`}>
-              <div className="px-7 py-5 flex items-center justify-between">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 border border-indigo-200/50 flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`font-bold text-sm truncate ${primaryText}`}>{tour.title}</p>
-                    <div className={`flex items-center gap-2 mt-1 text-[11px] ${secondaryText}`}>
-                      <span>{tour.days[0]?.city ?? ''}</span>
-                      <span className="opacity-40">·</span>
-                      <span>{tour.days.length} วัน</span>
-                      <span className="opacity-40">·</span>
-                      <span>{tour.members.length} คน</span>
-                    </div>
-                  </div>
-                </div>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-lg flex-shrink-0 ml-2 border border-emerald-200/60 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  วันที่ {currentDay.dayNumber}/{tour.days.length}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* Weather forecast */}
-          <div className="stagger-2">
-            <SectionHeader label={`พยากรณ์อากาศ · ${tour.days[0]?.city ?? ''}`} />
-            <WeatherSection
-              weatherLoading={weatherLoading}
-              weatherTooFar={weatherTooFar}
-              weatherDays={weatherDays}
-              tour={tour}
-            />
-          </div>
-
-          {/* Guide + contacts */}
-          {(guide || tour.contacts.length > 0) && (
-            <div className="stagger-4">
-              <SectionHeader label={`ผู้ติดต่อ (${tour.contacts.length})`} />
-              <div className={`${glassBg} ${glassCard} overflow-hidden`}>
-                {tour.contacts.map((c, i) => (
-                  <div key={c.id}>
-                    {i > 0 && <div className="h-px bg-[rgba(0,0,0,0.07)]" style={{ marginLeft: '74px' }} />}
-                    <ContactCard contact={c} isChina={tour.isChina} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Transports — during trip (left col on desktop) */}
-          {!isBeforeTrip && currentDay.transports.length > 0 && (
-            <div className="stagger-5">
-              <SectionHeader label="การเดินทางวันนี้" />
-              <div className={`${glassBg} ${glassCard} overflow-hidden`}>
-                {currentDay.transports.map((t, i) => (
-                  <div key={t.id}>
-                    {i > 0 && <div className={sectionDivider} />}
-                    <div className="px-7 py-5 flex items-start gap-4">
-                      <span className="text-2xl mt-0.5">{transportIcons[t.type] ?? '🚗'}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className={`font-medium text-sm ${primaryText}`}>{t.from} → {t.to}</p>
-                          {t.duration && <span className={`text-xs ${secondaryText}`}>{t.duration}</span>}
-                        </div>
-                        {(t.fromLocal || t.toLocal) && (
-                          <p className={`text-xs mt-1 ${secondaryText}`}>{t.fromLocal ?? t.from} → {t.toLocal ?? t.to}</p>
-                        )}
-                        {(t.departTime || t.arriveTime) && (
-                          <p className={`text-xs mt-1.5 ${primaryText} opacity-60`}>
-                            {t.departTime && `ออก ${t.departTime}`}
-                            {t.departTime && t.arriveTime && ' · '}
-                            {t.arriveTime && `ถึง ${t.arriveTime}`}
-                          </p>
-                        )}
-                        {t.lineName && <p className="text-xs text-violet-600 mt-1">{t.lineName}{t.lineNameLocal && ` (${t.lineNameLocal})`}</p>}
-                        {t.notes && <p className={`text-xs mt-1 ${secondaryText}`}>{t.notes}</p>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>{/* end left column */}
-
-        {/* ══ RIGHT COLUMN: Flights + secondary content ══ */}
-        <div className="today-grid-right space-y-5">
-          {/* Pre-trip: flights */}
-          {isBeforeTrip && tour.flights.length > 0 && (
-            <div className="space-y-4 stagger-3">
-              <SectionHeader label={`เที่ยวบิน (${tour.flights.length})`} />
-              {tour.flights.map((f, idx) => (
-                <FlightCard key={f.id} flight={f} index={idx} />
-              ))}
-            </div>
-          )}
-
-        {/* Announcements / Activities / Checklists */}
-        {isBeforeTrip && announcements.length > 0 ? (
-          <div className="stagger-5">
-            <SectionHeader label="ประกาศจากผู้จัดทัวร์" />
-            <AnnouncementCarousel announcements={announcements} onImageClick={setLightboxSrc} />
-          </div>
-        ) : isBeforeTrip && checklists.length > 0 ? (
-          <div className="space-y-4 stagger-5">
-            <SectionHeader label="เตรียมตัวก่อนออกเดินทาง" />
-            {checklists.map(cl => {
-              const checkedCount = cl.items.filter(item => item.checks.some(c => c.userId === userId)).length
-              const totalCount = cl.items.length
-              const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0
-              return (
-                <div key={cl.id} className={`${glassBg} ${glassCard} overflow-hidden`}>
-                  <div className="px-7 py-4 flex items-center justify-between border-b border-[rgba(0,0,0,0.06)]">
-                    <h3 className={`font-semibold text-sm ${primaryText}`}>
-                      {cl.emoji && <span className="mr-1.5">{cl.emoji}</span>}
-                      {cl.title}
-                    </h3>
-                    <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                      checkedCount === totalCount && totalCount > 0
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
-                        : `${secondaryText} bg-[rgba(0,0,0,0.04)] border border-[rgba(0,0,0,0.06)]`
-                    }`}>
-                      {checkedCount === totalCount && totalCount > 0 ? '✓' : `${checkedCount}/${totalCount}`}
-                    </span>
-                  </div>
-                  {totalCount > 0 && (
-                    <div className="mx-7 mt-4 mb-1 h-1.5 bg-[rgba(0,0,0,0.04)] rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#7c5cfc] to-[#4fc3f7] transition-all duration-500"
-                        style={{
-                          width: `${progress}%`,
-                          boxShadow: '0 0 10px rgba(124,92,252,0.25)',
-                          animation: `progressGlow 1.5s cubic-bezier(0.22,1,0.36,1) both`,
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div>
-                    {cl.items.map((item, i) => {
-                      const isChecked = item.checks.some(c => c.userId === userId)
-                      return (
-                        <div key={item.id}>
-                          {i > 0 && <div className="mx-7 h-px bg-[rgba(0,0,0,0.04)]" />}
-                          <button
-                            onClick={() => toggleCheck(item.id, isChecked)}
-                            className="w-full flex items-center gap-3.5 px-7 py-3.5 text-left transition-colors duration-150 active:bg-[rgba(0,0,0,0.02)]"
-                            style={{ minHeight: '44px' }}
-                          >
-                            <div className={`w-5 h-5 rounded-md border-[1.5px] flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                              isChecked
-                                ? 'bg-[#7c5cfc] border-[#7c5cfc]'
-                                : 'border-[rgba(30,30,60,0.2)]'
-                            }`}>
-                              {isChecked && <span className="text-[#f8f8fc] text-[10px]">✓</span>}
-                            </div>
-                            <span className={`text-sm flex-1 ${
-                              isChecked ? `${secondaryText} opacity-50 line-through` : primaryText
-                            } ${item.isImportant ? 'font-medium' : ''}`}>
-                              {item.label}
-                              {item.isImportant && <span className="text-red-500 ml-0.5">*</span>}
-                            </span>
-                          </button>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className={`${glassBg} ${glassCard} overflow-hidden stagger-5`}>
-            <div className="px-7 py-4 border-b border-[rgba(0,0,0,0.06)]">
-              <h3 className={`font-semibold text-sm ${primaryText}`}>กำหนดการวันนี้ ({currentDay.activities.length})</h3>
-            </div>
-            {currentDay.activities.length === 0 ? (
-              <p className={`text-sm text-center py-10 ${secondaryText}`}>ยังไม่มีกิจกรรม</p>
-            ) : (
-              <div className="px-7 py-5 space-y-5">
-                {currentDay.activities.map((activity, i) => (
-                  <div key={activity.id} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${categoryColors[activity.category] ?? 'bg-gray-400'}`} />
-                      {i < currentDay.activities.length - 1 && <div className="w-px bg-[rgba(0,0,0,0.08)] flex-1 mt-1 min-h-[20px]" />}
-                    </div>
-                    <div className="pb-5 flex-1 min-w-0">
-                      {activity.time && <p className={`text-xs mb-1 text-violet-600 ${accentGlow}`}>{activity.time}</p>}
-
-                      {(activity.imageUrls ?? []).length > 0 && (
-                        <div className="mb-3 flex gap-2.5 overflow-x-auto pb-1 scrollbar-hide">
-                          {(activity.imageUrls ?? []).map((src, j) => (
-                            <div key={j} className="flex-shrink-0 rounded-xl overflow-hidden w-44 h-28 relative border border-[rgba(0,0,0,0.06)]">
-                              <Image src={src} alt="" fill className="object-cover" unoptimized />
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <p className={`text-sm font-semibold ${primaryText}`}>
-                        {categoryIcons[activity.category]} {activity.title}
-                      </p>
-                      {activity.titleLocal && <p className={`text-xs mt-1 ${secondaryText}`}>{activity.titleLocal}</p>}
-                      {activity.titleEn && !activity.titleLocal && <p className={`text-xs mt-1 ${secondaryText}`}>{activity.titleEn}</p>}
-
-                      {activity.locationName && <p className={`text-xs mt-1.5 ${secondaryText}`}>📍 {activity.locationName}</p>}
-
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5">
-                        {activity.durationMins && <p className={`text-xs ${secondaryText}`}>⏱️ {activity.durationMins} นาที</p>}
-                        {activity.costTHB && (
-                          <p className={`text-xs ${secondaryText}`}>
-                            💰 ≈ ฿{activity.costTHB.toLocaleString()}
-                            {activity.cost && activity.costCurrency && ` (${activity.costCurrency} ${activity.cost})`}
-                          </p>
-                        )}
-                      </div>
-
-                      {activity.description && <p className={`text-xs mt-2 leading-relaxed ${secondaryText}`}>{activity.description}</p>}
-
-                      {activity.tips && (
-                        <div className="mt-2.5 bg-amber-50/80 border border-amber-200/40 rounded-xl p-3">
-                          <p className="text-xs text-amber-800">💡 {activity.tips}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Accommodation — during trip */}
-        {!isBeforeTrip && currentDay.accommodation && (
-          <div className={`${glassBg} ${glassCard} overflow-hidden stagger-6`}>
-            {currentDay.accommodation.imageUrl ? (
-              <div className="w-full h-40 relative">
-                <Image src={currentDay.accommodation.imageUrl} alt={currentDay.accommodation.name} fill className="object-cover" unoptimized />
-                <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,26,46,0.7)] via-[rgba(26,26,46,0.2)] to-transparent" />
-                <div className="absolute bottom-4 left-7 right-7">
-                  <h3 className="text-[#f0f0ff] font-bold drop-shadow-md">{currentDay.accommodation.name}</h3>
-                  {currentDay.accommodation.nameLocal && <p className="text-[rgba(255,255,255,0.7)] text-xs drop-shadow-md">{currentDay.accommodation.nameLocal}</p>}
-                </div>
-              </div>
-            ) : (
-              <div className="px-7 py-4 border-b border-[rgba(0,0,0,0.06)]">
-                <h3 className={`font-semibold text-sm ${primaryText}`}>🏨 ที่พักคืนนี้</h3>
-              </div>
-            )}
-            <div className="px-7 py-5 space-y-3">
-              {!currentDay.accommodation.imageUrl && (
-                <>
-                  <p className={`font-semibold ${primaryText}`}>{currentDay.accommodation.name}</p>
-                  {currentDay.accommodation.nameLocal && <p className={`text-xs ${secondaryText}`}>{currentDay.accommodation.nameLocal}</p>}
-                </>
-              )}
-              {(currentDay.accommodation.checkIn || currentDay.accommodation.checkOut) && (
-                <div className={`flex gap-5 text-xs ${secondaryText}`}>
-                  {currentDay.accommodation.checkIn && <span>เช็คอิน: <span className={primaryText}>{currentDay.accommodation.checkIn}</span></span>}
-                  {currentDay.accommodation.checkOut && <span>เช็คเอาต์: <span className={primaryText}>{currentDay.accommodation.checkOut}</span></span>}
-                </div>
-              )}
-              {currentDay.accommodation.phone && (
-                <a href={`tel:${currentDay.accommodation.phone}`} className="inline-flex items-center text-xs text-violet-600">📞 {currentDay.accommodation.phone}</a>
-              )}
-              {currentDay.accommodation.wifiName && (
-                <div className="bg-sky-50/80 border border-sky-200/40 rounded-xl p-4 mt-1">
-                  <p className="text-xs text-sky-700 font-medium mb-1.5">📶 WiFi</p>
-                  <p className={`text-sm font-semibold ${primaryText}`}>{currentDay.accommodation.wifiName}</p>
-                  {currentDay.accommodation.wifiPassword && <p className={`text-xs mt-0.5 ${secondaryText}`}>{currentDay.accommodation.wifiPassword}</p>}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-          {/* Inline CTA — bottom of right column */}
-          <a
-            href={`/tour/${tourId}/day/${currentDay.dayNumber}`}
-            className="group flex items-center justify-center w-full h-14 rounded-2xl no-btn-fx mt-2 mb-4 transition-all duration-200 hover:-translate-y-px hover:bg-[rgba(255,255,255,0.75)] active:scale-[0.985] active:brightness-[0.97]"
-            style={{
-              background: 'rgba(255,255,255,0.55)',
-              backdropFilter: 'blur(16px) saturate(160%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(160%)',
-              borderTop: '1px solid rgba(255,255,255,0.85)',
-              borderLeft: '1px solid rgba(255,255,255,0.85)',
-              borderBottom: '1px solid rgba(180,180,210,0.35)',
-              borderRight: '1px solid rgba(180,180,210,0.35)',
-              boxShadow: '0 2px 12px rgba(100,80,180,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
-              letterSpacing: '0.01em',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(100,80,180,0.13), inset 0 1px 0 rgba(255,255,255,0.9)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(100,80,180,0.08), inset 0 1px 0 rgba(255,255,255,0.9)' }}
-          >
-            <span className="text-[#3d3a5c] font-semibold text-[15px]">ดูรายละเอียดเต็ม วันที่ {currentDay.dayNumber}</span>
-            <span className="text-[#7c5cfc] text-[16px] ml-2 transition-transform duration-200 group-hover:translate-x-[3px]">→</span>
-          </a>
-        </div>{/* end right column */}
-      </div>
-
-      {/* Image lightbox */}
-      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
-
+      {lb && <Lightbox src={lb} onClose={() => setLb(null)} />}
       <BottomNav activeTab="today" tourId={tourId} isChina={tour.isChina} />
     </div>
   )
 }
 
-// ── Sub-components ──
-
-function WeatherSection({ weatherLoading, weatherTooFar, weatherDays, tour }: {
-  weatherLoading: boolean
-  weatherTooFar: boolean
-  weatherDays: WeatherDay[]
-  tour: TourData
-}) {
-  if (weatherLoading) {
-    return (
-      <div className={`${glassBg} ${glassCard} p-7 flex items-center justify-center gap-3`}>
-        <div className="w-4 h-4 border-2 border-violet-400/60 border-t-transparent rounded-full animate-spin" />
-        <span className={`text-xs ${secondaryText}`}>กำลังโหลดพยากรณ์อากาศ...</span>
+/* ═══ Countdown ═══ */
+function CountdownCard({ tour, pre, du, cd, td, tn }: { tour: TourData; pre: boolean; du: number; cd: TourData['days'][0]; td: number; tn: number }) {
+  const av = useCountUp(du)
+  const pct = Math.min(100, Math.max(5, ((30 - du) / 30) * 100))
+  if (!pre) return (
+    <Card accent="emerald">
+      <div className="p-5 flex items-center justify-between">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-xl">{F[tour.countries[0] ?? ''] ?? '🌍'}</div>
+          <div className="min-w-0"><p className="font-medium text-gray-700 truncate">{tour.title}</p><p className="text-xs text-gray-500 mt-0.5 font-medium">{td} วัน {tn} คืน · {tour.members.length} คน</p></div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />Day {cd.dayNumber}/{td}</span>
       </div>
-    )
-  }
-  if (weatherTooFar) {
-    return (
-      <div className={`${glassBg} ${glassCard} p-6 flex items-center gap-4`}>
-        <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200/50 flex items-center justify-center flex-shrink-0 text-xl">🌤️</div>
-        <div>
-          <p className={`text-sm font-medium ${primaryText}`}>พยากรณ์จะพร้อมเมื่อใกล้วันเดินทาง</p>
-          <p className={`text-xs mt-1 ${secondaryText}`}>
-            ข้อมูลจะแสดงใน 3 วันก่อนวันที่ {new Date(tour.startDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
-          </p>
+    </Card>
+  )
+  return (
+    <Card accent="indigo">
+      <div className="p-5 sm:p-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 pointer-events-none" style={{ background: 'radial-gradient(circle at top right, rgba(99,102,241,0.08), transparent 70%)' }} />
+        <div className="relative flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-lg">{F[tour.countries[0] ?? ''] ?? '🌍'}</div>
+            <div className="min-w-0"><p className="font-medium text-gray-700 truncate text-sm">{tour.title}</p><p className="text-xs text-gray-500 mt-0.5 font-medium">{td} วัน {tn} คืน · {tour.members.length} คน · {new Date(tour.startDate).toLocaleDateString('th-TH', { day:'numeric', month:'short' })}</p></div>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300"><span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />เตรียมตัว</span>
+        </div>
+        <p className="text-xs font-medium text-gray-400 uppercase tracking-widest">ออกเดินทางอีก</p>
+        <div className="mt-2 flex items-end gap-2">
+          <span className="text-7xl sm:text-8xl font-black tabular-nums leading-none" style={{ background: 'linear-gradient(135deg, #4338ca, #6366f1, #8b5cf6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', filter:'drop-shadow(0 4px 20px rgba(99,102,241,0.25))' }}>{av}</span>
+          <span className="text-lg text-gray-400 pb-2 font-bold">วัน</span>
+        </div>
+        <div className="mt-5 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-r from-indigo-600 via-violet-500 to-purple-500 transition-all duration-[2s] relative" style={{ width: `${pct}%` }}>
+            <div className="absolute inset-0 rounded-full" style={{ background:'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)', backgroundSize:'200% 100%', animation:'shimmer 2s linear infinite' }} />
+          </div>
         </div>
       </div>
-    )
-  }
-  if (weatherDays.length === 0) return null
-  return (
-    <div className={`${glassBg} ${glassCard} overflow-hidden`}>
-      <div className={`grid ${weatherDays.length === 1 ? 'grid-cols-1' : weatherDays.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-        {weatherDays.slice(0, 3).map((w, i) => {
-          const matchDay = tour.days.find(d => {
-            const dd = new Date(d.date); dd.setHours(0, 0, 0, 0)
-            const wd = new Date(w.date); wd.setHours(0, 0, 0, 0)
-            return dd.getTime() === wd.getTime()
-          })
-          const dayLabel = matchDay
-            ? `วันที่ ${matchDay.dayNumber}`
-            : new Date(w.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric' })
-          const dateStr = new Date(w.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+    </Card>
+  )
+}
 
+/* ═══ Flight ═══ */
+function FlightCard({ flight: f }: { flight: Flight }) {
+  const dp = new Date(f.departAt), ar = new Date(f.arriveAt), ms = ar.getTime() - dp.getTime()
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000)
+  const uz = (tz: string) => { const p = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName:'shortOffset' }).formatToParts(new Date()); return (p.find(x => x.type === 'timeZoneName')?.value ?? '').replace('GMT','UTC') }
+  return (
+    <Card accent="indigo">
+      <div className="p-5">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center p-1.5">
+            {f.airlineIata ? <Image src={`https://pics.avs.io/80/80/${f.airlineIata}.png`} alt={f.airline} width={32} height={32} className="object-contain" onError={e => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-lg">✈️</span>' }} unoptimized /> : <span className="text-lg">✈️</span>}
+          </div>
+          <div className="flex-1 min-w-0"><p className="text-base font-semibold text-indigo-700">{f.flightNo}</p><p className="text-xs text-gray-400">{f.airline}</p></div>
+          <span className="text-xs font-medium text-gray-400 tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg border border-gray-200">{h}h {m}m</span>
+        </div>
+        <div className="flex items-center">
+          <div><p className="text-2xl font-semibold text-gray-800 tabular-nums">{dp.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', timeZone: f.departTz })}</p><p className="text-xs font-medium text-gray-400 mt-0.5">{f.fromIata}</p></div>
+          <div className="flex-1 mx-4 h-10"><svg viewBox="0 0 200 40" className="w-full h-full"><path d="M 10 30 Q 100 6 190 30" fill="none" stroke="#6366f1" strokeWidth="2" strokeDasharray="5 4" opacity="0.4" /><g transform="translate(93,10) rotate(-8,7,7)"><path d="M7 1L9.5 5.5H14L7 9L0 5.5H4.5L7 1Z" fill="#6366f1" opacity="0.7" /><path d="M4 10L7 8.5L10 10L7 12Z" fill="#6366f1" opacity="0.5" /></g><circle cx="10" cy="30" r="3.5" fill="#6366f1" opacity="0.35" /><circle cx="190" cy="30" r="3.5" fill="#6366f1" opacity="0.35" /></svg></div>
+          <div className="text-right"><p className="text-2xl font-semibold text-gray-800 tabular-nums">{ar.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', timeZone: f.arriveTz })}</p><p className="text-xs font-medium text-gray-400 mt-0.5">{f.toIata}</p></div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-3 text-xs text-gray-400">
+          <span>{dp.toLocaleDateString('th-TH', { day:'numeric', month:'short' })}</span>
+          {f.terminal && <><span>·</span><span>Terminal {f.terminal}</span></>}
+          {f.gate && <><span>·</span><span>Gate {f.gate}</span></>}
+          <span className="ml-auto tabular-nums">{uz(f.departTz)} → {uz(f.arriveTz)}</span>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+/* ═══ Weather ═══ */
+function WeatherCard({ ld, far, days, tour }: { ld: boolean; far: boolean; days: WeatherDay[]; tour: TourData }) {
+  if (ld) return <Card><div className="p-6 flex items-center justify-center gap-3"><div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" /><span className="text-sm text-gray-400">กำลังโหลด...</span></div></Card>
+  if (far) return <Card><div className="p-5 flex items-center gap-4"><div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-xl">🌤️</div><div><p className="text-sm font-semibold text-gray-800">พยากรณ์จะพร้อมเมื่อใกล้วันเดินทาง</p><p className="text-xs text-gray-500 mt-1 font-medium">ข้อมูลจะแสดงใน 3 วันก่อนวันที่ {new Date(tour.startDate).toLocaleDateString('th-TH', { day:'numeric', month:'short' })}</p></div></div></Card>
+  if (!days.length) return null
+  return (
+    <Card>
+      <div className={`grid ${days.length === 1 ? 'grid-cols-1' : days.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        {days.slice(0,3).map((w, i) => {
+          const md = tour.days.find(d => { const a = new Date(d.date); a.setHours(0,0,0,0); const b = new Date(w.date); b.setHours(0,0,0,0); return a.getTime() === b.getTime() })
           return (
-            <div key={w.date} className={`p-5 text-center ${i > 0 ? 'border-l border-[rgba(0,0,0,0.06)]' : ''} ${i === 0 ? 'bg-[rgba(255,255,255,0.3)]' : ''}`}>
-              <p className={`text-[11px] font-bold mb-0.5 ${i === 0 ? 'text-violet-600' : secondaryText}`}>{dayLabel}</p>
-              <p className={`text-[10px] mb-3 ${secondaryText} opacity-70`}>{dateStr}</p>
-              <p className="text-3xl mb-2">{w.icon}</p>
-              <p className={`text-[11px] mb-2.5 truncate ${secondaryText}`}>{w.desc}</p>
-              <div className="flex items-center justify-center gap-1.5">
-                <span className={`text-sm font-bold ${primaryText}`}>{w.maxTemp}°</span>
-                <span className="text-xs text-[rgba(30,30,60,0.2)]">/</span>
-                <span className={`text-sm ${secondaryText}`}>{w.minTemp}°</span>
-              </div>
+            <div key={w.date} className={`p-5 text-center ${i > 0 ? 'border-l-2 border-gray-100' : ''} hover:bg-indigo-50/30 transition-colors`}>
+              <p className={`text-xs font-semibold ${i === 0 ? 'text-indigo-600' : 'text-gray-500'}`}>{md ? `วันที่ ${md.dayNumber}` : new Date(w.date).toLocaleDateString('th-TH', { weekday:'short', day:'numeric' })}</p>
+              <p className="text-[10px] text-gray-400 font-medium mt-0.5">{new Date(w.date).toLocaleDateString('th-TH', { day:'numeric', month:'short' })}</p>
+              <p className="text-3xl my-2">{w.icon}</p>
+              <p className="text-[11px] text-gray-500 truncate mb-2 font-medium">{w.desc}</p>
+              <div className="flex items-center justify-center gap-1"><span className="text-sm font-semibold text-gray-800">{w.maxTemp}°</span><span className="text-xs text-gray-300 font-bold">/</span><span className="text-sm font-bold text-gray-400">{w.minTemp}°</span></div>
             </div>
           )
         })}
       </div>
-    </div>
+    </Card>
   )
 }
 
-function SectionHeader({ label }: { label: string }) {
+/* ═══ Country ═══ */
+function CountryCard({ c, china }: { c: string; china: boolean }) {
+  const rows = [
+    { icon:'🌏', label:'ชื่อประเทศ', val:`${F[c] ?? '🌍'} ${CN[c] ?? c}` },
+    { icon:'🏛️', label:'เมืองหลวง', val: CC[c] ?? '-' },
+    { icon:'💰', label:'สกุลเงิน', val: CU[c] ?? '-' },
+    { icon:'🕐', label:'เขตเวลา', val: TZ[c] ?? '-' },
+    { icon:'💬', label:'ภาษาหลัก', val: CL[c] ?? '-' },
+    { icon:'🚨', label:'เบอร์ฉุกเฉิน', val: CE[c] ?? '-' },
+  ]
   return (
-    <div className="flex items-center gap-2.5 px-1">
-      <div className="w-0.5 h-4 rounded-full bg-gradient-to-b from-[#7c5cfc] to-[#4fc3f7]" />
-      <p className={`text-xs font-bold uppercase tracking-wider ${headerText}`}>{label}</p>
-    </div>
-  )
-}
-
-function PreTripCountdown({ tour, currentDay, daysUntilTrip, tripStart }: {
-  tour: TourData
-  currentDay: TourData['days'][0]
-  daysUntilTrip: number
-  tripStart: Date
-}) {
-  const animatedCount = useCountUp(daysUntilTrip)
-
-  const totalDays = Math.max(1, Math.ceil((tripStart.getTime() - new Date(Date.now() - 30 * 86400000).getTime()) / 86400000))
-  const elapsed = totalDays - daysUntilTrip
-  const pct = Math.min(100, Math.max(5, (elapsed / totalDays) * 100))
-
-  return (
-    <div className={`${glassBg} ${glassCard} overflow-hidden stagger-1`}>
-      {/* Tour title strip */}
-      <div className="px-7 py-5 flex items-center justify-between border-b border-[rgba(0,0,0,0.06)]">
-        <div className="flex items-center gap-4 min-w-0">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 border border-indigo-200/50 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg">{countryFlags[tour.countries[0] ?? ''] ?? '🌍'}</span>
+    <Card accent="emerald">
+      <div className="divide-y divide-gray-100">
+        {rows.map(r => (
+          <div key={r.label} className="flex items-center justify-between px-5 py-3.5 hover:bg-emerald-50/30 transition-colors">
+            <span className="text-xs text-gray-500 font-bold flex items-center gap-2"><span className="text-sm">{r.icon}</span>{r.label}</span>
+            <span className="text-sm font-medium text-gray-700">{r.val}</span>
           </div>
-          <div className="min-w-0">
-            <p className={`font-bold text-sm truncate ${primaryText}`}>{tour.title}</p>
-            <div className={`flex items-center gap-2 mt-1 text-[11px] ${secondaryText}`}>
-              <span>{new Date(tour.startDate).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
-              <span className="opacity-40">·</span>
-              <span>{tour.days[0]?.city ?? ''}</span>
-              <span className="opacity-40">·</span>
-              <span>{tour.members.length} คน</span>
+        ))}
+        {china && <div className="px-5 py-3.5 bg-red-50"><div className="flex items-center gap-2"><span>🇨🇳</span><span className="text-xs font-semibold text-red-700">China Mode เปิดใช้งาน</span></div><p className="text-[11px] text-red-500 mt-1 font-medium">Amap · Qwen · JPush · ไม่ต้อง VPN</p></div>}
+      </div>
+    </Card>
+  )
+}
+
+/* ═══ Contacts ═══ */
+function ContactsCard({ contacts }: { contacts: TourData['contacts'] }) {
+  const ti: Record<string, string> = { THAI_GUIDE:'🇹🇭', LOCAL_GUIDE:'🗺️', HOTEL:'🏨', EMERGENCY:'🚨', AIRLINE:'✈️', BUS_OPERATOR:'🚌', RESTAURANT:'🍽️', INSURANCE:'🛡️' }
+  const tl: Record<string, string> = { THAI_GUIDE:'ไกด์ไทย', LOCAL_GUIDE:'ไกด์ท้องถิ่น', HOTEL:'โรงแรม', EMERGENCY:'ฉุกเฉิน', AIRLINE:'สายการบิน', BUS_OPERATOR:'รถบัส', RESTAURANT:'ร้านอาหาร', INSURANCE:'ประกัน' }
+  const b = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-all no-btn-fx active:scale-110 border'
+  return (
+    <Card>
+      <div className="divide-y divide-gray-100">
+        {contacts.map(c => (
+          <div key={c.id} className="flex items-center gap-3.5 px-5 py-4 hover:bg-indigo-50/30 transition-colors">
+            <div className="w-11 h-11 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-lg">{ti[c.type] ?? '👤'}</div>
+            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p><p className="text-xs text-gray-400 truncate">{tl[c.type] ?? 'ติดต่อ'}{c.phone ? ` · ${c.phone}` : ''}</p></div>
+            <div className="flex gap-1.5">
+              {c.phone && <a href={`tel:${c.phone}`} className={`${b} bg-gray-100 border-gray-300 hover:bg-gray-200`}><svg className="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" /></svg></a>}
+              {c.line && <a href={`line://ti/p/~${c.line}`} className={`${b} bg-[#06C755]/15 border-[#06C755]/40 hover:bg-[#06C755]/25`}><span className="text-xs font-black text-[#06C755]">L</span></a>}
+              {c.wechat && <button onClick={() => navigator.clipboard.writeText(c.wechat!)} className={`${b} bg-[#07C160]/15 border-[#07C160]/40 hover:bg-[#07C160]/25`}><span className="text-[10px] font-black text-[#07C160]">微</span></button>}
+              {c.whatsapp && <a href={`https://wa.me/${c.whatsapp.replace(/[^0-9+]/g,'')}`} className={`${b} bg-[#25D366]/15 border-[#25D366]/40 hover:bg-[#25D366]/25`}><span className="text-xs font-black text-[#25D366]">W</span></a>}
             </div>
           </div>
-        </div>
-        <span className={`text-[11px] font-semibold text-violet-700 bg-violet-50 px-3 py-1.5 rounded-lg flex-shrink-0 ml-2 border border-violet-200/60`}>
-          เตรียมตัวเดินทาง
-        </span>
-      </div>
-
-      {/* Countdown */}
-      <div className="px-7 py-7">
-        <p className={`text-[11px] font-semibold uppercase tracking-wider ${secondaryText}`}>ออกเดินทางอีก</p>
-        <div className="mt-3 flex items-end gap-2">
-          <span
-            className={`font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cfc] via-[#6366f1] to-[#4fc3f7] ${accentGlow}`}
-            style={{ fontSize: '96px', lineHeight: '1', fontFeatureSettings: '"tnum"' }}
-          >
-            {animatedCount}
-          </span>
-          <span className={`text-lg font-medium pb-3 ${secondaryText}`}>วัน</span>
-        </div>
-
-        {/* Progress bar */}
-        <div className="mt-5">
-          <div className="h-1.5 bg-[rgba(0,0,0,0.04)] rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#7c5cfc] via-[#6366f1] to-[#4fc3f7] transition-all duration-[2000ms] ease-out"
-              style={{
-                width: `${pct}%`,
-                boxShadow: '0 0 10px rgba(124,92,252,0.25)',
-                animation: `progressGlow 1.5s cubic-bezier(0.22,1,0.36,1) both`,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function FlightCard({ flight: f, index }: { flight: Flight; index: number }) {
-  const depart = new Date(f.departAt)
-  const arrive = new Date(f.arriveAt)
-  const durationMs = arrive.getTime() - depart.getTime()
-  const hours = Math.floor(durationMs / 3600000)
-  const mins = Math.floor((durationMs % 3600000) / 60000)
-  const getUtcOffset = (tz: string) => {
-    const d = new Date()
-    const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).formatToParts(d)
-    const offsetStr = parts.find(p => p.type === 'timeZoneName')?.value ?? ''
-    return offsetStr.replace('GMT', 'UTC')
-  }
-  const departUtc = getUtcOffset(f.departTz)
-  const arriveUtc = getUtcOffset(f.arriveTz)
-
-  return (
-    <div
-      className={`${glassBg} ${glassCard} overflow-hidden`}
-      style={{ animation: `staggerIn 0.5s ease-out ${0.24 + index * 0.08}s both` }}
-    >
-      <div className="px-7 py-7">
-        {/* Airline + flight no */}
-        <div className="flex items-center gap-3.5 mb-5">
-          {f.airlineIata ? (
-            <div className="w-10 h-10 rounded-xl bg-[rgba(255,255,255,0.75)] border border-[rgba(255,255,255,0.9)] flex items-center justify-center flex-shrink-0 p-1.5 backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-              <Image src={`https://pics.avs.io/80/80/${f.airlineIata}.png`} alt={f.airline} width={40} height={40} className="w-full h-full object-contain"
-                onError={(e) => { (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-xl">✈️</span>' }} unoptimized />
-            </div>
-          ) : (
-            <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200/50 flex items-center justify-center flex-shrink-0">
-              <span className="text-xl">✈️</span>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className={`text-[15px] font-bold ${flightNumColor} ${accentGlow}`}>{f.flightNo}</p>
-            <p className={`text-xs ${secondaryText}`}>{f.airline}</p>
-          </div>
-          <span className={`text-xs font-medium ${secondaryText}`}>{hours}h {mins}m</span>
-        </div>
-
-        {/* Route — departure left, arrival right */}
-        <div className="flex items-center">
-          <div className="flex-shrink-0">
-            <p className={`text-2xl font-bold tracking-tight ${primaryText} ${accentGlow}`}>
-              {depart.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.departTz })}
-            </p>
-            <p className={`text-xs font-semibold mt-1 ${primaryText} opacity-60`}>{f.fromIata}</p>
-          </div>
-
-          {/* SVG arc path */}
-          <div className="flex-1 mx-4 relative" style={{ height: '32px' }}>
-            <svg viewBox="0 0 200 32" className="w-full h-full" preserveAspectRatio="none">
-              <path
-                d="M 8 24 Q 100 -4 192 24"
-                fill="none"
-                stroke="rgba(100,80,200,0.2)"
-                strokeWidth="0.8"
-                pathLength="1"
-                className="flight-path"
-              />
-              {/* Plane icon at center of arc */}
-              <g transform="translate(96, 6)">
-                <path
-                  d="M4 0L6 3H10L7 5.5L8 9L4 7L0 9L1 5.5L-2 3H2L4 0Z"
-                  fill="rgba(124,92,252,0.6)"
-                  transform="rotate(0, 4, 4.5)"
-                />
-              </g>
-              {/* Departure dot */}
-              <circle cx="8" cy="24" r="2.5" fill="none" stroke="rgba(124,92,252,0.4)" strokeWidth="1" />
-              {/* Arrival dot */}
-              <circle cx="192" cy="24" r="2.5" fill="rgba(124,92,252,0.5)" />
-            </svg>
-          </div>
-
-          <div className="flex-shrink-0 text-right">
-            <p className={`text-2xl font-bold tracking-tight ${primaryText} ${accentGlow}`}>
-              {arrive.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', timeZone: f.arriveTz })}
-            </p>
-            <p className={`text-xs font-semibold mt-1 ${primaryText} opacity-60`}>{f.toIata}</p>
-          </div>
-        </div>
-
-        {/* Info row */}
-        <div className={sectionDivider.replace('mx-6', 'mx-0')} style={{ marginTop: '20px', marginBottom: '16px' }} />
-        <div className={`flex items-center gap-3 text-[11px] ${secondaryText}`}>
-          <span>{depart.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}</span>
-          {f.terminal && <><span className="opacity-40">·</span><span>Terminal {f.terminal}</span></>}
-          {f.gate && <><span className="opacity-40">·</span><span>Gate {f.gate}</span></>}
-          <span className={`ml-auto ${secondaryText}`}>{departUtc} → {arriveUtc}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ContactCard({ contact: c }: { contact: TourData['contacts'][0]; isChina?: boolean }) {
-  const typeIcon = c.type === 'THAI_GUIDE' ? '🇹🇭' : c.type === 'LOCAL_GUIDE' ? '🗺️' : c.type === 'HOTEL' ? '🏨' : c.type === 'EMERGENCY' ? '🚨' : c.type === 'AIRLINE' ? '✈️' : c.type === 'BUS_OPERATOR' ? '🚌' : c.type === 'RESTAURANT' ? '🍽️' : c.type === 'INSURANCE' ? '🛡️' : '👤'
-  const typeLabel = c.type === 'THAI_GUIDE' ? 'ไกด์ไทย' : c.type === 'LOCAL_GUIDE' ? 'ไกด์ท้องถิ่น' : c.type === 'HOTEL' ? 'โรงแรม' : c.type === 'EMERGENCY' ? 'ฉุกเฉิน' : c.type === 'AIRLINE' ? 'สายการบิน' : c.type === 'BUS_OPERATOR' ? 'รถบัส' : c.type === 'RESTAURANT' ? 'ร้านอาหาร' : c.type === 'INSURANCE' ? 'ประกัน' : 'ติดต่อ'
-
-  const avatarGradient = c.type === 'THAI_GUIDE'
-    ? 'from-indigo-100 to-violet-100 border-indigo-200/50'
-    : c.type === 'LOCAL_GUIDE'
-    ? 'from-emerald-100 to-teal-100 border-emerald-200/50'
-    : c.type === 'HOTEL'
-    ? 'from-violet-100 to-purple-100 border-violet-200/50'
-    : 'from-gray-50 to-gray-100 border-gray-200/50'
-
-  const iconBtn = 'w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 active:scale-110 transition-transform no-btn-fx'
-
-  return (
-    <div className="flex items-center gap-3.5 px-4 py-3.5">
-      {/* Icon */}
-      <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${avatarGradient} border flex items-center justify-center flex-shrink-0`}>
-        <span className="text-lg">{typeIcon}</span>
-      </div>
-
-      {/* Name + role/phone */}
-      <div className="flex-1 min-w-0">
-        <p className={`text-[15px] font-semibold truncate whitespace-nowrap ${primaryText}`}>{c.name}</p>
-        <p className="text-[13px] mt-0.5 whitespace-nowrap truncate text-[rgba(0,0,0,0.4)]">
-          {typeLabel}{c.phone && ` · ${c.phone}`}
-        </p>
-      </div>
-
-      {/* Action icon buttons */}
-      <div className="flex flex-row gap-2 flex-shrink-0">
-        {c.phone && (
-          <a href={`tel:${c.phone}`} className={`${iconBtn} bg-[rgba(0,0,0,0.06)] hover:bg-[rgba(0,0,0,0.1)]`} title="โทร">
-            <svg className="w-[18px] h-[18px] text-[#1a1a2e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-            </svg>
-          </a>
-        )}
-        {c.line && (
-          <a href={`line://ti/p/~${c.line}`} className={`${iconBtn} bg-[rgba(6,199,85,0.12)] hover:bg-[rgba(6,199,85,0.2)]`} title="LINE">
-            <span className="text-[14px] font-black text-[#06C755] leading-none">L</span>
-          </a>
-        )}
-        {c.wechat && (
-          <button onClick={() => navigator.clipboard.writeText(c.wechat!)} className={`${iconBtn} bg-[rgba(7,193,96,0.12)] hover:bg-[rgba(7,193,96,0.2)]`} title="WeChat">
-            <span className="text-[12px] font-black text-[#07C160] leading-none">微</span>
-          </button>
-        )}
-        {c.whatsapp && (
-          <a href={`https://wa.me/${c.whatsapp.replace(/[^0-9+]/g, '')}`} className={`${iconBtn} bg-[rgba(37,211,102,0.12)] hover:bg-[rgba(37,211,102,0.2)]`} title="WhatsApp">
-            <span className="text-[13px] font-black text-[#25D366] leading-none">W</span>
-          </a>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function AnnouncementCarousel({ announcements, onImageClick }: {
-  announcements: Announcement[]
-  onImageClick: (src: string) => void
-}) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [activeIdx, setActiveIdx] = useState(0)
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
-
-  // IntersectionObserver to track active dot
-  useEffect(() => {
-    const container = scrollRef.current
-    if (!container) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const idx = cardRefs.current.indexOf(entry.target as HTMLDivElement)
-            if (idx >= 0) setActiveIdx(idx)
-          }
-        }
-      },
-      { root: container, threshold: 0.6 }
-    )
-    cardRefs.current.forEach((el) => { if (el) observer.observe(el) })
-    return () => observer.disconnect()
-  }, [announcements.length])
-
-  return (
-    <div className="relative overflow-hidden -mx-4 min-[900px]:mx-0">
-      {/* Scroll track */}
-      <div
-        ref={scrollRef}
-        className="ann-scroll flex flex-row overflow-x-auto overflow-y-hidden gap-3"
-        style={{
-          padding: '4px 20px 16px 20px',
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-        }}
-      >
-        <style>{`.ann-scroll::-webkit-scrollbar { display: none; }`}</style>
-        {announcements.map((a, i) => (
-          <AnnouncementCard
-            key={a.id}
-            ref={(el) => { cardRefs.current[i] = el }}
-            announcement={a}
-            onImageClick={onImageClick}
-          />
         ))}
       </div>
-
-      {/* Right fade edge */}
-      <div
-        className="absolute top-0 right-0 w-12 h-full pointer-events-none"
-        style={{ background: 'linear-gradient(to left, #f0f2f8, transparent)' }}
-      />
-
-      {/* Dot pagination */}
-      {announcements.length > 1 && (
-        <div className="flex items-center justify-center gap-1.5 mt-1 pb-1">
-          {announcements.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                cardRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' })
-              }}
-              className="rounded-full transition-all duration-300 no-btn-fx"
-              style={{
-                height: '6px',
-                width: i === activeIdx ? '20px' : '6px',
-                backgroundColor: i === activeIdx ? '#7c5cfc' : 'rgba(0,0,0,0.15)',
-              }}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    </Card>
   )
 }
 
-const AnnouncementCard = forwardRef<HTMLDivElement, {
-  announcement: Announcement
-  onImageClick: (src: string) => void
-}>(function AnnouncementCard({ announcement: a, onImageClick }, ref) {
-  const [expanded, setExpanded] = useState(false)
-  const contentRef = useRef<HTMLParagraphElement>(null)
-  const [needsClamp, setNeedsClamp] = useState(false)
-
-  useEffect(() => {
-    const el = contentRef.current
-    if (!el) return
-    setNeedsClamp(el.scrollHeight > el.clientHeight + 2)
-  }, [a.content, expanded])
-
+/* ═══ Plan Section ═══ */
+function PlanSection({ tour, pre, cd, tourId, td, tn }: { tour: TourData; pre: boolean; cd: TourData['days'][0]; tourId: string; td: number; tn: number }) {
+  if (pre) return (
+    <><Sec color="violet">แพลนการเดินทาง ({td} วัน {tn} คืน)</Sec>
+    <Card accent="violet">
+      <div className="divide-y divide-gray-100">
+        {tour.days.map(day => (
+          <a key={day.id} href={`/tour/${tourId}/day/${day.dayNumber}`} className="flex items-center gap-4 px-5 py-4 hover:bg-violet-50/40 transition-colors no-btn-fx no-card-fx opacity-100 hover:opacity-100">
+            <div className="w-11 h-11 rounded-xl bg-violet-100 border border-violet-300 flex items-center justify-center text-xs font-black text-violet-700">D{day.dayNumber}</div>
+            <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-800 truncate">{day.title}</p><div className="flex items-center gap-2 mt-0.5 text-xs text-gray-400">{day.city && <span>{F[day.country ?? ''] ?? '📍'} {day.city}</span>}<span>{new Date(day.date).toLocaleDateString('th-TH', { day:'numeric', month:'short' })}</span></div></div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex gap-0.5">{day.mealBreakfast && <span className="text-xs">🌅</span>}{day.mealLunch && <span className="text-xs">🍱</span>}{day.mealDinner && <span className="text-xs">🌙</span>}</div>
+              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </div>
+          </a>
+        ))}
+      </div>
+    </Card></>
+  )
   return (
-    <div
-      ref={ref}
-      className={`${glassBg} ${glassCard} overflow-hidden flex-shrink-0 w-[80vw] max-w-[320px] min-[900px]:w-[340px] min-[900px]:max-w-[340px] ${a.isPinned ? 'ring-1 ring-amber-300/40' : ''}`}
-      style={{ scrollSnapAlign: 'start' }}
-    >
-      {a.isPinned && <div className="h-px bg-gradient-to-r from-amber-400/50 to-orange-400/50" />}
-
-      {/* Header */}
-      <div className="px-4 py-3 flex items-center gap-2 border-b border-[rgba(0,0,0,0.06)]">
-        {a.isPinned && (
-          <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1 border border-amber-200/60 flex-shrink-0">
-            <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-            ปักหมุด
-          </span>
-        )}
-        <div className="w-5 h-5 rounded-md bg-amber-50 border border-amber-200/50 flex items-center justify-center flex-shrink-0">
-          <svg className="w-3 h-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 110-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783M10.34 6.66a23.847 23.847 0 008.835-2.535" /></svg>
-        </div>
-        <h3 className={`text-sm font-semibold truncate min-w-0 flex-1 ${primaryText}`}>{a.title}</h3>
+    <><Sec color="violet">แพลนวันที่ {cd.dayNumber} — {cd.city ?? ''}</Sec>
+    <Card>
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        <div><p className="font-medium text-gray-700 text-sm">{cd.title}</p><p className="text-xs text-gray-500 mt-0.5 font-medium">{new Date(cd.date).toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</p></div>
+        <div className="flex gap-1.5">{cd.mealBreakfast && <span className="w-8 h-8 rounded-lg bg-amber-100 border border-amber-300 flex items-center justify-center text-xs">🌅</span>}{cd.mealLunch && <span className="w-8 h-8 rounded-lg bg-green-100 border border-green-300 flex items-center justify-center text-xs">🍱</span>}{cd.mealDinner && <span className="w-8 h-8 rounded-lg bg-violet-100 border border-violet-300 flex items-center justify-center text-xs">🌙</span>}</div>
       </div>
-
-      {/* Body */}
-      <div className="px-4 py-3">
-        <p
-          ref={contentRef}
-          className={`text-sm whitespace-pre-line ${secondaryText}`}
-          style={{
-            lineHeight: '1.65',
-            ...(!expanded ? {
-              display: '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical' as const,
-              overflow: 'hidden',
-            } : {}),
-          }}
-        >
-          {a.content}
-        </p>
-
-        {(needsClamp || expanded) && (
-          <button
-            onClick={() => setExpanded(v => !v)}
-            className="mt-1.5 text-[12px] font-medium text-[#5b3fde] hover:text-[#4832b8] transition-colors no-btn-fx"
-          >
-            {expanded ? 'ย่อ' : 'ดูเพิ่มเติม'}
-          </button>
-        )}
-
-        {a.imageUrls.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {a.imageUrls.map((url, i) => (
-              <button
-                key={i}
-                onClick={() => onImageClick(url)}
-                className="relative w-full rounded-lg overflow-hidden group no-btn-fx cursor-pointer block"
-              >
-                <img src={url} alt="" className="w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]" style={{ maxHeight: '120px', borderRadius: '8px' }} />
-                <span className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-[rgba(0,0,0,0.4)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <svg className="w-3.5 h-3.5 text-[#f0f0ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                  </svg>
-                </span>
-              </button>
-            ))}
+      {cd.activities.length === 0 ? <p className="text-sm text-gray-400 text-center py-10 font-medium">ยังไม่มีกิจกรรม</p> : (
+        <div className="p-4">{cd.activities.map((a, i) => (
+          <div key={a.id} className="flex gap-3 group/i">
+            <div className="flex flex-col items-center pt-1"><div className="w-3 h-3 rounded-full flex-shrink-0 border-2 border-white shadow-md transition-transform group-hover/i:scale-125" style={{ background: catC[a.category] ?? '#9ca3af' }} />{i < cd.activities.length - 1 && <div className="w-0.5 flex-1 mt-1 min-h-[16px] bg-gray-200" />}</div>
+            <div className="pb-4 flex-1 min-w-0">
+              {a.time && <p className="text-xs font-semibold text-indigo-600 mb-0.5 tabular-nums">{a.time}</p>}
+              <p className="text-sm font-semibold text-gray-800">{catI[a.category]} {a.title}</p>
+              {a.titleLocal && <p className="text-xs text-gray-500 mt-0.5 font-medium">{a.titleLocal}</p>}
+              {a.locationName && <p className="text-xs text-gray-500 mt-1 font-medium">📍 {a.locationName}</p>}
+            </div>
           </div>
-        )}
+        ))}</div>
+      )}
+      {cd.transports.length > 0 && <div className="border-t border-gray-100 p-4"><p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">การเดินทาง</p>{cd.transports.map(t => <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-100 border border-gray-200 hover:bg-gray-50 transition-colors mb-2"><span className="text-lg">{trI[t.type] ?? '🚗'}</span><div className="flex-1 min-w-0"><p className="text-sm font-semibold text-gray-800 truncate">{t.from} → {t.to}</p><div className="flex gap-3 mt-0.5 text-xs text-gray-400">{t.departTime && <span>ออก {t.departTime}</span>}{t.duration && <span>{t.duration}</span>}</div></div></div>)}</div>}
+      {cd.accommodation && <div className="border-t border-gray-100 p-4"><p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">🏨 ที่พักคืนนี้</p><div className="flex items-start gap-3">{cd.accommodation.imageUrl && <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative border border-gray-200"><Image src={cd.accommodation.imageUrl} alt="" fill className="object-cover" unoptimized /></div>}<div className="min-w-0"><p className="text-sm font-semibold text-gray-800">{cd.accommodation.name}</p>{cd.accommodation.nameLocal && <p className="text-xs text-gray-400">{cd.accommodation.nameLocal}</p>}{(cd.accommodation.checkIn || cd.accommodation.checkOut) && <p className="text-xs text-gray-500 mt-1 font-medium">{cd.accommodation.checkIn && `Check-in: ${cd.accommodation.checkIn}`}{cd.accommodation.checkIn && cd.accommodation.checkOut && ' · '}{cd.accommodation.checkOut && `Check-out: ${cd.accommodation.checkOut}`}</p>}{cd.accommodation.wifiName && <div className="mt-2 flex items-center gap-2 text-xs text-blue-700 font-bold bg-blue-100 px-3 py-2 rounded-lg border border-blue-300 w-fit">📶 {cd.accommodation.wifiName}{cd.accommodation.wifiPassword && <span className="text-blue-500 font-medium">| {cd.accommodation.wifiPassword}</span>}</div>}</div></div></div>}
+      <div className="p-4 pt-0"><a href={`/tour/${tourId}/day/${cd.dayNumber}`} className="flex items-center justify-center w-full h-12 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 hover:border-indigo-300 text-sm font-semibold text-indigo-600 transition-all group/cta no-btn-fx no-card-fx opacity-100 hover:opacity-100">ดูรายละเอียดเต็ม วันที่ {cd.dayNumber}<span className="ml-2 transition-transform group-hover/cta:translate-x-1">→</span></a></div>
+    </Card></>
+  )
+}
 
-        <p className="text-[12px] mt-3 text-[rgba(0,0,0,0.35)]">
-          {new Date(a.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-        </p>
+/* ═══ Announcements ═══ */
+function AnnRotator({ anns, onImg, tourId }: { anns: Announcement[]; onImg: (s: string) => void; tourId: string }) {
+  const [idx, setIdx] = useState(0), [fade, setFade] = useState(true), [all, setAll] = useState(false)
+  const total = anns.length
+  useEffect(() => { if (total <= 1) return; const t = setInterval(() => { setFade(false); setTimeout(() => { setIdx(p => (p + 1) % total); setFade(true) }, 200) }, 10000); return () => clearInterval(t) }, [total])
+  const go = useCallback((i: number) => { setFade(false); setTimeout(() => { setIdx(i); setFade(true) }, 200) }, [])
+  const a = anns[idx]; if (!a) return null
+  return (
+    <div>
+      <Sec color="amber">ประกาศจากผู้จัดทัวร์ ({total})</Sec>
+      <div style={{ opacity: fade ? 1 : 0, transform: fade ? 'translateY(0)' : 'translateY(8px)', transition: 'all 0.3s ease' }}>
+        <AnnCard a={a} onImg={onImg} />
       </div>
+      <div className="flex items-center justify-between mt-3">
+        {total > 1 ? <div className="flex gap-1.5">{anns.map((_, i) => <button key={i} onClick={() => go(i)} className="no-btn-fx rounded-full transition-all duration-300" style={{ width: i === idx ? 24 : 8, height: 8, background: i === idx ? '#f59e0b' : '#d1d5db' }} />)}</div> : <div />}
+        <button onClick={() => setAll(true)} className="text-xs font-medium text-amber-600 hover:text-amber-800 no-btn-fx flex items-center gap-1">ดูประกาศทั้งหมด <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg></button>
+      </div>
+      {all && typeof document !== 'undefined' && createPortal(<AnnModal anns={anns} onClose={() => setAll(false)} onImg={onImg} />, document.body)}
     </div>
   )
-})
-
-function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
-  const [closing, setClosing] = useState(false)
-  const touchStartY = useRef<number | null>(null)
-
-  const close = useCallback(() => {
-    setClosing(true)
-    setTimeout(onClose, 150)
-  }, [onClose])
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [close])
-
-  useEffect(() => {
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = '' }
-  }, [])
-
+}
+function AnnCard({ a, onImg }: { a: Announcement; onImg: (s: string) => void }) {
+  const [exp, setExp] = useState(false); const ref = useRef<HTMLParagraphElement>(null); const [cl, setCl] = useState(false)
+  useEffect(() => { const el = ref.current; if (el) setCl(el.scrollHeight > el.clientHeight + 2) }, [a.content, exp])
   return (
-    <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
-      style={{
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        animation: closing ? 'lbOut 0.15s ease-in forwards' : 'lbIn 0.2s ease-out forwards',
-      }}
-      onClick={close}
-      onTouchStart={(e) => { touchStartY.current = e.touches[0]?.clientY ?? null }}
-      onTouchEnd={(e) => {
-        if (touchStartY.current === null) return
-        const dy = (e.changedTouches[0]?.clientY ?? 0) - touchStartY.current
-        if (dy > 60) close()
-        touchStartY.current = null
-      }}
-    >
-      <style>{`
-        @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes lbOut { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes lbImgIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
-        @keyframes lbImgOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.92); } }
-      `}</style>
-      <button
-        onClick={(e) => { e.stopPropagation(); close() }}
-        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full text-[#f0f0ff] text-xl hover:bg-white/10 transition-colors z-10 no-btn-fx"
-        style={{ minHeight: '40px', minWidth: '40px' }}
-      >
-        ✕
-      </button>
-      <img
-        src={src}
-        alt=""
-        onClick={(e) => e.stopPropagation()}
-        className="rounded-xl"
-        style={{
-          maxWidth: '90vw',
-          maxHeight: '85vh',
-          objectFit: 'contain',
-          animation: closing ? 'lbImgOut 0.15s ease-in forwards' : 'lbImgIn 0.2s ease-out forwards',
-        }}
-      />
+    <Card className={a.isPinned ? 'ring-2 ring-amber-400' : ''}>
+      {a.isPinned && <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-400" />}
+      <div className="p-5">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-base">📢</div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2"><h3 className="text-sm font-medium text-gray-700 truncate">{a.title}</h3>{a.isPinned && <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full border border-amber-300">📌 ปักหมุด</span>}</div>
+            <p className="text-[11px] text-gray-500 mt-0.5 font-medium">{new Date(a.createdAt).toLocaleDateString('th-TH', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</p>
+          </div>
+        </div>
+        <p ref={ref} className="text-sm text-gray-700 whitespace-pre-line leading-relaxed font-medium" style={!exp ? { display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical' as const, overflow:'hidden' } : {}}>{a.content}</p>
+        {(cl || exp) && <button onClick={() => setExp(v => !v)} className="text-xs font-medium text-indigo-600 hover:text-indigo-800 mt-2 no-btn-fx">{exp ? 'ย่อ' : 'ดูเพิ่มเติม'}</button>}
+        {a.imageUrls.length > 0 && <div className="flex gap-2 mt-3 overflow-x-auto pb-1">{a.imageUrls.map((u, i) => <button key={i} onClick={() => onImg(u)} className="flex-shrink-0 w-32 h-20 rounded-xl overflow-hidden no-btn-fx border border-gray-200 hover:border-gray-400 transition-colors"><img src={u} alt="" className="w-full h-full object-cover" /></button>)}</div>}
+      </div>
+    </Card>
+  )
+}
+function AnnModal({ anns, onClose, onImg }: { anns: Announcement[]; onClose: () => void; onImg: (s: string) => void }) {
+  const [closing, setCl] = useState(false); const close = useCallback(() => { setCl(true); setTimeout(onClose, 250) }, [onClose])
+  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = '' } }, [])
+  useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }; document.addEventListener('keydown', h); return () => document.removeEventListener('keydown', h) }, [close])
+  return (
+    <><style>{`@keyframes mdIn { from{opacity:0} to{opacity:1} } @keyframes mdOut { from{opacity:1} to{opacity:0} } @keyframes mdPop { from{opacity:0;transform:translate(-50%,-50%) scale(.92)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} } @keyframes mdPopOut { from{opacity:1;transform:translate(-50%,-50%) scale(1)} to{opacity:0;transform:translate(-50%,-50%) scale(.92)} }`}</style>
+    <div onClick={close} style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(16px)', WebkitBackdropFilter:'blur(16px)', animation:`${closing?'mdOut':'mdIn'} .25s ease both` }} />
+    <div onClick={e => e.stopPropagation()} style={{ position:'fixed', zIndex:201, top:'50%', left:'50%', width:'92vw', maxWidth:'520px', maxHeight:'75vh', borderRadius:'20px', overflow:'hidden', background:'#fff', border:'1px solid #e5e7eb', boxShadow:'0 32px 80px rgba(0,0,0,0.3)', display:'flex', flexDirection:'column' as const, animation:`${closing?'mdPopOut':'mdPop'} .3s cubic-bezier(.16,1,.3,1) both` }}>
+      <div className="flex-shrink-0 px-6 py-5 border-b-2 border-gray-200 bg-gradient-to-r from-amber-50 to-orange-50 flex items-center justify-between">
+        <div className="flex items-center gap-3"><div className="w-11 h-11 rounded-2xl bg-amber-200 border border-amber-400 flex items-center justify-center text-xl">📢</div><div><h2 className="text-base font-medium text-gray-700">ประกาศจากผู้จัดทัวร์</h2><p className="text-xs text-gray-500 font-bold mt-0.5">{anns.length} ประกาศ</p></div></div>
+        <button onClick={close} className="w-10 h-10 rounded-xl bg-white border border-gray-300 hover:bg-gray-100 flex items-center justify-center no-btn-fx text-gray-500 hover:text-gray-800 transition-colors"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
+      </div>
+      <div className="flex-1 overflow-y-auto overscroll-contain p-5 space-y-4">
+        {anns.map(a => {
+          const pin = a.isPinned
+          return (
+            <div key={a.id} className={`rounded-2xl border p-5 transition-colors ${pin ? 'border-amber-300 bg-amber-50/50 hover:bg-amber-50' : 'border-gray-200 hover:bg-gray-50'}`}>
+              <div className="flex items-start gap-3 mb-2">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-sm border ${pin ? 'bg-amber-200 border-amber-400' : 'bg-gray-100 border-gray-300'}`}>{pin ? '📌' : '📋'}</div>
+                <div className="flex-1 min-w-0"><div className="flex items-center gap-2 flex-wrap"><h3 className="text-[15px] font-medium text-gray-700">{a.title}</h3>{pin && <span className="text-[10px] font-bold text-amber-800 bg-amber-200 px-2 py-0.5 rounded-full border border-amber-300">ปักหมุด</span>}</div><p className="text-[11px] text-gray-500 mt-0.5 font-medium">{new Date(a.createdAt).toLocaleDateString('th-TH', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}</p></div>
+              </div>
+              <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed font-medium">{a.content}</p>
+              {a.imageUrls.length > 0 && <div className="flex gap-2 mt-3 overflow-x-auto pb-1">{a.imageUrls.map((u, j) => <button key={j} onClick={() => onImg(u)} className="flex-shrink-0 w-28 h-20 rounded-xl overflow-hidden no-btn-fx border border-gray-200 hover:border-gray-400 transition-colors"><img src={u} alt="" className="w-full h-full object-cover" /></button>)}</div>}
+            </div>
+          )
+        })}
+      </div>
+    </div></>
+  )
+}
+
+/* ═══ Lightbox ═══ */
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  const [cl, setCl] = useState(false); const close = useCallback(() => { setCl(true); setTimeout(onClose, 150) }, [onClose])
+  useEffect(() => { const h = (e: KeyboardEvent) => { if (e.key === 'Escape') close() }; document.addEventListener('keydown', h); return () => document.removeEventListener('keydown', h) }, [close])
+  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = '' } }, [])
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 backdrop-blur-sm" onClick={close} style={{ animation: cl ? 'mdOut .15s ease forwards' : 'mdIn .2s ease forwards' }}>
+      <button onClick={e => { e.stopPropagation(); close() }} className="absolute top-4 right-4 w-10 h-10 rounded-full text-white text-xl hover:bg-white/10 transition-colors no-btn-fx flex items-center justify-center">✕</button>
+      <img src={src} alt="" onClick={e => e.stopPropagation()} className="rounded-xl max-w-[90vw] max-h-[85vh] object-contain" style={{ animation: cl ? 'mdPopOut .15s ease forwards' : 'mdPop .2s ease forwards' }} />
     </div>
   )
 }
