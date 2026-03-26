@@ -91,20 +91,20 @@ a:hover { opacity: 0.85; }
 a:active { opacity: 0.7; }
 
 /* ── Cards inside links — glass lift */
-a > div, a > article {
+a:not(.no-card-fx) > div, a:not(.no-card-fx) > article {
   transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-a:hover > div, a:hover > article {
+a:not(.no-card-fx):hover > div, a:not(.no-card-fx):hover > article {
   opacity: 1;
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
 }
-a:active > div, a:active > article {
+a:not(.no-card-fx):active > div, a:not(.no-card-fx):active > article {
   transform: translateY(0);
 }
 
 /* ── Glass card hover tint */
-a:hover > div[class*="bg-white"] {
+a:not(.no-card-fx):hover > div[class*="bg-white"] {
   background-color: rgba(238, 242, 255, 0.8) !important; /* indigo-50/80 */
 }
 
