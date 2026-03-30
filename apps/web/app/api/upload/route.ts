@@ -3,7 +3,7 @@ import { getAuthUserLight } from '@/lib/auth'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export const runtime = 'nodejs'
-export const maxDuration = 30
+export const maxDuration = 60
 
 async function getAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -19,7 +19,7 @@ async function ensureBucket(admin: any) {
   if (!data) {
     await admin.storage.createBucket('tripflow-media', {
       public: true,
-      fileSizeLimit: 10 * 1024 * 1024,
+      fileSizeLimit: 50 * 1024 * 1024,
       allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'],
     })
   }
@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
     const file = form.get('file') as File | null
     if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'ไฟล์ใหญ่เกิน 10MB' }, { status: 400 })
+    if (file.size > 50 * 1024 * 1024) {
+      return NextResponse.json({ error: 'ไฟล์ใหญ่เกิน 50MB' }, { status: 400 })
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'

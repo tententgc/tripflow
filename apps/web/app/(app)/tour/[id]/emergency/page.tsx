@@ -102,8 +102,8 @@ export default function EmergencyPage() {
         {/* Thai Embassy contacts for China */}
         {isChina && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-indigo-50 to-violet-50">
-              <h3 className="font-semibold text-indigo-700">🇹🇭 สถานทูตและสถานกงสุลไทยในจีน</h3>
+            <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-amber-50">
+              <h3 className="font-semibold text-orange-700">🇹🇭 สถานทูตและสถานกงสุลไทยในจีน</h3>
             </div>
             <div className="divide-y divide-gray-50">
               {THAI_EMBASSIES_CHINA.map((embassy) => (
@@ -116,7 +116,7 @@ export default function EmergencyPage() {
                     <p className="text-sm font-medium text-gray-900">{embassy.city}</p>
                     <p className="text-sm text-gray-500">{embassy.phone}</p>
                   </div>
-                  <span className="text-indigo-500 text-xl">📞</span>
+                  <span className="text-orange-500 text-xl">📞</span>
                 </a>
               ))}
             </div>
@@ -132,7 +132,7 @@ export default function EmergencyPage() {
               <p className="text-sm text-gray-600 mt-1">กรมธรรม์: {tour.emergencyInfo.insurancePolicyNo}</p>
             )}
             {tour.emergencyInfo.insurancePhone && (
-              <a href={`tel:${tour.emergencyInfo.insurancePhone}`} className="mt-3 flex items-center gap-2 text-indigo-600 font-medium text-sm">
+              <a href={`tel:${tour.emergencyInfo.insurancePhone}`} className="mt-3 flex items-center gap-2 text-orange-600 font-medium text-sm">
                 <span>📞</span>
                 <span>{tour.emergencyInfo.insurancePhone}</span>
               </a>

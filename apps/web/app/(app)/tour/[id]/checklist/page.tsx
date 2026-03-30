@@ -110,15 +110,15 @@ export default function ChecklistPage() {
                 <p className="text-[24px] font-extrabold text-[#1a1a2e]">
                   {allChecked}/{allTotal} <span className="text-[14px] font-semibold text-[rgba(30,30,60,0.4)]">รายการ</span>
                 </p>
-                <p className="text-[13px] font-bold text-[#7c5cfc]">{Math.round(allPct)}%</p>
+                <p className="text-[13px] font-bold text-[#f97316]">{Math.round(allPct)}%</p>
               </div>
               <div className="mt-2.5 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
                 <div
                   className="h-full rounded-full transition-all duration-500"
                   style={{
                     width: `${allPct}%`,
-                    background: allPct >= 100 ? 'linear-gradient(to right, #10b981, #34d399)' : 'linear-gradient(to right, #7c5cfc, #a78bfa)',
-                    boxShadow: allPct >= 100 ? '0 0 8px rgba(16,185,129,0.4)' : '0 0 8px rgba(124,92,252,0.4)',
+                    background: allPct >= 100 ? 'linear-gradient(to right, #10b981, #34d399)' : 'linear-gradient(to right, #f97316, #fdba74)',
+                    boxShadow: allPct >= 100 ? '0 0 8px rgba(16,185,129,0.4)' : '0 0 8px rgba(249,115,22,0.4)',
                     animation: 'clBarGrow 0.5s ease-out both',
                   }}
                 />
@@ -131,8 +131,8 @@ export default function ChecklistPage() {
               const total = cl.items.length
               const pct = total > 0 ? (checkedCount / total) * 100 : 0
               const complete = checkedCount === total && total > 0
-              const accentColor = complete ? '#10b981' : '#7c5cfc'
-              const accentBg = complete ? 'rgba(16,185,129' : 'rgba(124,92,252'
+              const accentColor = complete ? '#10b981' : '#f97316'
+              const accentBg = complete ? 'rgba(16,185,129' : 'rgba(249,115,22'
 
               return (
                 <div
@@ -167,7 +167,7 @@ export default function ChecklistPage() {
                         className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${pct}%`,
-                          background: complete ? 'linear-gradient(to right, #10b981, #34d399)' : 'linear-gradient(to right, #7c5cfc, #a78bfa)',
+                          background: complete ? 'linear-gradient(to right, #10b981, #34d399)' : 'linear-gradient(to right, #f97316, #fdba74)',
                           boxShadow: `0 0 8px ${accentBg},0.4)`,
                           animation: `clBarGrow 0.5s ease-out ${(idx + 1) * 0.07 + 0.2}s both`,
                         }}
@@ -194,8 +194,8 @@ export default function ChecklistPage() {
                           <div
                             className="w-[22px] h-[22px] rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
                             style={isChecked ? {
-                              background: 'linear-gradient(135deg, #7c5cfc, #6d4fea)',
-                              boxShadow: '0 2px 8px rgba(124,92,252,0.35)',
+                              background: 'linear-gradient(135deg, #f97316, #c2410c)',
+                              boxShadow: '0 2px 8px rgba(249,115,22,0.35)',
                               animation: 'clCheck 0.2s ease-out',
                             } : {
                               border: '2px solid rgba(30,30,60,0.2)',
@@ -215,7 +215,7 @@ export default function ChecklistPage() {
                             style={isChecked ? {
                               color: 'rgba(30,30,60,0.35)',
                               textDecoration: 'line-through',
-                              textDecorationColor: 'rgba(124,92,252,0.4)',
+                              textDecorationColor: 'rgba(249,115,22,0.4)',
                               textDecorationThickness: '1.5px',
                               fontWeight: 400,
                             } : {
@@ -245,7 +245,7 @@ export default function ChecklistPage() {
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-      <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }

@@ -177,7 +177,7 @@ export default function FundPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-        <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -307,8 +307,8 @@ export default function FundPage() {
             <>
               {!fund ? (
                 <div className="p-8 text-center" style={{ ...glassCard, animation: 'fundCardIn 0.4s ease both' }}>
-                  <div className="w-14 h-14 flex items-center justify-center mx-auto mb-3" style={{ borderRadius: 16, background: 'rgba(124,92,252,0.08)' }}>
-                    <svg className="w-7 h-7" style={{ color: '#7c5cfc' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <div className="w-14 h-14 flex items-center justify-center mx-auto mb-3" style={{ borderRadius: 16, background: 'rgba(249,115,22,0.08)' }}>
+                    <svg className="w-7 h-7" style={{ color: '#f97316' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                     </svg>
                   </div>
@@ -317,7 +317,7 @@ export default function FundPage() {
                   <button
                     onClick={() => setTab('collect')}
                     className="px-6 py-3 text-sm font-semibold text-white active:scale-[0.98] transition-all"
-                    style={{ borderRadius: 16, background: 'linear-gradient(135deg, #7c5cfc, #4fc3f7)', boxShadow: '0 4px 16px rgba(124,92,252,0.3)' }}
+                    style={{ borderRadius: 16, background: 'linear-gradient(135deg, #f97316, #fbbf24)', boxShadow: '0 4px 16px rgba(249,115,22,0.3)' }}
                   >
                     เรียกเก็บเงินรอบแรก
                   </button>
@@ -406,7 +406,7 @@ export default function FundPage() {
                         <p style={{ fontSize: 11, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase' as const, color: 'rgba(30,30,60,0.4)' }}>
                           ยังไม่จ่าย
                         </p>
-                        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: 'rgba(124,92,252,0.08)', color: '#7c5cfc' }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: 'rgba(249,115,22,0.08)', color: '#f97316' }}>
                           {unpaidDeposits.length}
                         </span>
                       </div>
@@ -500,7 +500,7 @@ export default function FundPage() {
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ fontSize: 11, color: 'rgba(30,30,60,0.4)', fontWeight: 500, marginBottom: 4, display: 'block' }}>จำนวนเงินต่อคน (฿)</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-medium" style={{ color: '#7c5cfc' }}>฿</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-medium" style={{ color: '#f97316' }}>฿</span>
                     <input
                       type="number"
                       inputMode="numeric"
@@ -526,10 +526,10 @@ export default function FundPage() {
                 </div>
 
                 {collectAmount && parseFloat(collectAmount) > 0 && members.length > 0 && (
-                  <div className="p-3" style={{ borderRadius: 14, background: 'rgba(124,92,252,0.06)', border: '1px solid rgba(124,92,252,0.12)' }}>
+                  <div className="p-3" style={{ borderRadius: 14, background: 'rgba(249,115,22,0.06)', border: '1px solid rgba(249,115,22,0.12)' }}>
                     <div className="flex justify-between items-center" style={{ fontSize: 14 }}>
                       <span style={{ color: 'rgba(30,30,60,0.5)' }}>฿{fmt(parseFloat(collectAmount))} x {members.length} คน</span>
-                      <span style={{ fontWeight: 700, color: '#7c5cfc' }}>
+                      <span style={{ fontWeight: 700, color: '#f97316' }}>
                         รวม ฿{fmt(parseFloat(collectAmount) * members.length)}
                       </span>
                     </div>
@@ -544,7 +544,7 @@ export default function FundPage() {
                 onClick={handleCollect}
                 disabled={collecting || !collectAmount || parseFloat(collectAmount) <= 0}
                 className="w-full font-semibold text-sm text-white disabled:opacity-50 active:scale-[0.98] transition-all"
-                style={{ height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #7c5cfc, #4fc3f7)', boxShadow: '0 4px 16px rgba(124,92,252,0.3)' }}
+                style={{ height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #f97316, #fbbf24)', boxShadow: '0 4px 16px rgba(249,115,22,0.3)' }}
               >
                 {collecting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -563,7 +563,7 @@ export default function FundPage() {
             <>
               {(!fund || fund.transactions.length === 0) ? (
                 <div className="p-10 text-center" style={{ ...glassCard, animation: 'fundCardIn 0.3s ease both' }}>
-                  <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3" style={{ borderRadius: 16, background: 'rgba(124,92,252,0.08)' }}>
+                  <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3" style={{ borderRadius: 16, background: 'rgba(249,115,22,0.08)' }}>
                     <svg className="w-6 h-6" style={{ color: 'rgba(30,30,60,0.25)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
