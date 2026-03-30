@@ -161,7 +161,7 @@ export default function ItineraryPage() {
 
                       {/* Title + location */}
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="text-[15px] font-bold text-[#1a1a2e] truncate whitespace-nowrap">{day.title}</p>
+                        <p className="text-[15px] font-bold text-[#1a1a2e] leading-snug">{day.title}</p>
                         {day.city && (
                           <span
                             className="inline-flex items-center gap-1 mt-1.5 px-2.5 rounded-[20px] text-[11px] font-semibold"

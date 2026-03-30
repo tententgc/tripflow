@@ -10,7 +10,7 @@ import { useApi } from '@/lib/swr'
 import { Phone, MessageCircle, Hotel, Siren, Plane, Bus, UtensilsCrossed, Shield, User, MapPin, Globe, Landmark, Banknote, Clock, Languages, PhoneCall } from 'lucide-react'
 
 /* ═══ Types ═══ */
-interface Activity { id: string; time: string | null; title: string; titleEn: string | null; titleLocal: string | null; description: string | null; category: string; locationName: string | null; address: string | null; addressLocal: string | null; durationMins: number | null; cost: number | null; costCurrency: string | null; costTHB: number | null; tips: string | null; imageUrls: string[] }
+interface Activity { id: string; time: string | null; title: string; titleEn: string | null; titleLocal: string | null; description: string | null; category: string; locationName: string | null; address: string | null; addressLocal: string | null; googleMapUrl: string | null; durationMins: number | null; cost: number | null; costCurrency: string | null; costTHB: number | null; tips: string | null; imageUrls: string[] }
 interface Transport { id: string; type: string; from: string; fromLocal: string | null; to: string; toLocal: string | null; departTime: string | null; arriveTime: string | null; duration: string | null; lineName: string | null; lineNameLocal: string | null; notes: string | null }
 interface Accommodation { name: string; nameLocal: string | null; phone: string | null; checkIn: string | null; checkOut: string | null; wifiName: string | null; wifiPassword: string | null; imageUrl: string | null }
 interface Flight { id: string; flightNo: string; airline: string; airlineIata: string | null; fromAirport: string; fromIata: string; toAirport: string; toIata: string; departAt: string; arriveAt: string; departTz: string; arriveTz: string; terminal: string | null; gate: string | null }
@@ -560,7 +560,16 @@ function PlanSection({ tour, pre, cd, tourId, td, tn }: { tour: TourData; pre: b
                   {a.time && <p className="text-[12px] font-bold tabular-nums mb-0.5" style={{ color: catC[a.category] ?? '#6b7280' }}>{a.time}</p>}
                   <p className="text-[14px] font-bold text-gray-800">{a.title}</p>
                   {a.titleLocal && <p className="text-[12px] text-gray-500 mt-0.5 font-medium">{a.titleLocal}</p>}
-                  {a.locationName && <p className="text-[12px] text-gray-500 mt-1 font-medium flex items-center gap-1">📍 {a.locationName}</p>}
+                  {a.locationName && (
+                    a.googleMapUrl ? (
+                      <a href={a.googleMapUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-[12px] text-blue-600 mt-1 font-medium flex items-center gap-1 hover:underline">
+                        📍 {a.locationName} <span className="text-[10px]">↗</span>
+                      </a>
+                    ) : (
+                      <p className="text-[12px] text-gray-500 mt-1 font-medium flex items-center gap-1">📍 {a.locationName}</p>
+                    )
+                  )}
                   {a.cost != null && a.cost > 0 && (
                     <Tag bg="#fef3c7" color="#92400e">
                       💰 {a.costCurrency ?? ''} {a.cost}{a.costTHB ? ` (≈฿${a.costTHB})` : ''}

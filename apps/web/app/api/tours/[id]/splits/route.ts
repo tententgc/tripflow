@@ -50,9 +50,10 @@ export async function POST(
     memberIds: string[]
     receiptUrl?: string | null
     notes?: string | null
+    perPerson?: Record<string, number> // itemized per-person amounts (userId → THB amount)
   }
 
-  const share = body.memberIds.length > 0 ? Math.ceil(body.amount / body.memberIds.length) : 0
+  const equalShare = body.memberIds.length > 0 ? Math.ceil(body.amount / body.memberIds.length) : 0
 
   const expense = await db.expense.create({
     data: {
@@ -67,8 +68,8 @@ export async function POST(
       participants: {
         create: body.memberIds.map(userId => ({
           userId,
-          share,
-          isPaid: userId === me.id, // creator already paid
+          share: body.perPerson?.[userId] ?? equalShare,
+          isPaid: userId === me.id,
         })),
       },
     },

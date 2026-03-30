@@ -68,6 +68,7 @@ type EditState = {
   description: string
   category: string
   imageUrls: string[]
+  googleMapUrl: string
 }
 
 // ── Image Manager ─────────────────────────────────────────────────────────────
@@ -234,6 +235,7 @@ function ActivityForm({
           description: form.description.trim() || null,
           category: form.category,
           imageUrls: form.imageUrls,
+          googleMapUrl: form.googleMapUrl.trim() || null,
         }),
       })
       if (res.ok) onSave(await res.json() as Activity)
@@ -294,6 +296,23 @@ function ActivityForm({
           <option key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</option>
         ))}
       </select>
+
+      {/* Google Maps URL */}
+      <div className="relative">
+        <input
+          value={form.googleMapUrl}
+          onChange={(e) => setForm((p) => ({ ...p, googleMapUrl: e.target.value }))}
+          className="w-full px-3 py-2 pl-9 border border-gray-200 bg-white rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="วาง Google Maps link (เช่น https://maps.app.goo.gl/...)"
+        />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">📍</span>
+        {form.googleMapUrl && (
+          <a href={form.googleMapUrl} target="_blank" rel="noopener noreferrer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-blue-500 hover:text-blue-700 font-medium">
+            เปิดแผนที่ ↗
+          </a>
+        )}
+      </div>
 
       {/* Multi-image manager */}
       <div className="bg-white rounded-lg p-3 border border-gray-200">
@@ -539,6 +558,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
                             description: act.description ?? '',
                             category: act.category,
                             imageUrls: act.imageUrls ?? [],
+                            googleMapUrl: (act as Activity & { googleMapUrl?: string }).googleMapUrl ?? '',
                           }}
                           tourId={tour.id}
                           dayId={day.id}
@@ -663,7 +683,7 @@ export default function ItineraryBuilder({ tour }: { tour: Tour }) {
 
               {addingActivity === day.id ? (
                 <ActivityForm
-                  initial={{ time: '', title: '', titleLocal: '', description: '', category: 'SIGHTSEEING', imageUrls: [] }}
+                  initial={{ time: '', title: '', titleLocal: '', description: '', category: 'SIGHTSEEING', imageUrls: [], googleMapUrl: '' }}
                   tourId={tour.id}
                   dayId={day.id}
                   isChina={tour.isChina}
