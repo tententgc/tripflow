@@ -14,6 +14,7 @@ export async function PATCH(
       description?: string | null
       category?: string
       imageUrls?: string[]
+      googleMapUrl?: string | null
     }
 
     const activity = await db.activity.update({
@@ -25,6 +26,7 @@ export async function PATCH(
         ...(body.description !== undefined && { description: body.description }),
         ...(body.category !== undefined && { category: body.category as any }),
         ...(body.imageUrls !== undefined && { imageUrls: body.imageUrls }),
+        ...(body.googleMapUrl !== undefined && { googleMapUrl: body.googleMapUrl }),
       },
     })
 

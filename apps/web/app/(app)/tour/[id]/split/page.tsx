@@ -322,15 +322,19 @@ export default function SplitPage() {
 
         const selectedChannel = paymentChannels.find(c => c.id === selectedChannelId)
 
-        // For itemized mode, calculate per-person shares
+        // For itemized mode, calculate per-person shares in THB
         let memberIds = selectedIds
         let notes = selectedChannel ? JSON.stringify(selectedChannel) : null
+        let perPerson: Record<string, number> | undefined
         if (splitMode === 'itemized' && lineItems.length > 0) {
           const totals = getItemizedTotals()
           memberIds = members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => m.id)
+          perPerson = Object.fromEntries(
+            members.filter(m => (totals.get(m.id) ?? 0) > 0)
+              .map(m => [m.id, Math.ceil((totals.get(m.id) ?? 0) * rate)])
+          )
           const itemsData = lineItems.map(i => ({ name: i.name, price: parseFloat(i.price) || 0, assignedTo: i.assignedIds }))
-          const perPerson = Object.fromEntries(members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => [m.id, Math.ceil((totals.get(m.id) ?? 0) * rate)]))
-          notes = JSON.stringify({ ...(selectedChannel ?? {}), splitMode: 'itemized', items: itemsData, perPerson })
+          notes = JSON.stringify({ ...(selectedChannel ?? {}), splitMode: 'itemized', items: itemsData })
         }
 
         await fetch(`/api/tours/${tourId}/splits`, {
@@ -345,6 +349,7 @@ export default function SplitPage() {
             memberIds,
             receiptUrl,
             notes,
+            perPerson, // send per-person amounts to API (undefined for equal split)
           }),
         })
       }
@@ -735,7 +740,104 @@ export default function SplitPage() {
           {/* ── CREATE TAB ── */}
           {tab === 'create' && (
             <>
-              <div style={{ ...glassCard, animation: 'splitCardIn 0.32s ease-out 0s both' }} className="space-y-3">
+              {/* Split mode toggle — TOP */}
+              {!payFromFund && (
+              <div style={{ ...glassCard, animation: 'splitCardIn 0.32s ease-out 0s both' }}>
+                <p style={{ fontSize: 11, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(30,30,60,0.4)', marginBottom: 10 }}>วิธีหาร</p>
+                <div className="flex gap-2">
+                  {(['equal', 'itemized'] as const).map(mode => (
+                    <button key={mode} onClick={() => setSplitMode(mode)}
+                      className="flex-1 flex items-center justify-center gap-2 transition-all"
+                      style={{
+                        padding: '10px 12px', borderRadius: 14, fontSize: 13, fontWeight: 600,
+                        borderWidth: 1, borderStyle: 'solid',
+                        ...(splitMode === mode ? {
+                          background: 'linear-gradient(to right, #f97316, #ea580c)', color: '#fff',
+                          boxShadow: '0 2px 8px rgba(249,115,22,0.25)', borderColor: 'transparent',
+                        } : {
+                          background: 'rgba(255,255,255,0.7)', color: 'rgba(30,30,60,0.55)',
+                          borderColor: 'rgba(255,255,255,0.88)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                        }),
+                      }}>
+                      {mode === 'equal' ? '➗ หารเท่า' : '📝 แยกรายการ'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              {/* Itemized split — add food items (right after toggle) */}
+              {!payFromFund && splitMode === 'itemized' && (
+              <div style={{ ...glassCard, animation: 'splitCardIn 0.32s ease-out 0.04s both' }}>
+                <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+                  <p style={{ fontSize: 11, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(30,30,60,0.4)' }}>
+                    รายการอาหาร ({lineItems.length})
+                  </p>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: '#f97316' }}>
+                    รวม {CURRENCIES[currency]?.symbol}{itemizedTotal.toLocaleString()}
+                  </span>
+                </div>
+
+                {lineItems.map((item, idx) => (
+                  <div key={item.id} style={{ background: 'rgba(255,255,255,0.6)', borderRadius: 14, padding: 14, marginBottom: 10, border: '1px solid rgba(0,0,0,0.04)' }}>
+                    <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(30,30,60,0.3)', minWidth: 20 }}>#{idx + 1}</span>
+                      <input value={item.name} onChange={e => updateLineItem(item.id, 'name', e.target.value)}
+                        placeholder="ชื่อเมนู (เช่น ราเมน, ข้าวผัด)"
+                        style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#1a1a2e', background: 'transparent', border: 'none', outline: 'none' }} />
+                      <input type="number" inputMode="decimal" value={item.price} onChange={e => updateLineItem(item.id, 'price', e.target.value)}
+                        placeholder="ราคา"
+                        style={{ width: 80, fontSize: 14, fontWeight: 700, color: '#f97316', background: 'rgba(249,115,22,0.06)', border: 'none', outline: 'none', borderRadius: 8, padding: '4px 8px', textAlign: 'right' }} />
+                      <button onClick={() => removeLineItem(item.id)} style={{ color: 'rgba(30,30,60,0.25)', fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>×</button>
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span style={{ fontSize: 10, color: 'rgba(30,30,60,0.3)', fontWeight: 600, marginRight: 2 }}>ใครกิน:</span>
+                      {members.map(m => {
+                        const sel = item.assignedIds.includes(m.id)
+                        return (
+                          <button key={m.id} onClick={() => toggleLineItemPerson(item.id, m.id)}
+                            style={{ padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600, transition: 'all 0.15s',
+                              borderWidth: 1, borderStyle: 'solid',
+                              ...(sel ? { background: '#f97316', color: '#fff', borderColor: 'transparent' }
+                                     : { background: 'rgba(0,0,0,0.04)', color: 'rgba(30,30,60,0.4)', borderColor: 'rgba(0,0,0,0.06)' }),
+                            }}>
+                            {m.name.split(' ')[0]}{m.id === me?.id ? '(ฉัน)' : ''}
+                          </button>
+                        )
+                      })}
+                      <button onClick={() => assignAllToItem(item.id)}
+                        style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, color: '#f97316', background: 'none', border: '1px dashed rgba(249,115,22,0.3)', cursor: 'pointer' }}>
+                        ทุกคน
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button onClick={addLineItem} className="w-full flex items-center justify-center gap-2"
+                  style={{ padding: '10px', borderRadius: 14, fontSize: 13, fontWeight: 600, color: '#f97316', background: 'rgba(249,115,22,0.04)', border: '1.5px dashed rgba(249,115,22,0.25)', cursor: 'pointer' }}>
+                  + เพิ่มรายการ
+                </button>
+
+                {lineItems.length > 0 && (
+                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(30,30,60,0.3)', marginBottom: 8 }}>สรุปแต่ละคนจ่าย</p>
+                    {(() => {
+                      const totals = getItemizedTotals()
+                      return members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => (
+                        <div key={m.id} className="flex items-center justify-between" style={{ padding: '6px 0' }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{m.name.split(' ')[0]}{m.id === me?.id ? ' (ฉัน)' : ''}</span>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: '#f97316' }}>
+                            {CURRENCIES[currency]?.symbol}{Math.ceil(totals.get(m.id) ?? 0).toLocaleString()}
+                          </span>
+                        </div>
+                      ))
+                    })()}
+                  </div>
+                )}
+              </div>
+              )}
+
+              <div style={{ ...glassCard, animation: `splitCardIn 0.32s ease-out ${splitMode === 'itemized' ? '0.08s' : '0.04s'} both` }} className="space-y-3">
                 <input
                   value={title}
                   onChange={e => setTitle(e.target.value)}
@@ -747,9 +849,8 @@ export default function SplitPage() {
                   }}
                 />
 
-                {/* Currency + Amount */}
+                {/* Currency picker — always visible */}
                 <div className="flex items-center gap-3">
-                  {/* Currency picker */}
                   <div className="relative">
                     <select
                       value={currency}
@@ -766,19 +867,30 @@ export default function SplitPage() {
                     </select>
                     <span className="absolute pointer-events-none" style={{ right: 6, top: '50%', transform: 'translateY(-50%)', fontSize: 10, color: '#f97316' }}>▾</span>
                   </div>
-                  <input
-                    type="number" inputMode="decimal"
-                    value={amount} onChange={e => setAmount(e.target.value)}
-                    placeholder="0"
-                    style={{
-                      flex: 1, fontSize: 28, fontWeight: 700, color: '#1a1a2e',
-                      background: 'transparent', border: 'none', outline: 'none',
-                    }}
-                  />
+
+                  {/* Itemized mode: show auto-total / Equal mode: manual input */}
+                  {splitMode === 'itemized' ? (
+                    <div className="flex-1">
+                      <span style={{ fontSize: 28, fontWeight: 700, color: itemizedTotal > 0 ? '#f97316' : 'rgba(30,30,60,0.2)' }}>
+                        {itemizedTotal > 0 ? itemizedTotal.toLocaleString() : '0'}
+                      </span>
+                      <span style={{ fontSize: 12, color: 'rgba(30,30,60,0.35)', marginLeft: 8, fontWeight: 500 }}>รวมจากรายการ</span>
+                    </div>
+                  ) : (
+                    <input
+                      type="number" inputMode="decimal"
+                      value={amount} onChange={e => setAmount(e.target.value)}
+                      placeholder="0"
+                      style={{
+                        flex: 1, fontSize: 28, fontWeight: 700, color: '#1a1a2e',
+                        background: 'transparent', border: 'none', outline: 'none',
+                      }}
+                    />
+                  )}
                 </div>
 
-                {/* THB conversion preview */}
-                {currency !== 'THB' && parseFloat(amount) > 0 && rates[currency] && (
+                {/* THB conversion preview — equal mode only */}
+                {splitMode === 'equal' && currency !== 'THB' && parseFloat(amount) > 0 && rates[currency] && (
                   <div className="flex items-center justify-between" style={{
                     background: 'rgba(234,179,8,0.08)', borderRadius: 12, padding: '8px 12px',
                   }}>
@@ -789,6 +901,20 @@ export default function SplitPage() {
                   </div>
                 )}
 
+                {/* Itemized mode THB conversion */}
+                {splitMode === 'itemized' && currency !== 'THB' && itemizedTotal > 0 && rates[currency] && (
+                  <div className="flex items-center justify-between" style={{
+                    background: 'rgba(234,179,8,0.08)', borderRadius: 12, padding: '8px 12px',
+                  }}>
+                    <span style={{ fontSize: 12, color: '#a16207' }}>เทียบเป็น THB</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#a16207' }}>
+                      ≈ ฿{Math.ceil(itemizedTotal / rates[currency]).toLocaleString('th-TH')}
+                    </span>
+                  </div>
+                )}
+
+                {/* Quick amount buttons — equal mode only */}
+                {splitMode === 'equal' && (
                 <div className="flex gap-2 flex-wrap">
                   {[100, 200, 500, 1000, 2000].map(v => (
                     <button key={v} onClick={() => setAmount(String(v))}
@@ -802,6 +928,7 @@ export default function SplitPage() {
                     </button>
                   ))}
                 </div>
+                )}
               </div>
 
               {/* Category picker */}
@@ -815,15 +942,16 @@ export default function SplitPage() {
                       className="flex items-center gap-1.5 transition-all"
                       style={{
                         padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+                        borderWidth: 1, borderStyle: 'solid',
                         ...(category === c.id ? {
                           background: 'linear-gradient(to right, #f97316, #ea580c)',
                           color: '#ffffff',
                           boxShadow: '0 2px 8px rgba(249,115,22,0.25)',
-                          border: '1px solid transparent',
+                          borderColor: 'transparent',
                         } : {
                           background: 'rgba(255,255,255,0.7)',
                           color: 'rgba(30,30,60,0.55)',
-                          border: '1px solid rgba(255,255,255,0.88)',
+                          borderColor: 'rgba(255,255,255,0.88)',
                           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                         }),
                       }}
@@ -867,116 +995,7 @@ export default function SplitPage() {
                 )}
               </div>
 
-              {/* Split mode toggle */}
-              {!payFromFund && (
-              <div style={{ ...glassCard, animation: 'splitCardIn 0.32s ease-out 0.15s both' }}>
-                <p style={{ fontSize: 11, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(30,30,60,0.4)', marginBottom: 10 }}>วิธีหาร</p>
-                <div className="flex gap-2">
-                  {(['equal', 'itemized'] as const).map(mode => (
-                    <button key={mode} onClick={() => setSplitMode(mode)}
-                      className="flex-1 flex items-center justify-center gap-2 transition-all"
-                      style={{
-                        padding: '10px 12px', borderRadius: 14, fontSize: 13, fontWeight: 600,
-                        ...(splitMode === mode ? {
-                          background: 'linear-gradient(to right, #f97316, #ea580c)', color: '#fff',
-                          boxShadow: '0 2px 8px rgba(249,115,22,0.25)', border: '1px solid transparent',
-                        } : {
-                          background: 'rgba(255,255,255,0.7)', color: 'rgba(30,30,60,0.55)',
-                          border: '1px solid rgba(255,255,255,0.88)', boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                        }),
-                      }}>
-                      {mode === 'equal' ? '➗ หารเท่า' : '📝 แยกรายการ'}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              )}
-
-              {/* Itemized split — add food items */}
-              {!payFromFund && splitMode === 'itemized' && (
-              <div style={{ ...glassCard, animation: 'splitCardIn 0.32s ease-out 0.18s both' }}>
-                <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-                  <p style={{ fontSize: 11, letterSpacing: '0.08em', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(30,30,60,0.4)' }}>
-                    รายการอาหาร ({lineItems.length})
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span style={{ fontSize: 13, fontWeight: 700, color: '#f97316' }}>
-                      รวม {CURRENCIES[currency]?.symbol}{itemizedTotal.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                {lineItems.map((item, idx) => (
-                  <div key={item.id} style={{
-                    background: 'rgba(255,255,255,0.6)', borderRadius: 14, padding: 14, marginBottom: 10,
-                    border: '1px solid rgba(0,0,0,0.04)',
-                  }}>
-                    <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'rgba(30,30,60,0.3)', minWidth: 20 }}>#{idx + 1}</span>
-                      <input value={item.name} onChange={e => updateLineItem(item.id, 'name', e.target.value)}
-                        placeholder="ชื่อเมนู (เช่น ราเมน, ข้าวผัด)"
-                        style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#1a1a2e', background: 'transparent', border: 'none', outline: 'none' }} />
-                      <input type="number" inputMode="decimal" value={item.price} onChange={e => updateLineItem(item.id, 'price', e.target.value)}
-                        placeholder="ราคา"
-                        style={{ width: 80, fontSize: 14, fontWeight: 700, color: '#f97316', background: 'rgba(249,115,22,0.06)', border: 'none', outline: 'none', borderRadius: 8, padding: '4px 8px', textAlign: 'right' }} />
-                      <button onClick={() => removeLineItem(item.id)} style={{ color: 'rgba(30,30,60,0.25)', fontSize: 18, background: 'none', border: 'none', cursor: 'pointer', padding: '0 4px' }}>×</button>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span style={{ fontSize: 10, color: 'rgba(30,30,60,0.3)', fontWeight: 600, marginRight: 2 }}>ใครกิน:</span>
-                      {members.map(m => {
-                        const sel = item.assignedIds.includes(m.id)
-                        return (
-                          <button key={m.id} onClick={() => toggleLineItemPerson(item.id, m.id)}
-                            style={{
-                              padding: '2px 8px', borderRadius: 999, fontSize: 11, fontWeight: 600,
-                              transition: 'all 0.15s',
-                              ...(sel ? {
-                                background: '#f97316', color: '#fff', border: '1px solid transparent',
-                              } : {
-                                background: 'rgba(0,0,0,0.04)', color: 'rgba(30,30,60,0.4)', border: '1px solid rgba(0,0,0,0.06)',
-                              }),
-                            }}>
-                            {m.name.split(' ')[0]}{m.id === me?.id ? '(ฉัน)' : ''}
-                          </button>
-                        )
-                      })}
-                      <button onClick={() => assignAllToItem(item.id)}
-                        style={{ padding: '2px 6px', borderRadius: 999, fontSize: 10, fontWeight: 600, color: '#f97316', background: 'none', border: '1px dashed rgba(249,115,22,0.3)', cursor: 'pointer' }}>
-                        ทุกคน
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <button onClick={addLineItem}
-                  className="w-full flex items-center justify-center gap-2"
-                  style={{
-                    padding: '10px', borderRadius: 14, fontSize: 13, fontWeight: 600,
-                    color: '#f97316', background: 'rgba(249,115,22,0.04)',
-                    border: '1.5px dashed rgba(249,115,22,0.25)', cursor: 'pointer',
-                  }}>
-                  + เพิ่มรายการ
-                </button>
-
-                {/* Per-person breakdown */}
-                {lineItems.length > 0 && (
-                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.04)' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(30,30,60,0.3)', marginBottom: 8 }}>สรุปแต่ละคนจ่าย</p>
-                    {(() => {
-                      const totals = getItemizedTotals()
-                      return members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => (
-                        <div key={m.id} className="flex items-center justify-between" style={{ padding: '6px 0' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{m.name.split(' ')[0]}{m.id === me?.id ? ' (ฉัน)' : ''}</span>
-                          <span style={{ fontSize: 14, fontWeight: 700, color: '#f97316' }}>
-                            {CURRENCIES[currency]?.symbol}{Math.ceil(totals.get(m.id) ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-                      ))
-                    })()}
-                  </div>
-                )}
-              </div>
-              )}
+              {/* (itemized section moved to after toggle) */}
 
               {/* Member selector — equal split mode, hidden when paying from fund */}
               {!payFromFund && splitMode === 'equal' && (
@@ -1000,15 +1019,16 @@ export default function SplitPage() {
                         className="flex items-center gap-1.5 transition-all"
                         style={{
                           padding: '6px 12px', borderRadius: 999, fontSize: 12, fontWeight: 500,
+                          borderWidth: 1, borderStyle: 'solid',
                           ...(sel ? {
                             background: 'linear-gradient(to right, #f97316, #ea580c)',
                             color: '#ffffff',
                             boxShadow: '0 2px 8px rgba(249,115,22,0.25)',
-                            border: '1px solid transparent',
+                            borderColor: 'transparent',
                           } : {
                             background: 'rgba(255,255,255,0.7)',
                             color: 'rgba(30,30,60,0.55)',
-                            border: '1px solid rgba(255,255,255,0.88)',
+                            borderColor: 'rgba(255,255,255,0.88)',
                             boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
                           }),
                         }}>

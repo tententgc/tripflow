@@ -14,6 +14,7 @@ export async function POST(
       description?: string | null
       category: string
       imageUrls?: string[]
+      googleMapUrl?: string | null
     }
 
     const maxOrder = await db.activity.aggregate({
@@ -31,6 +32,7 @@ export async function POST(
         description: body.description ?? null,
         category: body.category as any,
         imageUrls: body.imageUrls ?? [],
+        googleMapUrl: body.googleMapUrl ?? null,
       },
     })
 
