@@ -5,13 +5,13 @@ export const fetcher = (url: string) => fetch(url).then(r => {
   return r.json()
 })
 
-/** Standard hook — auto-refresh every 15s for near real-time updates */
+/** Standard hook — auto-refresh every 60s, revalidate on focus for fresh data */
 export function useApi<T>(url: string | null, config?: SWRConfiguration) {
   return useSWR<T>(url, fetcher, {
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
-    dedupingInterval: 5000,
-    refreshInterval: 15_000,     // poll every 15s for real-time feel
+    dedupingInterval: 10_000,
+    refreshInterval: 60_000,     // poll every 60s (pages can override for real-time)
     ...config,
   })
 }

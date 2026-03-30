@@ -7,9 +7,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-950 relative overflow-hidden">
       {/* Gradient background — full screen */}
-      <div className="absolute inset-0 bg-gradient-to-b from-indigo-600 via-violet-600/60 to-gray-950" />
+      <div className="absolute inset-0 bg-gradient-to-b from-orange-600 via-orange-600/60 to-gray-950" />
       {/* Subtle glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-purple-500/25 rounded-full blur-[120px]" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-80 h-80 bg-orange-600/25 rounded-full blur-[120px]" />
 
       {/* Content — centered */}
       <div className="relative z-10 w-full max-w-sm px-5">
@@ -28,7 +28,7 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white">TripFlow</h1>
-          <p className="text-indigo-200/80 text-sm mt-1.5">จัดการทริปกลุ่มได้ทั่วโลก</p>
+          <p className="text-orange-200/80 text-sm mt-1.5">จัดการทริปกลุ่มได้ทั่วโลก</p>
         </div>
 
         {/* Glass card */}

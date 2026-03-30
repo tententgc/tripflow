@@ -248,7 +248,7 @@ function GradientCard({ children, className = '' }: {
         className="absolute -inset-px rounded-2xl transition-opacity duration-300"
         style={{
           opacity: isHovered ? 1 : 0,
-          background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.15), transparent 70%)`,
+          background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(249, 115, 22, 0.3), rgba(251, 146, 60, 0.15), transparent 70%)`,
         }}
       />
       {/* Resting border */}
@@ -260,7 +260,7 @@ function GradientCard({ children, className = '' }: {
         }}
       />
       {/* Card content */}
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl h-full transition-all duration-300 group-hover:bg-white group-hover:shadow-xl group-hover:shadow-indigo-500/5">
+      <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl h-full transition-all duration-300 group-hover:bg-white group-hover:shadow-xl group-hover:shadow-orange-500/5">
         {children}
       </div>
     </div>
@@ -273,8 +273,8 @@ function Logo({ size = 28 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id={`logoBg${size}`} x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#6366F1" />
-          <stop offset="1" stopColor="#7C3AED" />
+          <stop stopColor="#ea580c" />
+          <stop offset="1" stopColor="#c2410c" />
         </linearGradient>
       </defs>
       <rect width="512" height="512" rx="112" fill={`url(#logoBg${size})`} />
@@ -381,11 +381,11 @@ export default function LandingPage() {
 
         {/* Gradient orbs */}
         <div className="absolute top-[15%] left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full pointer-events-none opacity-60"
-          style={{ background: 'radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.06) 40%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(ellipse, rgba(249,115,22,0.12) 0%, rgba(251,146,60,0.06) 40%, transparent 70%)' }} />
         <div className="absolute top-[35%] left-[5%] w-[300px] h-[300px] rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(ellipse, rgba(59,130,246,0.06) 0%, transparent 70%)', filter: 'blur(40px)' }} />
         <div className="absolute top-[25%] right-[5%] w-[250px] h-[250px] rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse, rgba(168,85,247,0.05) 0%, transparent 70%)', filter: 'blur(40px)' }} />
+          style={{ background: 'radial-gradient(ellipse, rgba(251,146,60,0.05) 0%, transparent 70%)', filter: 'blur(40px)' }} />
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           {/* Badge */}
@@ -402,7 +402,7 @@ export default function LandingPage() {
               className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6"
               style={{
                 whiteSpace: 'pre-line',
-                background: 'linear-gradient(135deg, #111827 0%, #1e1b4b 30%, #4338ca 60%, #6366f1 100%)',
+                background: 'linear-gradient(135deg, #111827 0%, #7c2d12 30%, #c2410c 60%, #ea580c 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -424,11 +424,11 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
               <a
                 href="/login"
-                className="group relative px-8 py-4 text-white font-semibold rounded-xl text-base overflow-hidden opacity-100 hover:opacity-100 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/20 hover:-translate-y-0.5"
-                style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+                className="group relative px-8 py-4 text-white font-semibold rounded-xl text-base overflow-hidden opacity-100 hover:opacity-100 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/20 hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' }}
               >
                 <span className="relative z-10">{t.hero.cta1}</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </a>
               <a
                 href="#features"
@@ -445,7 +445,7 @@ export default function LandingPage() {
               {t.destinations.map((d) => (
                 <span
                   key={d}
-                  className="px-3.5 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50/50 transition-all duration-200 cursor-default"
+                  className="px-3.5 py-1.5 text-xs rounded-full font-medium bg-white border border-gray-200 text-gray-600 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50/50 transition-all duration-200 cursor-default"
                 >
                   {d}
                 </span>
@@ -472,7 +472,7 @@ export default function LandingPage() {
                   <div
                     className="text-4xl md:text-5xl font-bold tabular-nums mb-2"
                     style={{
-                      background: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #6366f1 100%)',
+                      background: 'linear-gradient(135deg, #7c2d12 0%, #c2410c 50%, #ea580c 100%)',
                       WebkitBackgroundClip: 'text',
                       WebkitTextFillColor: 'transparent',
                       backgroundClip: 'text',
@@ -492,8 +492,8 @@ export default function LandingPage() {
       <section id="features" className="py-28 px-6">
         <div className="max-w-6xl mx-auto">
           <Reveal className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 mb-5">
-              <span className="text-xs font-semibold text-indigo-600 tracking-wide uppercase">{t.features.badge}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-100 mb-5">
+              <span className="text-xs font-semibold text-orange-600 tracking-wide uppercase">{t.features.badge}</span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 mb-4">{t.features.h2}</h2>
             <p className="text-lg max-w-lg mx-auto text-gray-500">{t.features.sub}</p>
@@ -604,7 +604,7 @@ export default function LandingPage() {
             <div
               className="hidden md:block absolute top-[32px] left-[calc(16.6%+24px)] right-[calc(16.6%+24px)] h-px"
               style={{
-                background: 'linear-gradient(90deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2), rgba(99,102,241,0.2))',
+                background: 'linear-gradient(90deg, rgba(249,115,22,0.2), rgba(251,146,60,0.2), rgba(249,115,22,0.2))',
               }}
             />
 
@@ -613,7 +613,7 @@ export default function LandingPage() {
                 <div className="group flex flex-col items-center text-center">
                   {/* Step number */}
                   <div className="relative mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center text-lg font-bold text-gray-400 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 group-hover:shadow-lg group-hover:shadow-indigo-500/25 group-hover:scale-110">
+                    <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center text-lg font-bold text-gray-400 transition-all duration-300 group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 group-hover:shadow-lg group-hover:shadow-orange-500/25 group-hover:scale-110">
                       {s.n}
                     </div>
                   </div>
@@ -632,7 +632,7 @@ export default function LandingPage() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(135deg, rgba(238,242,255,0.5) 0%, rgba(245,243,255,0.5) 50%, rgba(238,242,255,0.3) 100%)',
+            background: 'linear-gradient(135deg, rgba(255,243,232,0.5) 0%, rgba(255,237,222,0.5) 50%, rgba(255,243,232,0.3) 100%)',
           }}
         />
         <div
@@ -653,17 +653,17 @@ export default function LandingPage() {
           <p className="text-lg mb-10 text-gray-500">{t.cta.sub}</p>
           <a
             href="/login"
-            className="group relative inline-block px-10 py-4 text-white font-semibold text-base rounded-xl overflow-hidden opacity-100 hover:opacity-100 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/25 hover:-translate-y-0.5"
-            style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}
+            className="group relative inline-block px-10 py-4 text-white font-semibold text-base rounded-xl overflow-hidden opacity-100 hover:opacity-100 transition-all duration-300 hover:shadow-xl hover:shadow-orange-500/25 hover:-translate-y-0.5"
+            style={{ background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' }}
           >
             <span className="relative z-10">{t.cta.btn}</span>
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </a>
           <p className="mt-6 text-sm text-gray-400">
             {t.cta.sub2}{' '}
             <a
               href="/login"
-              className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2 opacity-100 hover:opacity-100 transition-colors"
+              className="text-orange-600 hover:text-orange-700 font-medium underline underline-offset-2 opacity-100 hover:opacity-100 transition-colors"
             >
               {t.cta.sub2link}
             </a>

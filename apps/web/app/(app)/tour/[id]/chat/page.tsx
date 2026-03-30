@@ -138,8 +138,8 @@ export default function ChatPage() {
             >
               {/* AI avatar */}
               {msg.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)' }}>
-                  <svg className="w-4 h-4" style={{ color: '#8b5cf6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                  <svg className="w-4 h-4" style={{ color: '#fb923c' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
                   </svg>
                 </div>
@@ -150,9 +150,9 @@ export default function ChatPage() {
                 <div
                   className="max-w-[80%] px-4 py-3 text-[14px] text-[#f8f8fc]"
                   style={{
-                    background: 'linear-gradient(135deg, #7c5cfc, #6d4fea)',
+                    background: 'linear-gradient(135deg, #f97316, #c2410c)',
                     borderRadius: '18px 4px 18px 18px',
-                    boxShadow: '0 4px 16px rgba(124,92,252,0.3)',
+                    boxShadow: '0 4px 16px rgba(249,115,22,0.3)',
                     lineHeight: '1.7',
                   }}
                 >
@@ -181,7 +181,7 @@ export default function ChatPage() {
                         ol:     ({ children }) => <ol className="list-decimal list-inside space-y-0.5 mt-1">{children}</ol>,
                         li:     ({ children }) => <li className="text-sm">{children}</li>,
                         h3:     ({ children }) => <h3 className="font-bold text-sm mt-2 mb-0.5 text-[#1a1a2e]">{children}</h3>,
-                        code:   ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: 'rgba(124,92,252,0.08)', color: '#7c5cfc' }}>{children}</code>,
+                        code:   ({ children }) => <code className="px-1 py-0.5 rounded text-xs font-mono" style={{ background: 'rgba(249,115,22,0.08)', color: '#f97316' }}>{children}</code>,
                         hr:     () => <hr style={{ border: 'none', borderTop: '0.5px solid rgba(0,0,0,0.06)', margin: '8px 0' }} />,
                       }}
                     >
@@ -190,7 +190,7 @@ export default function ChatPage() {
                   ) : isLoading ? (
                     <span className="flex gap-1.5 items-center py-1">
                       {[0, 1, 2].map(d => (
-                        <span key={d} className="w-2 h-2 rounded-full" style={{ background: d === 0 ? '#8b5cf6' : d === 1 ? '#7c5cfc' : '#6366f1', animation: `chatDot 1.2s ease-in-out ${d * 0.15}s infinite` }} />
+                        <span key={d} className="w-2 h-2 rounded-full" style={{ background: d === 0 ? '#fb923c' : d === 1 ? '#f97316' : '#ea580c', animation: `chatDot 1.2s ease-in-out ${d * 0.15}s infinite` }} />
                       ))}
                     </span>
                   ) : null}
@@ -231,9 +231,9 @@ export default function ChatPage() {
                   color: '#3d3a5c',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(124,92,252,0.08)'
-                  e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'
-                  e.currentTarget.style.color = '#7c5cfc'
+                  e.currentTarget.style.background = 'rgba(249,115,22,0.08)'
+                  e.currentTarget.style.borderColor = 'rgba(249,115,22,0.3)'
+                  e.currentTarget.style.color = '#f97316'
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.65)'
@@ -263,8 +263,8 @@ export default function ChatPage() {
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.04)',
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(124,92,252,0.4)'
-                e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.04), 0 0 0 3px rgba(124,92,252,0.08)'
+                e.currentTarget.style.borderColor = 'rgba(249,115,22,0.4)'
+                e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 8px rgba(0,0,0,0.04), 0 0 0 3px rgba(249,115,22,0.08)'
               }}
               onBlur={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(255,255,255,0.88)'
@@ -276,8 +276,8 @@ export default function ChatPage() {
               disabled={!hasInput || isLoading}
               className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 no-btn-fx transition-all duration-200 active:scale-[0.92]"
               style={hasInput && !isLoading ? {
-                background: 'linear-gradient(135deg, #7c5cfc, #6d4fea)',
-                boxShadow: '0 4px 14px rgba(124,92,252,0.4)',
+                background: 'linear-gradient(135deg, #f97316, #c2410c)',
+                boxShadow: '0 4px 14px rgba(249,115,22,0.4)',
               } : {
                 background: 'rgba(0,0,0,0.06)',
               }}

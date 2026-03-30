@@ -1,16 +1,7 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-
-export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const w = console.warn; console.warn = () => {}
-  const { data: { session } } = await supabase.auth.getSession()
-  console.warn = w
-  const user = session?.user
-
-  if (!user) {
-    redirect('/login')
-  }
-
+/**
+ * App layout — middleware already handles auth redirects,
+ * so this is just a pass-through wrapper. No server-side auth check needed.
+ */
+export default function AppLayout({ children }: { children: React.ReactNode }) {
   return <div data-page>{children}</div>
 }

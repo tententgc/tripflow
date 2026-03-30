@@ -153,10 +153,10 @@ export default function CalculatorPage() {
                   onClick={() => setDestCurrency(code)}
                   className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-[20px] text-[12px] font-semibold no-btn-fx transition-all duration-150"
                   style={active ? {
-                    background: 'rgba(124,92,252,0.12)',
-                    border: '1px solid rgba(124,92,252,0.35)',
-                    color: '#7c5cfc',
-                    boxShadow: '0 2px 8px rgba(124,92,252,0.15)',
+                    background: 'rgba(249,115,22,0.12)',
+                    border: '1px solid rgba(249,115,22,0.35)',
+                    color: '#f97316',
+                    boxShadow: '0 2px 8px rgba(249,115,22,0.15)',
                   } : {
                     background: 'rgba(255,255,255,0.5)',
                     border: '1px solid rgba(255,255,255,0.8)',
@@ -192,7 +192,7 @@ export default function CalculatorPage() {
                   }}
                 >
                   {dir === 'thb-to-dest' ? 'THB' : destCurrency}
-                  <span style={{ color: active ? '#7c5cfc' : 'rgba(30,30,60,0.25)' }}>→</span>
+                  <span style={{ color: active ? '#f97316' : 'rgba(30,30,60,0.25)' }}>→</span>
                   {dir === 'thb-to-dest' ? destCurrency : 'THB'}
                 </button>
               )
@@ -226,9 +226,9 @@ export default function CalculatorPage() {
                   color: '#3d3a5c',
                 }}
                 onMouseDown={(e) => {
-                  e.currentTarget.style.background = 'rgba(124,92,252,0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'
-                  e.currentTarget.style.color = '#7c5cfc'
+                  e.currentTarget.style.background = 'rgba(249,115,22,0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(249,115,22,0.3)'
+                  e.currentTarget.style.color = '#f97316'
                 }}
                 onMouseUp={(e) => {
                   e.currentTarget.style.background = 'rgba(255,255,255,0.6)'
