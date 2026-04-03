@@ -25,9 +25,9 @@ interface TourBasic {
 
 // ── Type config with hex colors ──
 const typeColors: Record<string, string> = {
-  FLIGHT_TICKET: '#3b82f6', HOTEL_VOUCHER: '#8b5cf6', TOUR_VOUCHER: '#22c55e',
+  FLIGHT_TICKET: '#3b82f6', HOTEL_VOUCHER: '#fb923c', TOUR_VOUCHER: '#22c55e',
   VISA: '#ef4444', QR_CODE: '#6b7280', INSURANCE: '#14b8a6',
-  PASSPORT: '#6366f1', MAP: '#f59e0b', VISIT_JAPAN_WEB: '#ef4444',
+  PASSPORT: '#ea580c', MAP: '#f59e0b', VISIT_JAPAN_WEB: '#ef4444',
   CHINA_HEALTH_KIT: '#ef4444', OTHER: '#94a3b8',
 }
 const typeLabels: Record<string, string> = {
@@ -204,7 +204,7 @@ function ModalContent({ doc, hex, label, hasFile, hasQr, fileIsPdf, fileIsImage,
           <div className="flex items-center gap-1.5 mt-1">
             <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: rgba(hex, 0.1), border: `1px solid ${rgba(hex, 0.2)}`, color: hex }}>{label}</span>
             {fileIsPdf && <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(0,0,0,0.05)', color: 'rgba(30,30,60,0.5)' }}>PDF</span>}
-            {doc.isPersonal && <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>ส่วนตัว</span>}
+            {doc.isPersonal && <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}>ส่วนตัว</span>}
           </div>
         </div>
         <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 no-btn-fx transition-colors" style={{ background: 'rgba(0,0,0,0.06)' }}
@@ -243,7 +243,7 @@ function ModalContent({ doc, hex, label, hasFile, hasQr, fileIsPdf, fileIsImage,
       </div>
 
       {/* Footer — info + action */}
-      <div style={{ padding: '14px 20px 20px 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.5)' }}>
+      <div style={{ padding: '14px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px', borderTop: '0.5px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.5)' }}>
         {(doc.titleEn || doc.description) && (
           <div className="mb-3.5">
             {doc.titleEn && <p className="text-[12px] text-[rgba(30,30,60,0.4)]">{doc.titleEn}</p>}
@@ -252,32 +252,54 @@ function ModalContent({ doc, hex, label, hasFile, hasQr, fileIsPdf, fileIsImage,
         )}
 
         {hasFile && (
-          <a
-            href={doc.fileUrl!}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center justify-center gap-2.5 w-full h-[52px] rounded-[14px] text-[15px] font-semibold text-[#3d3a5c] no-btn-fx transition-all duration-[180ms] hover:-translate-y-px active:scale-[0.98]"
-            style={{
-              background: 'rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              border: '1px solid rgba(255,255,255,0.9)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 12px rgba(0,0,0,0.06)',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(124,92,252,0.06)'
-              e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.7)'
-              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.9)'
-            }}
-          >
-            <svg className="w-[18px] h-[18px] text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-            </svg>
-            เปิดไฟล์เต็มจอ
-          </a>
+          <div className="flex flex-col min-[400px]:flex-row gap-2.5">
+            <a
+              href={doc.fileUrl!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex-1 flex items-center justify-center gap-2.5 h-[52px] rounded-[14px] text-[15px] font-semibold text-[#3d3a5c] no-btn-fx transition-all duration-[180ms] hover:-translate-y-px active:scale-[0.98]"
+              style={{
+                background: 'rgba(255,255,255,0.7)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255,255,255,0.9)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 12px rgba(0,0,0,0.06)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(249,115,22,0.06)'
+                e.currentTarget.style.borderColor = 'rgba(249,115,22,0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.7)'
+                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.9)'
+              }}
+            >
+              <svg className="w-[18px] h-[18px] text-[#f97316]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+              เปิดไฟล์
+            </a>
+            <a
+              href={doc.fileUrl!}
+              download
+              className="group flex items-center justify-center gap-2.5 h-[52px] px-5 rounded-[14px] text-[15px] font-semibold text-white no-btn-fx transition-all duration-[180ms] hover:-translate-y-px active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(135deg, #f97316, #c2410c)',
+                boxShadow: '0 2px 12px rgba(249,115,22,0.3)',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(249,115,22,0.4)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 2px 12px rgba(249,115,22,0.3)'
+              }}
+            >
+              <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              ดาวน์โหลด
+            </a>
+          </div>
         )}
       </div>
     </>
@@ -310,7 +332,7 @@ function DocRow({ doc, onClick, onDelete }: { doc: Document; onClick: () => void
             </span>
           )}
           {doc.isPersonal && (
-            <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>
+            <span className="inline-flex items-center h-5 px-2 rounded-[10px] text-[11px] font-semibold" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}>
               ส่วนตัว
             </span>
           )}
@@ -412,7 +434,7 @@ export default function DocumentsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f0f2f8] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -422,7 +444,7 @@ export default function DocumentsPage() {
   const groupDocs = docs.filter(d => !d.isPersonal)
   const myDocs = docs.filter(d => d.isPersonal && d.userId === userId)
 
-  const inputCls = 'w-full px-3 py-2.5 rounded-xl text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[rgba(124,92,252,0.3)] transition-colors'
+  const inputCls = 'w-full px-3 py-2.5 rounded-xl text-sm text-[#1a1a2e] focus:outline-none focus:ring-2 focus:ring-[rgba(249,115,22,0.3)] transition-colors'
 
   return (
     <div className="min-h-screen bg-[#f0f2f8] relative overflow-hidden" style={{ paddingBottom: '100px' }}>
@@ -447,7 +469,7 @@ export default function DocumentsPage() {
           <div style={{ animation: 'docCardIn 0.3s ease-out 0ms both' }}>
             <div className="flex items-center gap-2 mb-2 pl-1">
               <p className="text-[11px] font-bold uppercase text-[rgba(30,30,60,0.4)]" style={{ letterSpacing: '0.09em' }}>ตั๋วจากผู้จัดทัวร์</p>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>{groupDocs.length}</span>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}>{groupDocs.length}</span>
             </div>
             <div className="rounded-[20px] overflow-hidden" style={glassStyle}>
               {groupDocs.map((doc, i) => (
@@ -464,7 +486,7 @@ export default function DocumentsPage() {
         <div style={{ animation: 'docCardIn 0.3s ease-out 80ms both' }}>
           <div className="flex items-center gap-2 mb-2 pl-1">
             <p className="text-[11px] font-bold uppercase text-[rgba(30,30,60,0.4)]" style={{ letterSpacing: '0.09em' }}>ตั๋วของฉัน</p>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(124,92,252,0.1)', border: '1px solid rgba(124,92,252,0.2)', color: '#7c5cfc' }}>{myDocs.length}</span>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-[20px]" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)', color: '#f97316' }}>{myDocs.length}</span>
           </div>
 
           {myDocs.length > 0 && (
@@ -489,11 +511,11 @@ export default function DocumentsPage() {
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
                 className="w-full py-8 rounded-2xl flex flex-col items-center gap-2 active:scale-[0.99] transition-all no-btn-fx"
-                style={{ border: '1.5px dashed rgba(124,92,252,0.3)', background: 'rgba(255,255,255,0.4)' }}
+                style={{ border: '1.5px dashed rgba(249,115,22,0.3)', background: 'rgba(255,255,255,0.4)' }}
               >
                 {uploading ? (
                   <>
-                    <div className="w-6 h-6 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm text-[rgba(30,30,60,0.5)]">กำลังอัพโหลด...</span>
                   </>
                 ) : formFileUrl ? (
@@ -505,7 +527,7 @@ export default function DocumentsPage() {
                   </>
                 ) : (
                   <>
-                    <svg className="w-7 h-7 text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <svg className="w-7 h-7 text-[#f97316]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
                     <span className="text-sm text-[rgba(30,30,60,0.4)]">เลือกไฟล์ PDF หรือรูปภาพ</span>
@@ -531,7 +553,7 @@ export default function DocumentsPage() {
               <div className="flex gap-2 pt-1">
                 <button onClick={addDocument} disabled={saving || !formTitle.trim() || !formFileUrl}
                   className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-[#f8f8fc] disabled:opacity-40 active:scale-[0.98] transition-all no-btn-fx"
-                  style={{ background: 'linear-gradient(to right, #7c5cfc, #4fc3f7)', boxShadow: '0 4px 16px rgba(124,92,252,0.25)' }}>
+                  style={{ background: 'linear-gradient(to right, #f97316, #fbbf24)', boxShadow: '0 4px 16px rgba(249,115,22,0.25)' }}>
                   {saving ? 'กำลังบันทึก...' : 'เพิ่มตั๋ว'}
                 </button>
                 <button onClick={() => { setAdding(false); setFormTitle(''); setFormFileUrl('') }}
@@ -549,12 +571,12 @@ export default function DocumentsPage() {
                 background: 'rgba(255,255,255,0.55)',
                 backdropFilter: 'blur(16px)',
                 WebkitBackdropFilter: 'blur(16px)',
-                border: '1.5px dashed rgba(124,92,252,0.3)',
+                border: '1.5px dashed rgba(249,115,22,0.3)',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-                color: '#7c5cfc',
+                color: '#f97316',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.6)'; e.currentTarget.style.background = 'rgba(124,92,252,0.05)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.55)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(249,115,22,0.6)'; e.currentTarget.style.background = 'rgba(249,115,22,0.05)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(249,115,22,0.3)'; e.currentTarget.style.background = 'rgba(255,255,255,0.55)' }}
             >
               + เพิ่มตั๋วของฉัน
             </button>
@@ -564,8 +586,8 @@ export default function DocumentsPage() {
         {/* Empty state */}
         {docs.length === 0 && !adding && (
           <div className="flex flex-col items-center justify-center py-16 rounded-[20px]" style={{ ...glassStyle, animation: 'docCardIn 0.3s ease-out 150ms both' }}>
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: 'rgba(124,92,252,0.08)', border: '1px solid rgba(124,92,252,0.15)' }}>
-              <svg className="w-7 h-7 text-[#7c5cfc]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3" style={{ background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.15)' }}>
+              <svg className="w-7 h-7 text-[#f97316]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
               </svg>
             </div>

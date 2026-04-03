@@ -54,7 +54,7 @@ function rgba(hex: string, a: number) {
 interface Activity {
   id: string; time: string | null; title: string; titleEn: string | null
   titleLocal: string | null; description: string | null; category: string
-  locationName: string | null; address: string | null; addressLocal: string | null
+  locationName: string | null; address: string | null; addressLocal: string | null; googleMapUrl: string | null
   durationMins: number | null; cost: number | null; costCurrency: string | null
   costTHB: number | null; tips: string | null; imageUrls: string[]
 }
@@ -130,7 +130,7 @@ export default function DayDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-        <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -266,11 +266,24 @@ export default function DayDetailPage() {
                       {activity.titleEn && !activity.titleLocal && <p className="text-[12px] text-[rgba(30,30,60,0.4)] mt-0.5">{activity.titleEn}</p>}
 
                       {activity.locationName && (
-                        <p className="text-[13px] font-medium mt-2" style={{ color: hex }}>📍 {activity.locationName}</p>
+                        activity.googleMapUrl ? (
+                          <a href={activity.googleMapUrl} target="_blank" rel="noopener noreferrer"
+                            className="text-[13px] font-medium mt-2 flex items-center gap-1 hover:underline" style={{ color: hex }}>
+                            📍 {activity.locationName} <span className="text-[10px] opacity-60">↗</span>
+                          </a>
+                        ) : (
+                          <p className="text-[13px] font-medium mt-2" style={{ color: hex }}>📍 {activity.locationName}</p>
+                        )
                       )}
                       {activity.addressLocal && <p className="text-[12px] text-[rgba(30,30,60,0.4)] mt-0.5 ml-5">{activity.addressLocal}</p>}
 
-                      {(activity.locationName || activity.address || activity.titleLocal || activity.titleEn) && (
+                      {activity.googleMapUrl ? (
+                        <a href={activity.googleMapUrl} target="_blank" rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 mt-2 ml-5 px-3 py-1.5 rounded-lg text-[12px] font-semibold text-blue-600 no-btn-fx"
+                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)' }}>
+                          🗺️ Google Maps <span className="text-[10px]">↗</span>
+                        </a>
+                      ) : (activity.locationName || activity.address || activity.titleLocal || activity.titleEn) && (
                         <MapLink query={activity.addressLocal ?? activity.address ?? activity.locationName ?? activity.titleLocal ?? activity.titleEn ?? activity.title} isChina={tour.isChina} />
                       )}
 

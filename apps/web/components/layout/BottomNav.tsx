@@ -98,7 +98,7 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
   const isMoreActive = activeTab === 'chat' || activeTab === 'calculator' || activeTab === 'checklist' || activeTab === 'fund'
 
   const serviceTints: Record<string, { bg: string; color: string }> = {
-    chat:       { bg: 'rgba(124,92,252,0.1)',  color: '#8b5cf6' },
+    chat:       { bg: 'rgba(249,115,22,0.1)',  color: '#fb923c' },
     calculator: { bg: 'rgba(16,185,129,0.1)',  color: '#10b981' },
     checklist:  { bg: 'rgba(59,130,246,0.1)',  color: '#3b82f6' },
     fund:       { bg: 'rgba(249,115,22,0.1)',  color: '#f97316' },
@@ -168,7 +168,7 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                       borderRadius: '14px',
                       animation: `sheetRowIn 0.2s ease-out ${0.15 + i * 0.03}s both`,
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.04)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.04)' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
@@ -228,7 +228,7 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                       borderRadius: '14px',
                       animation: `sheetRowIn 0.2s ease-out ${0.12 + i * 0.03}s both`,
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.04)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.04)' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
@@ -259,15 +259,15 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                 key={tab.id}
                 href={tab.href}
                 className={`flex-1 flex flex-col items-center justify-center py-2.5 min-h-[56px] transition-all duration-150 relative ${
-                  isActive ? 'text-indigo-600' : 'text-gray-400'
+                  isActive ? 'text-orange-600' : 'text-gray-400'
                 }`}
               >
                 {tabIcons[tab.id]?.(isActive)}
-                <span className={`text-[10px] mt-1 leading-tight text-center font-medium ${isActive ? 'text-indigo-600' : 'text-gray-400'}`}>
+                <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isActive ? 'text-orange-600' : 'text-gray-400'}`}>
                   {tab.label}
                 </span>
                 {isActive && (
-                  <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" />
+                  <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-orange-500 to-orange-500 rounded-full" />
                 )}
               </Link>
             )
@@ -277,17 +277,17 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
           <button
             onClick={() => setOpen((v) => !v)}
             className={`flex-1 flex flex-col items-center justify-center py-2.5 min-h-[56px] transition-all duration-150 relative ${
-              isMoreActive || open ? 'text-indigo-600' : 'text-gray-400'
+              isMoreActive || open ? 'text-orange-600' : 'text-gray-400'
             }`}
           >
             <svg className={`w-5 h-5 transition-transform duration-200 ${open ? 'rotate-45' : ''}`} fill={isMoreActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isMoreActive ? 0 : 1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
             </svg>
-            <span className={`text-[10px] mt-1 leading-tight text-center font-medium ${isMoreActive || open ? 'text-indigo-600' : 'text-gray-400'}`}>
+            <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isMoreActive || open ? 'text-orange-600' : 'text-gray-400'}`}>
               เพิ่มเติม
             </span>
             {isMoreActive && (
-              <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500 rounded-full" />
+              <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-orange-500 to-orange-500 rounded-full" />
             )}
           </button>
         </div>

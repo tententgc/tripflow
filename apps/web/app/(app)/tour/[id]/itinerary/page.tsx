@@ -161,7 +161,7 @@ export default function ItineraryPage() {
 
                       {/* Title + location */}
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="text-[15px] font-bold text-[#1a1a2e] truncate whitespace-nowrap">{day.title}</p>
+                        <p className="text-[15px] font-bold text-[#1a1a2e] leading-snug">{day.title}</p>
                         {day.city && (
                           <span
                             className="inline-flex items-center gap-1 mt-1.5 px-2.5 rounded-[20px] text-[11px] font-semibold"
@@ -261,7 +261,7 @@ export default function ItineraryPage() {
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-      <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
     </div>
   )
 }

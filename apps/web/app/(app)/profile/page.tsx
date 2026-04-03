@@ -22,7 +22,7 @@ const glass: React.CSSProperties = {
   backdropFilter: 'blur(20px) saturate(160%)',
   WebkitBackdropFilter: 'blur(20px) saturate(160%)',
   border: '1px solid rgba(255,255,255,0.88)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 24px rgba(100,80,180,0.07)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 2px 24px rgba(180,100,50,0.07)',
   borderRadius: '20px',
 }
 
@@ -77,7 +77,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f0f2f8]">
-        <div className="w-8 h-8 border-2 border-[#7c5cfc] border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -120,15 +120,15 @@ export default function ProfilePage() {
         {/* ═══ HERO ═══ */}
         <div className="rounded-[20px] text-center" style={{ ...glass, padding: '28px 20px', animation: 'profCardIn 0.3s ease-out 0s both' }}>
           <div className="relative mx-auto" style={{ width: 88, height: 88, marginBottom: 14 }}>
-            <div className="w-[88px] h-[88px] rounded-full overflow-hidden flex items-center justify-center" style={{ border: '3px solid rgba(255,255,255,0.95)', boxShadow: '0 8px 28px rgba(100,80,180,0.2), 0 2px 8px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)' }}>
+            <div className="w-[88px] h-[88px] rounded-full overflow-hidden flex items-center justify-center" style={{ border: '3px solid rgba(255,255,255,0.95)', boxShadow: '0 8px 28px rgba(180,100,50,0.2), 0 2px 8px rgba(0,0,0,0.1)', background: 'rgba(255,255,255,0.5)' }}>
               {profile.avatarUrl ? (
                 <Image src={profile.avatarUrl} alt="" width={88} height={88} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
               ) : (
-                <span className="text-3xl font-bold text-[#7c5cfc]">{profile.name[0]}</span>
+                <span className="text-3xl font-bold text-[#f97316]">{profile.name[0]}</span>
               )}
             </div>
             {/* Edit badge */}
-            <div className="absolute flex items-center justify-center" style={{ width: 26, height: 26, bottom: 2, right: 2, borderRadius: '50%', background: 'linear-gradient(135deg, #7c5cfc, #6d4fea)', border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 2px 6px rgba(124,92,252,0.4)' }}>
+            <div className="absolute flex items-center justify-center" style={{ width: 26, height: 26, bottom: 2, right: 2, borderRadius: '50%', background: 'linear-gradient(135deg, #f97316, #c2410c)', border: '2px solid rgba(255,255,255,0.95)', boxShadow: '0 2px 6px rgba(249,115,22,0.4)' }}>
               <svg className="w-3 h-3" style={{ color: '#f8f8fc' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z" />
               </svg>
@@ -157,8 +157,8 @@ export default function ProfilePage() {
           {/* Personal info */}
           <div className="rounded-[20px] overflow-hidden" style={{ ...glass, padding: 0, animation: 'profCardIn 0.3s ease-out 0.06s both' }}>
             <div className="flex items-center gap-2.5" style={{ padding: '14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-              <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.1)' }}>
-                <svg className="w-4 h-4" style={{ color: '#8b5cf6' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+              <div className="w-8 h-8 rounded-[10px] flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(249,115,22,0.1)' }}>
+                <svg className="w-4 h-4" style={{ color: '#fb923c' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
               </div>
               <h3 className="text-[14px] font-bold text-[#1a1a2e]">ข้อมูลส่วนตัว</h3>
             </div>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                       border: '1px solid rgba(255,255,255,0.85)',
                       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.04)',
                     }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(124,92,252,0.45)'; e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 3px rgba(124,92,252,0.1)' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(249,115,22,0.45)'; e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 3px rgba(249,115,22,0.1)' }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.85)'; e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.04)' }}
                   />
                 </div>
@@ -213,13 +213,13 @@ export default function ProfilePage() {
             disabled={saving || !name.trim()}
             className="w-full h-[54px] rounded-2xl text-[15px] font-bold no-btn-fx disabled:opacity-50 transition-all duration-200 active:scale-[0.98] hover:-translate-y-px"
             style={{
-              background: 'rgba(124,92,252,0.12)',
-              border: '1px solid rgba(124,92,252,0.35)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 16px rgba(124,92,252,0.15)',
-              color: '#7c5cfc',
+              background: 'rgba(249,115,22,0.12)',
+              border: '1px solid rgba(249,115,22,0.35)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 4px 16px rgba(249,115,22,0.15)',
+              color: '#f97316',
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.18)'; e.currentTarget.style.borderColor = 'rgba(124,92,252,0.5)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(124,92,252,0.12)'; e.currentTarget.style.borderColor = 'rgba(124,92,252,0.35)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.18)'; e.currentTarget.style.borderColor = 'rgba(249,115,22,0.5)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.12)'; e.currentTarget.style.borderColor = 'rgba(249,115,22,0.35)' }}
           >
             {saving ? 'กำลังบันทึก...' : saved ? (
               <span className="flex items-center justify-center gap-1.5">
@@ -270,8 +270,8 @@ function GlassField({ label, value, onChange, placeholder, type, mono }: {
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.04)',
         }}
         onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(124,92,252,0.45)'
-          e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 3px rgba(124,92,252,0.1)'
+          e.currentTarget.style.borderColor = 'rgba(249,115,22,0.45)'
+          e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.9), 0 0 0 3px rgba(249,115,22,0.1)'
         }}
         onBlur={(e) => {
           e.currentTarget.style.borderColor = 'rgba(255,255,255,0.85)'

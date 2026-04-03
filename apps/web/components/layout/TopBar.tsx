@@ -51,15 +51,15 @@ export function TopBar({
   }
 
   return (
-    <div className={`${isDark ? 'bg-[#080810]/80 border-b border-white/[0.06]' : 'bg-white/70 border-b border-gray-200/50'} backdrop-blur-xl px-4 pt-safe-top sticky top-0 z-30`}>
+    <div className={`${isDark ? 'bg-[#faf8f5]/80 border-b border-white/[0.06]' : 'bg-white/70 border-b border-gray-200/50'} backdrop-blur-xl px-4 pt-safe-top sticky top-0 z-30`}>
       <div className="flex items-center gap-3 py-3 max-w-[1100px] min-[900px]:px-8 mx-auto">
         {/* Back button */}
         <button
           onClick={() => backHref ? router.push(backHref) : router.back()}
-          className={`w-9 h-9 flex items-center justify-center rounded-xl active:scale-95 transition-all flex-shrink-0 no-btn-fx ${isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-indigo-50 hover:bg-indigo-100'}`}
+          className={`w-11 h-11 flex items-center justify-center rounded-xl active:scale-95 transition-all flex-shrink-0 no-btn-fx ${isDark ? 'bg-white/[0.06] hover:bg-white/[0.1]' : 'bg-orange-50 hover:bg-orange-100'}`}
           aria-label="ย้อนกลับ"
         >
-          <svg className={`w-4 h-4 ${isDark ? 'text-white/60' : 'text-indigo-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className={`w-4 h-4 ${isDark ? 'text-white/60' : 'text-orange-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -67,7 +67,7 @@ export function TopBar({
         {/* Title */}
         <div className="flex-1 min-w-0">
           <h1 className={`text-[15px] font-bold leading-tight truncate ${isDark ? 'text-[#f0f0ff]' : 'text-gray-900'}`}>{title}</h1>
-          {subtitle && <p className={`text-[11px] truncate mt-0.5 ${isDark ? 'text-white/[0.45]' : 'text-gray-400'}`}>{subtitle}</p>}
+          {subtitle && <p className={`text-[12px] truncate mt-0.5 ${isDark ? 'text-white/[0.45]' : 'text-gray-400'}`}>{subtitle}</p>}
         </div>
 
         {/* Extra slot */}
@@ -77,7 +77,7 @@ export function TopBar({
         <div className="relative flex-shrink-0" ref={menuRef}>
           <button
             onClick={() => setOpen((v) => !v)}
-            className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center no-btn-fx hover:ring-2 transition-all ${isDark ? 'bg-white/[0.06] hover:ring-white/20' : 'bg-indigo-50 hover:ring-indigo-200'}`}
+            className={`w-11 h-11 rounded-xl overflow-hidden flex items-center justify-center no-btn-fx hover:ring-2 transition-all ${isDark ? 'bg-white/[0.06] hover:ring-white/20' : 'bg-orange-50 hover:ring-orange-200'}`}
             aria-label="เมนูผู้ใช้"
           >
             {user?.avatarUrl ? (
@@ -92,24 +92,24 @@ export function TopBar({
                 unoptimized
               />
             ) : null}
-            <span className={`${isDark ? 'text-violet-300' : 'text-indigo-600'} font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
+            <span className={`${isDark ? 'text-orange-300' : 'text-orange-600'} font-bold text-sm ${user?.avatarUrl ? 'hidden' : ''}`}>{user?.name?.[0] ?? '?'}</span>
           </button>
 
           {open && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden z-50">
-                <a href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-indigo-50/50 transition-colors border-b border-gray-100/60">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden flex-shrink-0 border border-indigo-100/50">
+              <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-[14rem] bg-white/80 backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/40 overflow-hidden z-50">
+                <a href="/profile" className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50/50 transition-colors border-b border-gray-100/60">
+                  <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center overflow-hidden flex-shrink-0 border border-orange-100/50">
                     {user?.avatarUrl ? (
                       <Image src={user.avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" referrerPolicy="no-referrer" unoptimized />
                     ) : (
-                      <span className="text-indigo-600 font-bold text-xs">{user?.name?.[0]}</span>
+                      <span className="text-orange-600 font-bold text-xs">{user?.name?.[0]}</span>
                     )}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{user?.name}</p>
-                    <p className="text-[10px] text-indigo-500">ดูโปรไฟล์</p>
+                    <p className="text-[10px] text-orange-500">ดูโปรไฟล์</p>
                   </div>
                 </a>
                 <button
