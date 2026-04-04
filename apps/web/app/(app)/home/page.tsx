@@ -36,7 +36,7 @@ export default async function HomePage() {
       startDate: tm.tour.startDate.toISOString(),
       endDate: tm.tour.endDate.toISOString(),
     }))
-  }, 15_000) // cache for 15s
+  }, 60_000) // cache for 60s
 
   return (
     <HomeClient
