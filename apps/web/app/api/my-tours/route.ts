@@ -32,7 +32,7 @@ export async function GET() {
       take: 50,
     })
     return tourMembers.map(tm => tm.tour)
-  }, 15_000)
+  }, 60_000)
 
   return NextResponse.json(
     { tours, user: { id: user.id, name: user.name, avatarUrl: user.avatarUrl } },

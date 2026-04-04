@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@tripflow/database'
+import { cachedFetch } from '@/lib/cache'
 
 export async function GET(
   _req: NextRequest,
@@ -7,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const announcements = await db.tourAnnouncement.findMany({
+    const announcements = await cachedFetch(`announcements:${id}`, () => db.tourAnnouncement.findMany({
       where: { tourId: id },
       select: {
         id: true,
@@ -19,7 +20,7 @@ export async function GET(
         createdAt: true,
       },
       orderBy: [{ isPinned: 'desc' }, { order: 'asc' }],
-    })
+    }), 60_000)
 
     const res = NextResponse.json(announcements)
     res.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=120')
