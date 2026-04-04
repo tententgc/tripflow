@@ -179,3 +179,24 @@ npm run start:all    # bash start.sh
 - web: 3000
 - admin: 3001
 - superadmin: 3002
+
+## Design Context
+
+**Brand**: Premium, Elegant, Polished — like a luxury travel concierge, not a budget tool.
+
+**Emotional Goals**: Confident & calm, excited & delighted, safe & supported, empowered & independent.
+
+**References**: Apple Maps (clean hierarchy), Airbnb (warm cards), Grab/LINE (mobile-first density).
+
+**Anti-references**: Cluttered travel agencies, corporate dashboards, overly playful/cartoon, dark/techy.
+
+**Design Principles**:
+1. **Calm Confidence** — No visual noise. Information hierarchy does the heavy lifting.
+2. **Warm Premium** — Soft shadows, warm neutrals (`#faf8f5`, `#2c1810`), generous whitespace.
+3. **Glanceable First** — Key info scannable in 3 seconds. Icons, color coding, spatial hierarchy.
+4. **Touch-Friendly Always** — 44px min targets, generous spacing, forgiving hit areas.
+5. **Photography Forward** — Let destination images breathe with proper aspect ratios.
+
+**Key Tokens**: Background `#faf8f5`, text `#2c1810`, accent `#f97316`, glass `rgba(255,255,255,0.78) + blur(28px)`, card radius 18-22px, fonts Inter + Noto Sans Thai.
+
+See `.impeccable.md` for full design tokens, typography scale, and component patterns.
