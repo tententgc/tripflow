@@ -3,13 +3,26 @@ import { createServerClient } from '@supabase/ssr'
 
 /**
  * Next.js 16 proxy — runs before any page renders.
- * Uses getSession() (local JWT decode, ~1ms) instead of getUser() (~150ms network call).
+ * Optimized: skips expensive Supabase call for public/static/API routes.
  */
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Skip auth check for API routes — they handle their own auth
+  // Skip auth for API routes — they handle their own auth
   if (pathname.startsWith('/api/')) {
+    return NextResponse.next()
+  }
+
+  // Skip auth for static assets and service worker
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/icons/') ||
+    pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
+    pathname === '/favicon.ico' ||
+    pathname === '/favicon.svg' ||
+    pathname === '/logo.svg'
+  ) {
     return NextResponse.next()
   }
 
@@ -41,14 +54,17 @@ export async function proxy(req: NextRequest) {
     }
   )
 
-  // getSession() decodes JWT locally (~1ms) vs getUser() which calls Supabase server (~150ms)
+  // getSession() for routing only (~0ms). Security note: this does NOT verify
+  // with the auth server. Actual verification happens in getAuthUser() (lib/auth.ts)
+  // which calls getUser() every 5 min. A forged/revoked session gets past the proxy
+  // but is caught by getAuthUser() before any data is returned.
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (!session?.user && !isAuthPage) {
+  if (!session && !isAuthPage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (session?.user && isAuthPage) {
+  if (session && isAuthPage) {
     return NextResponse.redirect(new URL('/home', req.url))
   }
 

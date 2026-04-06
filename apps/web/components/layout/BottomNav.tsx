@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -11,26 +11,10 @@ interface BottomNavProps {
 }
 
 const services = [
-  {
-    id: 'chat',
-    label: 'AI ช่วยเหลือ',
-    desc: 'ถามอะไรก็ได้เกี่ยวกับทริป',
-  },
-  {
-    id: 'calculator',
-    label: 'แปลงค่าเงิน',
-    desc: 'แปลง THB ↔ สกุลเงินปลายทาง',
-  },
-  {
-    id: 'checklist',
-    label: 'เช็คลิสต์',
-    desc: 'รายการที่ต้องเตรียมและทำในทริป',
-  },
-  {
-    id: 'fund',
-    label: 'เงินกองกลาง',
-    desc: 'เก็บเงินรวม และตัดจ่ายค่าใช้จ่ายกลุ่ม',
-  },
+  { id: 'chat', label: 'AI ช่วยเหลือ', desc: 'ถามอะไรก็ได้เกี่ยวกับทริป' },
+  { id: 'calculator', label: 'แปลงค่าเงิน', desc: 'แปลง THB ↔ สกุลเงินปลายทาง' },
+  { id: 'checklist', label: 'เช็คลิสต์', desc: 'รายการที่ต้องเตรียมและทำในทริป' },
+  { id: 'fund', label: 'เงินกองกลาง', desc: 'เก็บเงินรวม และตัดจ่ายค่าใช้จ่ายกลุ่ม' },
 ]
 
 const serviceIcons: Record<string, React.ReactNode> = {
@@ -79,7 +63,14 @@ const tabIcons: Record<string, (active: boolean) => React.ReactNode> = {
   ),
 }
 
-export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
+const SERVICE_TINTS: Record<string, { bg: string; color: string }> = {
+  chat:       { bg: 'rgba(79,70,229,0.1)',   color: '#6366f1' },
+  calculator: { bg: 'rgba(16,185,129,0.1)',   color: '#10b981' },
+  checklist:  { bg: 'rgba(59,130,246,0.1)',   color: '#3b82f6' },
+  fund:       { bg: 'rgba(249,112,102,0.1)',  color: '#f97066' },
+}
+
+export const BottomNav = memo(function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
 
@@ -97,12 +88,7 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
 
   const isMoreActive = activeTab === 'chat' || activeTab === 'calculator' || activeTab === 'checklist' || activeTab === 'fund'
 
-  const serviceTints: Record<string, { bg: string; color: string }> = {
-    chat:       { bg: 'rgba(249,115,22,0.1)',  color: '#fb923c' },
-    calculator: { bg: 'rgba(16,185,129,0.1)',  color: '#10b981' },
-    checklist:  { bg: 'rgba(59,130,246,0.1)',  color: '#3b82f6' },
-    fund:       { bg: 'rgba(249,115,22,0.1)',  color: '#f97316' },
-  }
+  const serviceTints = SERVICE_TINTS
 
   return (
     <>
@@ -118,7 +104,7 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
         <div
           className="fixed inset-0 z-40"
           style={{
-            background: 'rgba(15,10,30,0.45)',
+            background: 'rgba(15,23,42,0.45)',
             backdropFilter: 'blur(6px)',
             WebkitBackdropFilter: 'blur(6px)',
             animation: 'sheetBdIn 0.2s ease both',
@@ -133,27 +119,22 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
           className="fixed left-0 right-0 bottom-0 z-50 min-[900px]:hidden overflow-y-auto"
           style={{
             maxHeight: '85vh',
-            background: 'rgba(255,255,255,0.78)',
-            backdropFilter: 'blur(28px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            background: 'rgba(255,255,255,0.82)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.9)',
             borderBottom: 'none',
-            borderRadius: '28px 28px 0 0',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 -8px 40px rgba(0,0,0,0.1), 0 -2px 12px rgba(0,0,0,0.05)',
+            borderRadius: '24px 24px 0 0',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 -8px 40px rgba(0,0,0,0.1)',
             animation: 'sheetSlideUp 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
           }}
         >
-          {/* Drag handle */}
           <div className="flex justify-center" style={{ margin: '12px auto 0' }}>
             <div className="rounded-full" style={{ width: '36px', height: '4px', background: 'rgba(0,0,0,0.12)' }} />
           </div>
-
-          {/* Header */}
           <div style={{ padding: '16px 20px 12px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-            <p className="text-[13px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.08em' }}>เลือกบริการ</p>
+            <p className="text-[13px] font-bold uppercase text-slate-400" style={{ letterSpacing: '0.08em' }}>เลือกบริการ</p>
           </div>
-
-          {/* Service list */}
           <div style={{ padding: '8px 16px 32px 16px' }}>
             {services.map((s, i) => {
               const tint = serviceTints[s.id] ?? { bg: 'rgba(0,0,0,0.06)', color: '#6b7280' }
@@ -168,17 +149,17 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                       borderRadius: '14px',
                       animation: `sheetRowIn 0.2s ease-out ${0.15 + i * 0.03}s both`,
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.04)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(79,70,229,0.04)' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
                       {serviceIcons[s.id]}
                     </span>
                     <div className="text-left flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-[#1a1a2e]">{s.label}</p>
-                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap" style={{ color: 'rgba(30,30,60,0.4)' }}>{s.desc}</p>
+                      <p className="text-[14px] font-semibold text-slate-800">{s.label}</p>
+                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap text-slate-400">{s.desc}</p>
                     </div>
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.18)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
                   </button>
@@ -198,22 +179,19 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
             top: '50%', left: '50%',
             transform: 'translate(-50%, -50%)',
             width: '92vw', maxWidth: '400px',
-            background: 'rgba(255,255,255,0.78)',
-            backdropFilter: 'blur(28px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+            background: 'rgba(255,255,255,0.82)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: '1px solid rgba(255,255,255,0.9)',
             borderRadius: '24px',
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 24px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.95), 0 24px 60px rgba(0,0,0,0.15)',
             animation: 'modalPopIn 0.25s cubic-bezier(0.34,1.56,0.64,1) both',
             overflow: 'hidden',
           }}
         >
-          {/* Header */}
           <div style={{ padding: '18px 20px 14px 20px', borderBottom: '0.5px solid rgba(0,0,0,0.06)' }}>
-            <p className="text-[13px] font-bold uppercase" style={{ color: 'rgba(30,30,60,0.4)', letterSpacing: '0.08em' }}>เลือกบริการ</p>
+            <p className="text-[13px] font-bold uppercase text-slate-400" style={{ letterSpacing: '0.08em' }}>เลือกบริการ</p>
           </div>
-
-          {/* Service list */}
           <div style={{ padding: '8px 16px 20px 16px' }}>
             {services.map((s, i) => {
               const tint = serviceTints[s.id] ?? { bg: 'rgba(0,0,0,0.06)', color: '#6b7280' }
@@ -228,17 +206,17 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                       borderRadius: '14px',
                       animation: `sheetRowIn 0.2s ease-out ${0.12 + i * 0.03}s both`,
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(249,115,22,0.04)' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(79,70,229,0.04)' }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
                   >
                     <span className="w-11 h-11 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: tint.bg, color: tint.color }}>
                       {serviceIcons[s.id]}
                     </span>
                     <div className="text-left flex-1 min-w-0">
-                      <p className="text-[14px] font-semibold text-[#1a1a2e]">{s.label}</p>
-                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap" style={{ color: 'rgba(30,30,60,0.4)' }}>{s.desc}</p>
+                      <p className="text-[14px] font-semibold text-slate-800">{s.label}</p>
+                      <p className="text-[12px] mt-0.5 truncate whitespace-nowrap text-slate-400">{s.desc}</p>
                     </div>
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.18)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                     </svg>
                   </button>
@@ -249,8 +227,8 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
         </div>
       )}
 
-      {/* Nav bar — light glass */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/70 backdrop-blur-2xl border-t border-gray-200/50 pb-safe">
+      {/* Nav bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/70 backdrop-blur-2xl border-t border-slate-200/50 pb-safe">
         <div className="flex max-w-[1100px] min-[900px]:px-8 mx-auto">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id
@@ -259,15 +237,15 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
                 key={tab.id}
                 href={tab.href}
                 className={`flex-1 flex flex-col items-center justify-center py-2.5 min-h-[56px] transition-all duration-150 relative ${
-                  isActive ? 'text-orange-600' : 'text-gray-400'
+                  isActive ? 'text-primary-600' : 'text-slate-400'
                 }`}
               >
                 {tabIcons[tab.id]?.(isActive)}
-                <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isActive ? 'text-orange-600' : 'text-gray-400'}`}>
+                <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isActive ? 'text-primary-600' : 'text-slate-400'}`}>
                   {tab.label}
                 </span>
                 {isActive && (
-                  <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-orange-500 to-orange-500 rounded-full" />
+                  <span className="absolute bottom-1 w-5 h-0.5 rounded-full bg-primary-600" />
                 )}
               </Link>
             )
@@ -277,21 +255,21 @@ export function BottomNav({ activeTab, tourId, isChina }: BottomNavProps) {
           <button
             onClick={() => setOpen((v) => !v)}
             className={`flex-1 flex flex-col items-center justify-center py-2.5 min-h-[56px] transition-all duration-150 relative ${
-              isMoreActive || open ? 'text-orange-600' : 'text-gray-400'
+              isMoreActive || open ? 'text-primary-600' : 'text-slate-400'
             }`}
           >
             <svg className={`w-5 h-5 transition-transform duration-200 ${open ? 'rotate-45' : ''}`} fill={isMoreActive ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isMoreActive ? 0 : 1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z" />
             </svg>
-            <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isMoreActive || open ? 'text-orange-600' : 'text-gray-400'}`}>
+            <span className={`text-[11px] mt-1 leading-tight text-center font-medium ${isMoreActive || open ? 'text-primary-600' : 'text-slate-400'}`}>
               เพิ่มเติม
             </span>
             {isMoreActive && (
-              <span className="absolute bottom-1 w-5 h-0.5 bg-gradient-to-r from-orange-500 to-orange-500 rounded-full" />
+              <span className="absolute bottom-1 w-5 h-0.5 rounded-full bg-primary-600" />
             )}
           </button>
         </div>
       </nav>
     </>
   )
-}
+})

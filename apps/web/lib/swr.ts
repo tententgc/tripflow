@@ -11,7 +11,7 @@ export function useApi<T>(url: string | null, config?: SWRConfiguration) {
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
     dedupingInterval: 10_000,
-    refreshInterval: 60_000,     // poll every 60s (pages can override for real-time)
+    refreshInterval: 0,          // no polling — revalidate on focus only (pages can override)
     ...config,
   })
 }
