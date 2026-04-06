@@ -16,10 +16,8 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   const supabase = await createClient()
-  const w = console.warn; console.warn = () => {}
-  const { data: { session } } = await supabase.auth.getSession()
-  console.warn = w
-  const email = session?.user?.email
+  const { data: { user } } = await supabase.auth.getUser()
+  const email = user?.email
 
   if (!email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -29,16 +29,13 @@ export async function proxy(req: NextRequest) {
     }
   )
 
-  // getSession() decodes JWT locally (~1ms) vs getUser() (~150ms network call)
-  const w = console.warn; console.warn = () => {}
-  const { data: { session } } = await supabase.auth.getSession()
-  console.warn = w
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session && !isLoginPage) {
+  if (!user && !isLoginPage) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
-  if (session && isLoginPage) {
+  if (user && isLoginPage) {
     return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 

@@ -1,7 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, logActivity } from '@tripflow/database'
-import { getCached, setCache, invalidateCache } from '@/lib/cache'
+import { invalidateCache } from '@/lib/cache'
 import { getAuthUserLight } from '@/lib/auth'
+import { unstable_cache, revalidateTag } from 'next/cache'
+
+function getCachedSplits(tourId: string) {
+  return unstable_cache(
+    async () => {
+      return db.expense.findMany({
+        where: { tourId },
+        select: {
+          id: true, tourId: true, title: true, amount: true, currency: true,
+          amountTHB: true, category: true, receiptUrl: true, notes: true, date: true, paidById: true,
+          paidBy: { select: { id: true, name: true, avatarUrl: true } },
+          participants: {
+            select: {
+              id: true, expenseId: true, userId: true, share: true, isPaid: true, settleReceiptUrl: true,
+              user: { select: { id: true, name: true, avatarUrl: true } },
+            },
+          },
+        },
+        orderBy: { date: 'desc' },
+        take: 200,
+      })
+    },
+    ['splits', tourId],
+    { revalidate: 15, tags: [`splits-${tourId}`] }
+  )()
+}
 
 // GET /api/tours/[id]/splits — list all splits for this tour
 export async function GET(
@@ -9,28 +35,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-
-  const cacheKey = `splits:${id}`
-  const cached = getCached(cacheKey)
-  if (cached) return NextResponse.json(cached)
-
-  const expenses = await db.expense.findMany({
-    where: { tourId: id },
-    select: {
-      id: true, tourId: true, title: true, amount: true, currency: true,
-      amountTHB: true, category: true, receiptUrl: true, notes: true, date: true, paidById: true,
-      paidBy: { select: { id: true, name: true, avatarUrl: true } },
-      participants: {
-        select: {
-          id: true, expenseId: true, userId: true, share: true, isPaid: true, settleReceiptUrl: true,
-          user: { select: { id: true, name: true, avatarUrl: true } },
-        },
-      },
-    },
-    orderBy: { date: 'desc' },
-    take: 200,
-  })
-  setCache(cacheKey, expenses, 15_000)
+  const expenses = await getCachedSplits(id)
   return NextResponse.json(expenses)
 }
 
@@ -91,6 +96,6 @@ export async function POST(
     tourId: id,
   }).catch(() => {})
 
-  invalidateCache(`splits:${id}`)
+  revalidateTag(`splits-${id}`, 'max')
   return NextResponse.json(expense)
 }

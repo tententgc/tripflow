@@ -182,21 +182,25 @@ npm run start:all    # bash start.sh
 
 ## Design Context
 
-**Brand**: Premium, Elegant, Polished — like a luxury travel concierge, not a budget tool.
+**Brand**: Modern, Confident, Smart — like a sharp travel companion powered by good design.
 
-**Emotional Goals**: Confident & calm, excited & delighted, safe & supported, empowered & independent.
+**Layout**: Bento grid (iOS 18 widgets style) — varied card sizes, data-forward, information-dense but clean.
 
-**References**: Apple Maps (clean hierarchy), Airbnb (warm cards), Grab/LINE (mobile-first density).
+**Emotional Goals**: In control, informed, delighted by smart design — the app feels smarter than other travel tools.
 
-**Anti-references**: Cluttered travel agencies, corporate dashboards, overly playful/cartoon, dark/techy.
+**References**: iOS 18 Widgets (bento grid, at-a-glance density), Monzo/N26 (clean data visualization, card navigation), Stripe Dashboard (typography, purposeful color).
+
+**Anti-references**: Cluttered travel agencies, corporate dashboards, overly playful/cartoon, flat/generic Bootstrap-default.
 
 **Design Principles**:
-1. **Calm Confidence** — No visual noise. Information hierarchy does the heavy lifting.
-2. **Warm Premium** — Soft shadows, warm neutrals (`#faf8f5`, `#2c1810`), generous whitespace.
+1. **Bento Intelligence** — Every card is a widget with purpose. Varied sizes communicate hierarchy.
+2. **Data as Delight** — Progress bars, charts, countdowns, spending breakdowns are first-class UI.
 3. **Glanceable First** — Key info scannable in 3 seconds. Icons, color coding, spatial hierarchy.
 4. **Touch-Friendly Always** — 44px min targets, generous spacing, forgiving hit areas.
-5. **Photography Forward** — Let destination images breathe with proper aspect ratios.
+5. **Cool Confidence** — Indigo conveys trust. Coral adds energy at key moments. Restraint = competence.
 
-**Key Tokens**: Background `#faf8f5`, text `#2c1810`, accent `#f97316`, glass `rgba(255,255,255,0.78) + blur(28px)`, card radius 18-22px, fonts Inter + Noto Sans Thai.
+**Key Tokens**: Background `#f8fafc` (cool white), text `#1e293b` (slate-800), primary `#4f46e5` (indigo), secondary `#f97066` (coral), border `#e2e8f0`, bento radius 20-24px, fonts Inter + Noto Sans Thai.
 
-See `.impeccable.md` for full design tokens, typography scale, and component patterns.
+**Activity Colors**: Sightseeing=indigo, Food=coral, Transport=slate, Accommodation=purple, Shopping=pink, Temple=amber, Nature=emerald, Nightlife=violet.
+
+See `.impeccable.md` for full design tokens, typography scale, migration notes, and component patterns.

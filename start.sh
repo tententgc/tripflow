@@ -17,6 +17,14 @@ if [ "$NODE_VER" -lt 18 ]; then
 fi
 echo "✓ Node.js $(node -v)"
 
+# ── Kill stale processes on dev ports ──────────────────
+for PORT in 3000 3001 3002; do
+  PIDS=$(lsof -ti :$PORT 2>/dev/null || true)
+  if [ -n "$PIDS" ]; then
+    echo "$PIDS" | xargs kill -9 2>/dev/null || true
+  fi
+done
+
 # ── .env check ──────────────────────────────────────────
 if [ ! -f ".env" ]; then
   cp .env.example .env
@@ -78,6 +86,7 @@ echo "✓ Database schema synced"
 # ── Seed (skip if data exists) ──────────────────────────
 echo ""
 echo "🌱 Checking demo data..."
+cd packages/database && npx dotenv -e ../../.env -- npx prisma generate --silent 2>/dev/null && cd ../..
 TOUR_COUNT=$(cd packages/database && npx dotenv -e ../../.env -- node -e "
 const {PrismaClient}=require('../../node_modules/@prisma/client');
 const p=new PrismaClient();

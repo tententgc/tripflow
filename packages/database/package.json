@@ -12,8 +12,8 @@
     "db:seed": "dotenv -e ../../.env -- tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^5.13.0",
-    "prisma": "^5.13.0"
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0"
   },
   "devDependencies": {
     "dotenv-cli": "^7.4.2",

@@ -337,7 +337,7 @@ export default function SplitPage() {
           notes = JSON.stringify({ ...(selectedChannel ?? {}), splitMode: 'itemized', items: itemsData })
         }
 
-        await fetch(`/api/tours/${tourId}/splits`, {
+        const res = await fetch(`/api/tours/${tourId}/splits`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -349,9 +349,14 @@ export default function SplitPage() {
             memberIds,
             receiptUrl,
             notes,
-            perPerson, // send per-person amounts to API (undefined for equal split)
+            perPerson,
           }),
         })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({})) as { error?: string }
+          alert(err.error ?? 'เกิดข้อผิดพลาดในการบันทึก')
+          return
+        }
       }
 
       setTitle('')
@@ -823,14 +828,26 @@ export default function SplitPage() {
                     <p style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'rgba(30,30,60,0.3)', marginBottom: 8 }}>สรุปแต่ละคนจ่าย</p>
                     {(() => {
                       const totals = getItemizedTotals()
-                      return members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => (
-                        <div key={m.id} className="flex items-center justify-between" style={{ padding: '6px 0' }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{m.name.split(' ')[0]}{m.id === me?.id ? ' (ฉัน)' : ''}</span>
-                          <span style={{ fontSize: 14, fontWeight: 700, color: '#f97316' }}>
-                            {CURRENCIES[currency]?.symbol}{Math.ceil(totals.get(m.id) ?? 0).toLocaleString()}
-                          </span>
-                        </div>
-                      ))
+                      const rate = currency === 'THB' ? 1 : (rates[currency] ? 1 / rates[currency] : 1)
+                      return members.filter(m => (totals.get(m.id) ?? 0) > 0).map(m => {
+                        const foreignAmt = Math.ceil(totals.get(m.id) ?? 0)
+                        const thbAmt = Math.ceil(foreignAmt * rate)
+                        return (
+                          <div key={m.id} className="flex items-center justify-between" style={{ padding: '6px 0' }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: '#1a1a2e' }}>{m.name.split(' ')[0]}{m.id === me?.id ? ' (ฉัน)' : ''}</span>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: '#f97316' }}>
+                                {CURRENCIES[currency]?.symbol}{foreignAmt.toLocaleString()}
+                              </span>
+                              {currency !== 'THB' && (
+                                <span style={{ fontSize: 11, color: '#a16207', marginLeft: 6 }}>
+                                  (≈ ฿{thbAmt.toLocaleString()})
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })
                     })()}
                   </div>
                 )}
@@ -1230,24 +1247,28 @@ export default function SplitPage() {
               )}
 
               <button onClick={createSplit}
-                disabled={
-                  saving ||
-                  !amount ||
-                  parseFloat(amount) <= 0 ||
-                  (!payFromFund && (selectedIds.length === 0 || !selectedChannelId)) ||
-                  (payFromFund && (() => {
-                    const rawAmount = parseFloat(amount) || 0
+                disabled={(() => {
+                  if (saving) return true
+                  const effectiveAmt = splitMode === 'itemized' ? itemizedTotal : (parseFloat(amount) || 0)
+                  if (effectiveAmt <= 0) return true
+                  if (splitMode === 'itemized' && lineItems.length === 0) return true
+                  if (!payFromFund && (selectedIds.length === 0 || !selectedChannelId)) return true
+                  if (payFromFund) {
                     const rate = currency === 'THB' ? 1 : (rates[currency] ? 1 / rates[currency] : 1)
-                    return Math.ceil(rawAmount * rate) > (fundBalance ?? 0)
-                  })())
-                }
+                    if (Math.ceil(effectiveAmt * rate) > (fundBalance ?? 0)) return true
+                  }
+                  return false
+                })()}
                 className="w-full transition-all active:scale-[0.98]"
                 style={{
                   height: 52, borderRadius: 16, border: 'none', cursor: 'pointer',
                   background: 'linear-gradient(to right, #f97316, #fbbf24)',
                   color: '#ffffff', fontWeight: 600, fontSize: 15,
                   boxShadow: '0 4px 20px rgba(249,115,22,0.3)',
-                  opacity: (saving || !amount || parseFloat(amount) <= 0 || (!payFromFund && (selectedIds.length === 0 || !selectedChannelId))) ? 0.4 : 1,
+                  opacity: (() => {
+                    const effectiveAmt = splitMode === 'itemized' ? itemizedTotal : (parseFloat(amount) || 0)
+                    return (saving || effectiveAmt <= 0 || (!payFromFund && (selectedIds.length === 0 || !selectedChannelId))) ? 0.4 : 1
+                  })(),
                   animation: 'splitCardIn 0.32s ease-out 0.36s both',
                 }}>
                 {saving
