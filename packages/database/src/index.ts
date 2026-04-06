@@ -10,8 +10,5 @@ export const db =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
 
-// Warm up the connection pool on first import
-db.$connect().catch(() => {})
-
 export * from '@prisma/client'
 export { logActivity } from './activity-log'
