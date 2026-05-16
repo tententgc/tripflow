@@ -1,0 +1,49 @@
+# Build artifacts
+**/node_modules
+**/.next
+**/dist
+**/out
+**/build
+**/.turbo
+
+# Test / coverage
+**/coverage
+**/.nyc_output
+
+# Editor / OS
+**/.DS_Store
+**/.vscode
+**/.idea
+**/*.swp
+
+# Git / GitHub
+.git
+.gitignore
+.github
+
+# Env / secrets — provided via Render env vars at runtime, NEVER bake into image
+.env
+.env.*
+!.env.example
+
+# Vercel — not used by Docker target
+.vercel
+**/.vercel
+
+# Logs
+**/*.log
+**/npm-debug.log*
+
+# Claude / agent
+.claude
+CLAUDE.md
+.impeccable.md
+
+# Project deliverables / docs not needed at runtime
+SUBMISSION.md
+DEPLOY.md
+README.md
+
+# Finder duplicates (just in case any sneak back)
+**/* 2.*
+**/* 3.*

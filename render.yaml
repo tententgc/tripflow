@@ -1,0 +1,80 @@
+# Render Blueprint — defines all TripFlow services declaratively.
+# Apply: connect this repo in Render Dashboard → New → Blueprint → select this repo.
+# Render reads render.yaml and creates / updates the services below.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Secrets (DATABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ANTHROPIC_API_KEY, etc.)
+# are NOT in this file. They're held in the shared Env Group `tripflow-secrets`,
+# which you create once in the Render dashboard and link to both services below.
+
+services:
+  # ──────────────────────────────────────────────────────────────
+  # Traveler PWA — apps/web
+  # ──────────────────────────────────────────────────────────────
+  - type: web
+    name: tripflow-web
+    runtime: docker
+    region: singapore
+    plan: starter            # ~$7/mo; switch to `free` for testing (sleeps after 15 min idle)
+    dockerfilePath: apps/web/Dockerfile
+    dockerContext: .
+    autoDeploy: true         # rebuild on every push to the deploy branch
+    branch: main
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: NEXT_TELEMETRY_DISABLED
+        value: 1
+      - fromGroup: tripflow-secrets
+
+  # ──────────────────────────────────────────────────────────────
+  # Operator portal — apps/admin
+  # ──────────────────────────────────────────────────────────────
+  - type: web
+    name: tripflow-admin
+    runtime: docker
+    region: singapore
+    plan: starter
+    dockerfilePath: apps/admin/Dockerfile
+    dockerContext: .
+    autoDeploy: true
+    branch: main
+    healthCheckPath: /login
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: NEXT_TELEMETRY_DISABLED
+        value: 1
+      - fromGroup: tripflow-secrets
+
+# ──────────────────────────────────────────────────────────────
+# Env Group — created via Render dashboard, NOT here.
+# Fill in once:
+#   DATABASE_URL                     (Supabase pooler URL ?pgbouncer=true)
+#   NEXT_PUBLIC_SUPABASE_URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY
+#   SUPABASE_SERVICE_ROLE_KEY
+#   NEXT_PUBLIC_APP_URL              https://tripflow-web.onrender.com
+#   NEXT_PUBLIC_ADMIN_URL            https://tripflow-admin.onrender.com
+#   JWT_SECRET
+#   ENCRYPTION_KEY
+#   ADMIN_EMAIL
+#   ANTHROPIC_API_KEY                (optional)
+#   DASHSCOPE_API_KEY                (optional)
+#   OPENWEATHER_API_KEY              (optional)
+#   NEXT_PUBLIC_MAPBOX_TOKEN         (optional)
+#   NEXT_PUBLIC_AMAP_JS_KEY          (optional)
+#   ... see .env.example for the full list
+# ──────────────────────────────────────────────────────────────
+envVarGroups:
+  - name: tripflow-secrets
+    envVars:
+      # Placeholder so the group exists on first deploy.
+      # Add the real secrets via Render dashboard once the Blueprint is applied.
+      - key: TRIPFLOW_PLACEHOLDER
+        value: replace-with-real-secrets-in-render-dashboard
