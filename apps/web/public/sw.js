@@ -1,19 +1,23 @@
 // TripFlow Service Worker — Workbox-based offline caching
 // Critical for China: travelers lose internet in subway/rural areas
-
-const CACHE_VERSION = 'v1'
+//
+// IMPORTANT: bump CACHE_VERSION on every release that changes static
+// chunks or HTML. The `activate` handler deletes every cache whose
+// name doesn't match the current version, forcing clients to drop the
+// previous build's chunks instead of serving 404s for renamed files.
+const CACHE_VERSION = 'v3-2026-05-16'
 const TOUR_DATA_CACHE = `tour-data-${CACHE_VERSION}`
 const STATIC_CACHE = `static-${CACHE_VERSION}`
 
-// Install — cache critical static assets
+// Install — cache only manifest and other content that's stable across builds.
+// Do NOT precache `/` or `/home`: their HTML embeds hashed chunk filenames
+// that only exist in the build which generated them, so a stale precached
+// copy points at chunks that 404 after redeploy and leaves the user staring
+// at a blank page.
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll([
-        '/',
-        '/home',
-        '/manifest.json',
-      ])
+      return cache.addAll(['/manifest.json'])
     })
   )
   self.skipWaiting()
@@ -60,17 +64,23 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // Static assets: cache-first
+  // Hashed Next.js chunks: cache-first is safe (filenames change per build)
+  // but only for same-origin GETs to avoid surprises with auth flows.
   if (
-    url.pathname.startsWith('/_next/static/') ||
-    url.pathname.endsWith('.png') ||
-    url.pathname.endsWith('.jpg') ||
-    url.pathname.endsWith('.webp') ||
-    url.pathname.endsWith('.svg')
+    event.request.method === 'GET' &&
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith('/_next/static/') ||
+      url.pathname.endsWith('.png') ||
+      url.pathname.endsWith('.jpg') ||
+      url.pathname.endsWith('.webp') ||
+      url.pathname.endsWith('.svg'))
   ) {
     event.respondWith(cacheFirst(event.request, STATIC_CACHE))
     return
   }
+  // Everything else (HTML pages, auth routes, RSC payloads): network only.
+  // Falling through here means the browser handles the request normally
+  // and we never serve stale HTML that references missing chunks.
 })
 
 async function cacheFirst(request, cacheName) {
