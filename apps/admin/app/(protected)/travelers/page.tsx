@@ -6,7 +6,6 @@ import { getCached, setCache } from '@/lib/cache'
 export const metadata: Metadata = { title: 'นักเดินทาง — TripFlow Admin' }
 export const revalidate = 300
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getTravelersData(): Promise<{ users: any[]; tours: any[] }> {
   const cached = getCached<{ users: unknown[]; tours: unknown[] }>('admin:travelers')
   if (cached) return cached
