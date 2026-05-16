@@ -32,7 +32,19 @@ COPY --from=pruner /repo/out/full/ ./
 # Root tsconfig is not included by `turbo prune`; copy it from build context.
 COPY tsconfig.json ./tsconfig.json
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
-ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* vars are inlined into the JS bundle by `next build`, so they MUST
+# be present at build time. Render passes env-group values as --build-arg when the
+# Dockerfile declares matching ARGs. Promote each ARG to ENV so `next build` sees it.
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ARG NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_ADMIN_URL
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY \
+    NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL \
+    NEXT_PUBLIC_ADMIN_URL=$NEXT_PUBLIC_ADMIN_URL \
+    NEXT_TELEMETRY_DISABLED=1
 RUN npx turbo run build --filter=@tripflow/admin
 
 # ────────────────────────────────────────────────────────────
